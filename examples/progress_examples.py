@@ -21,23 +21,18 @@ This example shows:
 - Performance monitoring
 """
 
-import csv
 import os
-import tempfile
 import time
+import tempfile
+import csv
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Optional, List, Dict, Any
 
-from pcloud_sdk import PCloudException, PCloudSDK
+from pcloud_sdk import PCloudSDK, PCloudException
 from pcloud_sdk.progress_utils import (
-    DetailedProgress,
-    MinimalProgress,
-    SilentProgress,
-    SimpleProgressBar,
-    create_detailed_progress,
-    create_minimal_progress,
-    create_progress_bar,
-    create_silent_progress,
+    create_progress_bar, create_detailed_progress,
+    create_minimal_progress, create_silent_progress,
+    SimpleProgressBar, DetailedProgress, MinimalProgress, SilentProgress
 )
 
 
@@ -50,22 +45,15 @@ class CustomProgressTracker:
         self.last_update = 0
         self.speed_samples = []
         self.max_speed = 0
-        self.min_speed = float("inf")
+        self.min_speed = float('inf')
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs):
         """Advanced progress tracking with statistics"""
 
         if self.start_time is None:
             self.start_time = time.time()
-            operation = kwargs.get("operation", "transfer")
-            filename = kwargs.get("filename", "file")
+            operation = kwargs.get('operation', 'transfer')
+            filename = kwargs.get('filename', 'file')
             print(f"\n📊 {self.name} - Starting {operation}: {filename}")
             print(f"   📏 Size: {total_bytes:,} bytes ({total_bytes/1024/1024:.1f} MB)")
 
@@ -84,39 +72,32 @@ class CustomProgressTracker:
 
         # Calculate statistics
         elapsed = now - self.start_time
-        avg_speed = (
-            sum(self.speed_samples) / len(self.speed_samples)
-            if self.speed_samples
-            else 0
-        )
+        avg_speed = sum(self.speed_samples) / len(self.speed_samples) if self.speed_samples else 0
 
         # Display progress with statistics
-        status = kwargs.get("status", "progress")
+        status = kwargs.get('status', 'progress')
 
-        if status == "completed":
+        if status == 'completed':
             print(f"\n✅ {self.name} - Transfer completed!")
             print(f"   ⏱️  Total time: {elapsed:.1f}s")
             print(f"   📈 Average speed: {avg_speed/1024/1024:.1f} MB/s")
             print(f"   🚀 Max speed: {self.max_speed/1024/1024:.1f} MB/s")
             print(f"   🐌 Min speed: {self.min_speed/1024/1024:.1f} MB/s")
             print(f"   📊 Speed samples: {len(self.speed_samples)}")
-        elif status == "error":
-            error = kwargs.get("error", "Unknown error")
+        elif status == 'error':
+            error = kwargs.get('error', 'Unknown error')
             print(f"\n❌ {self.name} - Error: {error}")
         else:
             # Regular progress update
             bar_width = 30
             filled = int(bar_width * percentage / 100)
-            bar = "█" * filled + "░" * (bar_width - filled)
+            bar = '█' * filled + '░' * (bar_width - filled)
 
-            print(
-                f"\r   [{bar}] {percentage:5.1f}% "
-                f"({bytes_transferred:,}/{total_bytes:,}) "
-                f"📶 {speed/1024/1024:5.1f}MB/s "
-                f"📊 Avg:{avg_speed/1024/1024:4.1f}MB/s",
-                end="",
-                flush=True,
-            )
+            print(f"\r   [{bar}] {percentage:5.1f}% "
+                  f"({bytes_transferred:,}/{total_bytes:,}) "
+                  f"📶 {speed/1024/1024:5.1f}MB/s "
+                  f"📊 Avg:{avg_speed/1024/1024:4.1f}MB/s",
+                  end='', flush=True)
 
 
 def create_test_files(temp_dir: str) -> List[str]:
@@ -125,20 +106,20 @@ def create_test_files(temp_dir: str) -> List[str]:
 
     # Small text file (1KB)
     small_file = os.path.join(temp_dir, "small_test.txt")
-    with open(small_file, "w") as f:
+    with open(small_file, 'w') as f:
         f.write("Small test file content. " * 50)  # ~1KB
     test_files.append(small_file)
 
     # Medium text file (100KB)
     medium_file = os.path.join(temp_dir, "medium_test.txt")
-    with open(medium_file, "w") as f:
+    with open(medium_file, 'w') as f:
         content = "Medium test file content. " * 4000  # ~100KB
         f.write(content)
     test_files.append(medium_file)
 
     # Large binary file (1MB)
     large_file = os.path.join(temp_dir, "large_test.bin")
-    with open(large_file, "wb") as f:
+    with open(large_file, 'wb') as f:
         # Write 1MB of random-like data
         for i in range(1024):
             chunk = bytes([(i + j) % 256 for j in range(1024)])
@@ -150,9 +131,9 @@ def create_test_files(temp_dir: str) -> List[str]:
 
 def demonstrate_simple_progress_bar(sdk: PCloudSDK, test_file: str):
     """Demonstrate SimpleProgressBar"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("1️⃣ SIMPLE PROGRESS BAR DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • Clean visual progress bar")
@@ -161,27 +142,22 @@ def demonstrate_simple_progress_bar(sdk: PCloudSDK, test_file: str):
     print("   • File size information")
 
     # Create progress bar
-    progress_bar = create_progress_bar(
-        "Simple Upload", width=40, show_speed=True, show_eta=True
-    )
+    progress_bar = create_progress_bar("Simple Upload", width=40, show_speed=True, show_eta=True)
 
     try:
         print(f"\n📤 Uploading {os.path.basename(test_file)} with SimpleProgressBar...")
         result = sdk.file.upload(test_file, folder_id=0, progress_callback=progress_bar)
-        file_id = result.get("metadata", [{}])[0].get("fileid")
+        file_id = result.get('metadata', [{}])[0].get('fileid')
 
         if file_id:
             print(f"\n📥 Downloading file with SimpleProgressBar...")
             download_dir = tempfile.mkdtemp()
             progress_bar_dl = create_progress_bar("Simple Download", width=40)
-            sdk.file.download(
-                file_id, destination=download_dir, progress_callback=progress_bar_dl
-            )
+            sdk.file.download(file_id, destination=download_dir, progress_callback=progress_bar_dl)
 
             # Cleanup
             sdk.file.delete(file_id)
             import shutil
-
             shutil.rmtree(download_dir)
 
     except PCloudException as e:
@@ -190,9 +166,9 @@ def demonstrate_simple_progress_bar(sdk: PCloudSDK, test_file: str):
 
 def demonstrate_detailed_progress(sdk: PCloudSDK, test_file: str):
     """Demonstrate DetailedProgress"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("2️⃣ DETAILED PROGRESS DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • Comprehensive logging")
@@ -206,10 +182,8 @@ def demonstrate_detailed_progress(sdk: PCloudSDK, test_file: str):
 
     try:
         print(f"\n📤 Uploading {os.path.basename(test_file)} with DetailedProgress...")
-        result = sdk.file.upload(
-            test_file, folder_id=0, progress_callback=detailed_progress
-        )
-        file_id = result.get("metadata", [{}])[0].get("fileid")
+        result = sdk.file.upload(test_file, folder_id=0, progress_callback=detailed_progress)
+        file_id = result.get('metadata', [{}])[0].get('fileid')
 
         if file_id:
             # Cleanup
@@ -218,7 +192,7 @@ def demonstrate_detailed_progress(sdk: PCloudSDK, test_file: str):
         print(f"\n📄 Progress log saved to: {log_file}")
         if os.path.exists(log_file):
             print("📄 Log file contents (last 5 lines):")
-            with open(log_file, "r") as f:
+            with open(log_file, 'r') as f:
                 lines = f.readlines()
                 for line in lines[-5:]:
                     print(f"   {line.strip()}")
@@ -229,9 +203,9 @@ def demonstrate_detailed_progress(sdk: PCloudSDK, test_file: str):
 
 def demonstrate_minimal_progress(sdk: PCloudSDK, test_file: str):
     """Demonstrate MinimalProgress"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("3️⃣ MINIMAL PROGRESS DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • Milestone notifications only")
@@ -244,10 +218,8 @@ def demonstrate_minimal_progress(sdk: PCloudSDK, test_file: str):
 
     try:
         print(f"\n📤 Uploading {os.path.basename(test_file)} with MinimalProgress...")
-        result = sdk.file.upload(
-            test_file, folder_id=0, progress_callback=minimal_progress
-        )
-        file_id = result.get("metadata", [{}])[0].get("fileid")
+        result = sdk.file.upload(test_file, folder_id=0, progress_callback=minimal_progress)
+        file_id = result.get('metadata', [{}])[0].get('fileid')
 
         if file_id:
             # Cleanup
@@ -259,9 +231,9 @@ def demonstrate_minimal_progress(sdk: PCloudSDK, test_file: str):
 
 def demonstrate_silent_progress(sdk: PCloudSDK, test_file: str):
     """Demonstrate SilentProgress"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("4️⃣ SILENT PROGRESS DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • No console output")
@@ -277,10 +249,8 @@ def demonstrate_silent_progress(sdk: PCloudSDK, test_file: str):
         print(f"\n📤 Uploading {os.path.basename(test_file)} with SilentProgress...")
         print("   (No progress output - check CSV file)")
 
-        result = sdk.file.upload(
-            test_file, folder_id=0, progress_callback=silent_progress
-        )
-        file_id = result.get("metadata", [{}])[0].get("fileid")
+        result = sdk.file.upload(test_file, folder_id=0, progress_callback=silent_progress)
+        file_id = result.get('metadata', [{}])[0].get('fileid')
 
         if file_id:
             # Cleanup
@@ -289,7 +259,7 @@ def demonstrate_silent_progress(sdk: PCloudSDK, test_file: str):
         print(f"\n📊 Progress data saved to: {csv_file}")
         if os.path.exists(csv_file):
             print("📊 CSV file contents (first 5 rows):")
-            with open(csv_file, "r") as f:
+            with open(csv_file, 'r') as f:
                 reader = csv.reader(f)
                 for i, row in enumerate(reader):
                     if i < 5:
@@ -303,9 +273,9 @@ def demonstrate_silent_progress(sdk: PCloudSDK, test_file: str):
 
 def demonstrate_custom_progress(sdk: PCloudSDK, test_file: str):
     """Demonstrate custom progress tracker"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("5️⃣ CUSTOM PROGRESS DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • Custom progress logic")
@@ -317,13 +287,9 @@ def demonstrate_custom_progress(sdk: PCloudSDK, test_file: str):
     custom_progress = CustomProgressTracker("Advanced Tracker")
 
     try:
-        print(
-            f"\n📤 Uploading {os.path.basename(test_file)} with CustomProgressTracker..."
-        )
-        result = sdk.file.upload(
-            test_file, folder_id=0, progress_callback=custom_progress
-        )
-        file_id = result.get("metadata", [{}])[0].get("fileid")
+        print(f"\n📤 Uploading {os.path.basename(test_file)} with CustomProgressTracker...")
+        result = sdk.file.upload(test_file, folder_id=0, progress_callback=custom_progress)
+        file_id = result.get('metadata', [{}])[0].get('fileid')
 
         if file_id:
             # Cleanup
@@ -335,9 +301,9 @@ def demonstrate_custom_progress(sdk: PCloudSDK, test_file: str):
 
 def batch_progress_demonstration(sdk: PCloudSDK, test_files: List[str]):
     """Demonstrate progress tracking for batch operations"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("6️⃣ BATCH PROGRESS DEMONSTRATION")
-    print("=" * 60)
+    print("="*60)
 
     print("📋 Features:")
     print("   • Multiple file progress tracking")
@@ -353,19 +319,16 @@ def batch_progress_demonstration(sdk: PCloudSDK, test_files: List[str]):
 
         def create_file_callback(self, filename: str):
             def callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-                status = kwargs.get("status", "progress")
-                if status == "starting":
+                status = kwargs.get('status', 'progress')
+                if status == 'starting':
                     self.current_file += 1
-                    print(
-                        f"\n📁 File {self.current_file}/{self.total_files}: {filename}"
-                    )
-                elif status == "completed":
+                    print(f"\n📁 File {self.current_file}/{self.total_files}: {filename}")
+                elif status == 'completed':
                     self.completed_files += 1
                     overall_progress = (self.completed_files / self.total_files) * 100
                     print(f"   ✅ Completed ({overall_progress:.1f}% overall)")
                 elif percentage % 25 == 0 and percentage > 0:
-                    print(f"   📊 {percentage:.0f}%...", end="", flush=True)
-
+                    print(f"   📊 {percentage:.0f}%...", end='', flush=True)
             return callback
 
     batch_tracker = BatchProgressTracker(len(test_files))
@@ -379,7 +342,7 @@ def batch_progress_demonstration(sdk: PCloudSDK, test_files: List[str]):
             callback = batch_tracker.create_file_callback(filename)
 
             result = sdk.file.upload(test_file, folder_id=0, progress_callback=callback)
-            file_id = result.get("metadata", [{}])[0].get("fileid")
+            file_id = result.get('metadata', [{}])[0].get('fileid')
             if file_id:
                 uploaded_files.append(file_id)
 
@@ -400,9 +363,9 @@ def batch_progress_demonstration(sdk: PCloudSDK, test_files: List[str]):
 
 def analyze_csv_logs():
     """Analyze CSV logs from silent progress"""
-    print("\n" + "=" * 60)
+    print("\n" + "="*60)
     print("7️⃣ CSV LOG ANALYSIS")
-    print("=" * 60)
+    print("="*60)
 
     csv_file = "silent_progress.csv"
     if not os.path.exists(csv_file):
@@ -410,7 +373,7 @@ def analyze_csv_logs():
         return
 
     try:
-        with open(csv_file, "r") as f:
+        with open(csv_file, 'r') as f:
             reader = csv.DictReader(f)
             rows = list(reader)
 
@@ -421,7 +384,7 @@ def analyze_csv_logs():
         print(f"📊 Analyzing {len(rows)} progress records...")
 
         # Calculate statistics
-        speeds = [float(row["speed_mbps"]) for row in rows if row["speed_mbps"]]
+        speeds = [float(row['speed_mbps']) for row in rows if row['speed_mbps']]
         if speeds:
             avg_speed = sum(speeds) / len(speeds)
             max_speed = max(speeds)
@@ -434,7 +397,7 @@ def analyze_csv_logs():
         # Show transfer timeline
         print(f"   ⏱️  Transfer timeline:")
         for i, row in enumerate(rows[-5:]):  # Last 5 records
-            timestamp = row["timestamp"].split("T")[1][:8]  # Extract time
+            timestamp = row['timestamp'].split('T')[1][:8]  # Extract time
             print(f"      {timestamp}: {row['percentage']}% - {row['speed_mbps']} MB/s")
 
     except Exception as e:
@@ -450,8 +413,8 @@ def main():
     print("\n🔧 Setup...")
 
     # Get credentials
-    email = os.environ.get("PCLOUD_EMAIL")
-    password = os.environ.get("PCLOUD_PASSWORD")
+    email = os.environ.get('PCLOUD_EMAIL')
+    password = os.environ.get('PCLOUD_PASSWORD')
 
     if not email or not password:
         print("📧 Environment variables not found")
@@ -511,7 +474,6 @@ def main():
         # Cleanup
         try:
             import shutil
-
             shutil.rmtree(temp_dir)
             print(f"\n🧹 Cleaned up temporary files")
         except:

@@ -6,19 +6,13 @@ Classes helper prêtes à l'emploi
 
 import time
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Callable, Set, List, Dict, Any
 
 
 class SimpleProgressBar:
     """Barre de progression simple et efficace"""
 
-    def __init__(
-        self,
-        title: str = "Progress",
-        width: int = 50,
-        show_speed: bool = True,
-        show_eta: bool = True,
-    ):
+    def __init__(self, title: str = "Progress", width: int = 50, show_speed: bool = True, show_eta: bool = True):
         """
         Args:
             title: Titre à afficher
@@ -30,17 +24,10 @@ class SimpleProgressBar:
         self.width = width
         self.show_speed = show_speed
         self.show_eta = show_eta
-        self.start_time = None
-        self.last_update = 0
+        self.start_time: Optional[float] = None
+        self.last_update: float = 0.0
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs: Any) -> None:
         """Callback function pour les transferts pCloud"""
 
         if self.start_time is None:
@@ -55,7 +42,7 @@ class SimpleProgressBar:
 
         # Créer la barre
         filled = int(self.width * percentage / 100)
-        bar = "█" * filled + "░" * (self.width - filled)
+        bar = '█' * filled + '░' * (self.width - filled)
 
         # Formatage des données
         transferred_mb = bytes_transferred / (1024 * 1024)
@@ -82,17 +69,13 @@ class SimpleProgressBar:
 
         # Afficher
         display_line = " ".join(display_parts)
-        print(f"\r{display_line}", end="", flush=True)
+        print(f"\r{display_line}", end='', flush=True)
 
         # Nouvelle ligne à la fin
         if percentage >= 100:
             elapsed = time.time() - self.start_time
-            final_speed = (
-                bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
-            )
-            print(
-                f"\n✅ Terminé en {elapsed:.1f}s (vitesse moyenne: {final_speed:.1f}MB/s)"
-            )
+            final_speed = bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
+            print(f"\n✅ Terminé en {elapsed:.1f}s (vitesse moyenne: {final_speed:.1f}MB/s)")
 
 
 class DetailedProgress:
@@ -104,35 +87,28 @@ class DetailedProgress:
             log_file: Fichier de log optionnel pour sauvegarder la progression
         """
         self.log_file = log_file
-        self.start_time = None
-        self.checkpoints = []
+        self.start_time: Optional[float] = None
+        self.checkpoints: List[Dict[str, Any]] = []
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs: Any) -> None:
         """Callback avec affichage détaillé"""
 
         if self.start_time is None:
             self.start_time = time.time()
-            operation = kwargs.get("operation", "transfer")
-            filename = kwargs.get("filename", "file")
+            operation = kwargs.get('operation', 'transfer')
+            filename = kwargs.get('filename', 'file')
             print(f"\n🚀 Starting {operation}: {filename} ({total_bytes:,} bytes)")
 
         # Enregistrer checkpoint
         checkpoint = {
-            "time": time.time(),
-            "bytes": bytes_transferred,
-            "percentage": percentage,
-            "speed": speed,
+            'time': time.time(),
+            'bytes': bytes_transferred,
+            'percentage': percentage,
+            'speed': speed
         }
         self.checkpoints.append(checkpoint)
 
-        status = kwargs.get("status", "progress")
+        status = kwargs.get('status', 'progress')
 
         # Affichage selon le statut
         if status == "starting":
@@ -141,9 +117,7 @@ class DetailedProgress:
             print("💾 Sauvegarde en cours...")
         elif status == "completed":
             elapsed = time.time() - self.start_time
-            avg_speed = (
-                bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
-            )
+            avg_speed = bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
             print(f"✅ Transfert terminé!")
             print(f"   Durée: {elapsed:.1f}s")
             print(f"   Vitesse moyenne: {avg_speed:.1f}MB/s")
@@ -154,34 +128,31 @@ class DetailedProgress:
             # Affichage périodique
             if int(percentage) % 20 == 0 and len(self.checkpoints) > 1:
                 elapsed = time.time() - self.start_time
-                print(
-                    f"📊 Progression: {percentage:.1f}% "
-                    f"({bytes_transferred:,}/{total_bytes:,} bytes) "
-                    f"- {speed / (1024 * 1024):.1f}MB/s "
-                    f"- {elapsed:.1f}s elapsed"
-                )
+                print(f"📊 Progression: {percentage:.1f}% "
+                      f"({bytes_transferred:,}/{total_bytes:,} bytes) "
+                      f"- {speed / (1024 * 1024):.1f}MB/s "
+                      f"- {elapsed:.1f}s elapsed")
 
         # Log dans fichier si spécifié
         if self.log_file:
             self._log_to_file(checkpoint, **kwargs)
 
-    def _log_to_file(self, checkpoint: dict, **kwargs):
+    def _log_to_file(self, checkpoint: Dict[str, Any], **kwargs: Any) -> None:
         """Enregistrer la progression dans un fichier"""
+        assert self.log_file is not None, "log_file should be set before logging"
         timestamp = datetime.now().isoformat()
-        operation = kwargs.get("operation", "transfer")
-        filename = kwargs.get("filename", "file")
-        status = kwargs.get("status", "progress")
+        operation = kwargs.get('operation', 'transfer')
+        filename = kwargs.get('filename', 'file')
+        status = kwargs.get('status', 'progress')
 
-        log_line = (
-            f"{timestamp} | {operation} | {filename} | "
-            f"{checkpoint['percentage']:.1f}% | "
-            f"{checkpoint['bytes']:,} bytes | "
-            f"{checkpoint['speed'] / (1024 * 1024):.1f}MB/s | "
-            f"{status}\n"
-        )
+        log_line = (f"{timestamp} | {operation} | {filename} | "
+                    f"{checkpoint['percentage']:.1f}% | "
+                    f"{checkpoint['bytes']:,} bytes | "
+                    f"{checkpoint['speed'] / (1024 * 1024):.1f}MB/s | "
+                    f"{status}\n")
 
         try:
-            with open(self.log_file, "a", encoding="utf-8") as f:
+            with open(self.log_file, 'a', encoding='utf-8') as f:
                 f.write(log_line)
         except Exception:
             pass  # Ignorer les erreurs de log
@@ -192,23 +163,16 @@ class MinimalProgress:
 
     def __init__(self):
         self.milestones = {0, 25, 50, 75, 100}  # Pourcentages à afficher
-        self.shown = set()
-        self.start_time = None
+        self.shown: Set[int] = set()
+        self.start_time: Optional[float] = None
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs: Any) -> None:
         """Callback minimal"""
 
         if self.start_time is None:
             self.start_time = time.time()
-            filename = kwargs.get("filename", "file")
-            operation = kwargs.get("operation", "transfer")
+            filename = kwargs.get('filename', 'file')
+            operation = kwargs.get('operation', 'transfer')
             print(f"🚀 {operation.title()}: {filename}")
 
         # Afficher seulement aux milestones
@@ -219,7 +183,7 @@ class MinimalProgress:
             self.shown.add(milestone)
 
         # Message final
-        status = kwargs.get("status", "progress")
+        status = kwargs.get('status', 'progress')
         if status == "completed":
             elapsed = time.time() - self.start_time
             print(f"✅ Terminé en {elapsed:.1f}s")
@@ -232,45 +196,36 @@ class SilentProgress:
 
     def __init__(self, log_file: str):
         self.log_file = log_file
-        self.start_time = None
+        self.start_time: Optional[float] = None
 
         # Créer/vider le fichier de log
-        with open(self.log_file, "w", encoding="utf-8") as f:
+        with open(self.log_file, 'w', encoding='utf-8') as f:
             f.write(f"# pCloud Transfer Log - {datetime.now().isoformat()}\n")
-            f.write(
-                "# timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status\n"
-            )
+            f.write("# timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status\n")
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs: Any) -> None:
         """Callback silencieux avec log CSV"""
 
         if self.start_time is None:
             self.start_time = time.time()
 
         timestamp = datetime.now().isoformat()
-        operation = kwargs.get("operation", "transfer")
-        filename = kwargs.get("filename", "file")
-        status = kwargs.get("status", "progress")
+        operation = kwargs.get('operation', 'transfer')
+        filename = kwargs.get('filename', 'file')
+        status = kwargs.get('status', 'progress')
         speed_mbps = speed / (1024 * 1024)
 
         log_line = f"{timestamp},{operation},{filename},{percentage:.1f},{bytes_transferred},{total_bytes},{speed_mbps:.2f},{status}\n"
 
         try:
-            with open(self.log_file, "a", encoding="utf-8") as f:
+            with open(self.log_file, 'a', encoding='utf-8') as f:
                 f.write(log_line)
         except Exception:
             pass
 
 
 # Factory functions pour création rapide
-def create_progress_bar(title: str = "Transfer", **kwargs) -> SimpleProgressBar:
+def create_progress_bar(title: str = "Transfer", **kwargs: Any) -> SimpleProgressBar:
     """Créer une barre de progression simple"""
     return SimpleProgressBar(title=title, **kwargs)
 
@@ -295,14 +250,15 @@ if __name__ == "__main__":
     print("🧪 Test des utilitaires de progression")
     print("=" * 40)
 
+
     # Simulation d'un transfert
-    def simulate_transfer(progress_callback):
+    def simulate_transfer(progress_callback: Callable[..., None]) -> None:
         """Simuler un transfert pour tester les callbacks"""
         total_size = 10 * 1024 * 1024  # 10MB
         chunk_size = 512 * 1024  # 512KB chunks
 
         transferred = 0
-        start_time = time.time()
+        start_time: float = time.time()
 
         while transferred < total_size:
             time.sleep(0.1)  # Simuler le temps de transfert
@@ -315,34 +271,15 @@ if __name__ == "__main__":
             percentage = (transferred / total_size) * 100
 
             if transferred == chunk_size:
-                progress_callback(
-                    transferred,
-                    total_size,
-                    percentage,
-                    speed,
-                    operation="upload",
-                    filename="test_file.txt",
-                    status="starting",
-                )
+                progress_callback(transferred, total_size, percentage, speed,
+                                  operation="upload", filename="test_file.txt", status="starting")
             elif transferred >= total_size:
-                progress_callback(
-                    transferred,
-                    total_size,
-                    percentage,
-                    speed,
-                    operation="upload",
-                    filename="test_file.txt",
-                    status="completed",
-                )
+                progress_callback(transferred, total_size, percentage, speed,
+                                  operation="upload", filename="test_file.txt", status="completed")
             else:
-                progress_callback(
-                    transferred,
-                    total_size,
-                    percentage,
-                    speed,
-                    operation="upload",
-                    filename="test_file.txt",
-                )
+                progress_callback(transferred, total_size, percentage, speed,
+                                  operation="upload", filename="test_file.txt")
+
 
     # Test des différents progress trackers
     print("1️⃣ Test SimpleProgressBar:")

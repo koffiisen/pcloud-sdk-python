@@ -4,8 +4,8 @@ Quick verification script to check if the test setup is working correctly
 """
 
 import os
-import subprocess
 import sys
+import subprocess
 from pathlib import Path
 
 
@@ -34,7 +34,7 @@ def check_test_files():
         "tests/test_folder_operations.py",
         "tests/test_progress_callbacks.py",
         "tests/test_token_manager.py",
-        "tests/test_integration.py",
+        "tests/test_integration.py"
     ]
 
     missing_files = []
@@ -63,7 +63,7 @@ def check_imports():
         "pcloud_sdk.file_operations",
         "pcloud_sdk.folder_operations",
         "pcloud_sdk.progress_utils",
-        "pcloud_sdk.exceptions",
+        "pcloud_sdk.exceptions"
     ]
 
     failed_imports = []
@@ -87,7 +87,11 @@ def check_test_dependencies():
     """Check if test dependencies are available"""
     print("\n🔧 Checking test dependencies...")
 
-    dependencies = ["pytest", "responses", "requests"]
+    dependencies = [
+        "pytest",
+        "responses",
+        "requests"
+    ]
 
     missing_deps = []
     for dep in dependencies:
@@ -113,18 +117,11 @@ def run_basic_test():
 
     try:
         # Run just one simple test to verify setup
-        result = subprocess.run(
-            [
-                sys.executable,
-                "-m",
-                "pytest",
-                "tests/test_authentication.py::TestDirectAuthentication::test_missing_credentials",
-                "-v",
-            ],
-            capture_output=True,
-            text=True,
-            timeout=30,
-        )
+        result = subprocess.run([
+            sys.executable, "-m", "pytest",
+            "tests/test_authentication.py::TestDirectAuthentication::test_missing_credentials",
+            "-v"
+        ], capture_output=True, text=True, timeout=30)
 
         if result.returncode == 0:
             print("✅ Basic test passed")
@@ -148,15 +145,13 @@ def count_tests():
     print("\n📊 Counting tests...")
 
     try:
-        result = subprocess.run(
-            [sys.executable, "-m", "pytest", "--collect-only", "-q"],
-            capture_output=True,
-            text=True,
-            timeout=10,
-        )
+        result = subprocess.run([
+            sys.executable, "-m", "pytest",
+            "--collect-only", "-q"
+        ], capture_output=True, text=True, timeout=10)
 
         if result.returncode == 0:
-            lines = result.stdout.split("\n")
+            lines = result.stdout.split('\n')
             # Look for summary line like "collected 150 items"
             for line in lines:
                 if "collected" in line and "items" in line:
@@ -179,7 +174,7 @@ def count_tests():
 def main():
     """Main verification function"""
     print("🔍 pCloud SDK Test Setup Verification")
-    print("=" * 50)
+    print("="*50)
 
     # Change to script directory
     script_dir = Path(__file__).parent
@@ -192,7 +187,7 @@ def main():
         ("SDK Imports", check_imports),
         ("Test Dependencies", check_test_dependencies),
         ("Basic Test", run_basic_test),
-        ("Test Count", count_tests),
+        ("Test Count", count_tests)
     ]
 
     results = []

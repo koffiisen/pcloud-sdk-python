@@ -18,17 +18,17 @@ This comprehensive demo covers:
 - Real-world transfer scenarios
 """
 
-import hashlib
-import mimetypes
 import os
-import shutil
 import tempfile
+import hashlib
 import time
+import shutil
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from typing import List, Dict, Any, Optional, Tuple
+import mimetypes
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
 
-from pcloud_sdk import PCloudSDK, create_detailed_progress, create_progress_bar
+from pcloud_sdk import PCloudSDK, create_progress_bar, create_detailed_progress
 from pcloud_sdk.exceptions import PCloudException
 
 
@@ -39,13 +39,13 @@ def create_test_files() -> List[str]:
 
     # Small text file
     small_file = os.path.join(temp_dir, "small_document.txt")
-    with open(small_file, "w") as f:
+    with open(small_file, 'w') as f:
         f.write("This is a small test document.\n" * 100)
     test_files.append(small_file)
 
     # Medium binary file
     medium_file = os.path.join(temp_dir, "medium_data.bin")
-    with open(medium_file, "wb") as f:
+    with open(medium_file, 'wb') as f:
         # Create pseudo-random binary data
         for i in range(1024):  # 1MB
             chunk = bytes([(i * 137 + j) % 256 for j in range(1024)])
@@ -54,19 +54,17 @@ def create_test_files() -> List[str]:
 
     # Large text file
     large_file = os.path.join(temp_dir, "large_document.txt")
-    with open(large_file, "w") as f:
+    with open(large_file, 'w') as f:
         for i in range(50000):  # ~5MB
-            f.write(
-                f"Line {i:06d}: This is line number {i} in our large test document.\n"
-            )
+            f.write(f"Line {i:06d}: This is line number {i} in our large test document.\n")
     test_files.append(large_file)
 
     # Image-like file (for MIME type testing)
     fake_image = os.path.join(temp_dir, "test_image.jpg")
-    with open(fake_image, "wb") as f:
+    with open(fake_image, 'wb') as f:
         # Create a fake JPEG header
-        f.write(b"\xff\xd8\xff\xe0")  # JPEG magic bytes
-        f.write(b"\x00" * 10240)  # 10KB of zeros
+        f.write(b'\xFF\xD8\xFF\xE0')  # JPEG magic bytes
+        f.write(b'\x00' * 10240)  # 10KB of zeros
     test_files.append(fake_image)
 
     print(f"✓ Created {len(test_files)} test files:")
@@ -88,7 +86,7 @@ def calculate_file_hash(file_path: str) -> str:
 
 def format_size(bytes_size: int) -> str:
     """Format bytes to human readable format"""
-    for unit in ["B", "KB", "MB", "GB"]:
+    for unit in ['B', 'KB', 'MB', 'GB']:
         if bytes_size < 1024.0:
             return f"{bytes_size:.1f} {unit}"
         bytes_size /= 1024.0
@@ -110,25 +108,18 @@ class AdvancedProgressTracker:
         self.speed_samples = []
         self.bytes_history = []
 
-    def __call__(
-        self,
-        bytes_transferred: int,
-        total_bytes: int,
-        percentage: float,
-        speed: float,
-        **kwargs,
-    ):
+    def __call__(self, bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs):
         """Progress callback with detailed monitoring"""
 
         current_time = time.time()
 
         if self.start_time is None:
             self.start_time = current_time
-            operation = kwargs.get("operation", "transfer")
+            operation = kwargs.get('operation', 'transfer')
             print(f"\n⚡ {operation.title()} started: {self.file_name}")
             print(f"   Size: {format_size(total_bytes)}")
 
-        status = kwargs.get("status", "progress")
+        status = kwargs.get('status', 'progress')
 
         # Collect performance data
         if speed > 0:
@@ -137,10 +128,10 @@ class AdvancedProgressTracker:
         self.bytes_history.append((current_time, bytes_transferred))
 
         # Update display every 1 second or on status change
-        if current_time - self.last_update >= 1.0 or status != "progress":
+        if current_time - self.last_update >= 1.0 or status != 'progress':
             self.last_update = current_time
 
-            if status == "progress":
+            if status == 'progress':
                 elapsed = current_time - self.start_time
                 avg_speed = bytes_transferred / elapsed if elapsed > 0 else 0
 
@@ -148,19 +139,13 @@ class AdvancedProgressTracker:
                 if speed > 0:
                     remaining_bytes = total_bytes - bytes_transferred
                     eta_seconds = remaining_bytes / speed
-                    eta_str = (
-                        f"{int(eta_seconds)}s"
-                        if eta_seconds < 60
-                        else f"{int(eta_seconds/60)}m{int(eta_seconds%60)}s"
-                    )
+                    eta_str = f"{int(eta_seconds)}s" if eta_seconds < 60 else f"{int(eta_seconds/60)}m{int(eta_seconds%60)}s"
                 else:
                     eta_str = "Unknown"
 
-                print(
-                    f"   ▶ {percentage:5.1f}% | {format_speed(speed)} | Avg: {format_speed(avg_speed)} | ETA: {eta_str}"
-                )
+                print(f"   ▶ {percentage:5.1f}% | {format_speed(speed)} | Avg: {format_speed(avg_speed)} | ETA: {eta_str}")
 
-            elif status == "completed":
+            elif status == 'completed':
                 elapsed = current_time - self.start_time
                 avg_speed = bytes_transferred / elapsed if elapsed > 0 else 0
                 max_speed = max(self.speed_samples) if self.speed_samples else 0
@@ -168,14 +153,10 @@ class AdvancedProgressTracker:
                 print(f"  ✓ Transfer completed in {elapsed:.1f}s")
                 print(f"      Average speed: {format_speed(avg_speed)}")
                 print(f"      Peak speed: {format_speed(max_speed)}")
-                print(
-                    f"      Efficiency: {(avg_speed/max_speed*100):.0f}%"
-                    if max_speed > 0
-                    else ""
-                )
+                print(f"      Efficiency: {(avg_speed/max_speed*100):.0f}%" if max_speed > 0 else "")
 
-            elif status == "error":
-                error = kwargs.get("error", "Unknown error")
+            elif status == 'error':
+                error = kwargs.get('error', 'Unknown error')
                 print(f"   ✗ Transfer failed: {error}")
 
 
@@ -190,39 +171,32 @@ class BatchProgressManager:
     def add_file(self, file_name: str, size: int):
         """Add a file to track"""
         self.files[file_name] = {
-            "size": size,
-            "transferred": 0,
-            "completed": False,
-            "start_time": None,
+            'size': size,
+            'transferred': 0,
+            'completed': False,
+            'start_time': None
         }
 
     def create_progress_callback(self, file_name: str):
         """Create a progress callback for a specific file"""
-
-        def progress_callback(
-            bytes_transferred: int,
-            total_bytes: int,
-            percentage: float,
-            speed: float,
-            **kwargs,
-        ):
-            status = kwargs.get("status", "progress")
+        def progress_callback(bytes_transferred: int, total_bytes: int, percentage: float, speed: float, **kwargs):
+            status = kwargs.get('status', 'progress')
 
             if file_name in self.files:
                 file_info = self.files[file_name]
 
-                if file_info["start_time"] is None:
-                    file_info["start_time"] = time.time()
+                if file_info['start_time'] is None:
+                    file_info['start_time'] = time.time()
 
-                file_info["transferred"] = bytes_transferred
+                file_info['transferred'] = bytes_transferred
 
-                if status == "completed":
-                    file_info["completed"] = True
-                    elapsed = time.time() - file_info["start_time"]
+                if status == 'completed':
+                    file_info['completed'] = True
+                    elapsed = time.time() - file_info['start_time']
                     avg_speed = bytes_transferred / elapsed if elapsed > 0 else 0
                     print(f"  ✓ {file_name}: {format_speed(avg_speed)}")
 
-                elif status == "error":
+                elif status == 'error':
                     print(f"   ✗ {file_name}: {kwargs.get('error', 'Failed')}")
 
                 # Update overall progress
@@ -232,17 +206,13 @@ class BatchProgressManager:
 
     def _update_overall_progress(self):
         """Update and display overall batch progress"""
-        total_size = sum(f["size"] for f in self.files.values())
-        total_transferred = sum(f["transferred"] for f in self.files.values())
-        completed_count = sum(1 for f in self.files.values() if f["completed"])
+        total_size = sum(f['size'] for f in self.files.values())
+        total_transferred = sum(f['transferred'] for f in self.files.values())
+        completed_count = sum(1 for f in self.files.values() if f['completed'])
 
-        overall_percentage = (
-            (total_transferred / total_size * 100) if total_size > 0 else 0
-        )
+        overall_percentage = (total_transferred / total_size * 100) if total_size > 0 else 0
 
-        print(
-            f"⚡ {self.operation_name}: {completed_count}/{len(self.files)} files, {overall_percentage:.1f}% overall"
-        )
+        print(f"⚡ {self.operation_name}: {completed_count}/{len(self.files)} files, {overall_percentage:.1f}% overall")
 
 
 class UploadDownloadDemo:
@@ -260,7 +230,9 @@ class UploadDownloadDemo:
         print("=" * 50)
 
         self.sdk = PCloudSDK(
-            location_id=2, token_manager=True, token_file=".pcloud_upload_demo"
+            location_id=2,
+            token_manager=True,
+            token_file=".pcloud_upload_demo"
         )
 
         # Quick authentication
@@ -300,9 +272,9 @@ class UploadDownloadDemo:
 
     def demo_basic_upload(self):
         """Demonstrate basic file upload"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("1️⃣ BASIC UPLOAD DEMO")
-        print("=" * 60)
+        print("="*60)
 
         if not self.test_files:
             print("⚠ No test files available")
@@ -320,16 +292,18 @@ class UploadDownloadDemo:
         try:
             start_time = time.time()
             result = self.sdk.file.upload(
-                test_file, self.demo_folder_id, progress_callback=progress
+                test_file,
+                self.demo_folder_id,
+                progress_callback=progress
             )
             elapsed = time.time() - start_time
 
             file_info = {
-                "id": result["metadata"]["fileid"],
-                "name": file_name,
-                "size": file_size,
-                "upload_time": elapsed,
-                "local_path": test_file,
+                'id': result['metadata']['fileid'],
+                'name': file_name,
+                'size': file_size,
+                'upload_time': elapsed,
+                'local_path': test_file
             }
             self.uploaded_files.append(file_info)
 
@@ -342,9 +316,9 @@ class UploadDownloadDemo:
 
     def demo_advanced_upload(self):
         """Demonstrate advanced upload with detailed progress"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("2️⃣ ADVANCED UPLOAD DEMO")
-        print("=" * 60)
+        print("="*60)
 
         if len(self.test_files) < 2:
             print("⚠ Not enough test files")
@@ -366,17 +340,19 @@ class UploadDownloadDemo:
 
             start_time = time.time()
             result = self.sdk.file.upload(
-                test_file, self.demo_folder_id, progress_callback=progress
+                test_file,
+                self.demo_folder_id,
+                progress_callback=progress
             )
             elapsed = time.time() - start_time
 
             file_info = {
-                "id": result["metadata"]["fileid"],
-                "name": file_name,
-                "size": file_size,
-                "upload_time": elapsed,
-                "local_path": test_file,
-                "original_hash": original_hash,
+                'id': result['metadata']['fileid'],
+                'name': file_name,
+                'size': file_size,
+                'upload_time': elapsed,
+                'local_path': test_file,
+                'original_hash': original_hash
             }
             self.uploaded_files.append(file_info)
 
@@ -388,15 +364,11 @@ class UploadDownloadDemo:
 
     def demo_batch_upload(self):
         """Demonstrate batch upload of multiple files"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("3️⃣ BATCH UPLOAD DEMO")
-        print("=" * 60)
+        print("="*60)
 
-        remaining_files = [
-            f
-            for f in self.test_files
-            if f not in [uf["local_path"] for uf in self.uploaded_files]
-        ]
+        remaining_files = [f for f in self.test_files if f not in [uf['local_path'] for uf in self.uploaded_files]]
 
         if not remaining_files:
             print("⚠ No remaining files for batch upload")
@@ -423,29 +395,29 @@ class UploadDownloadDemo:
 
             try:
                 result = self.sdk.file.upload(
-                    file_path, self.demo_folder_id, progress_callback=progress_callback
+                    file_path,
+                    self.demo_folder_id,
+                    progress_callback=progress_callback
                 )
 
                 file_info = {
-                    "id": result["metadata"]["fileid"],
-                    "name": file_name,
-                    "size": file_size,
-                    "local_path": file_path,
+                    'id': result['metadata']['fileid'],
+                    'name': file_name,
+                    'size': file_size,
+                    'local_path': file_path
                 }
                 self.uploaded_files.append(file_info)
 
             except Exception as e:
                 print(f"✗ Failed to upload {file_name}: {e}")
 
-        print(
-            f"\n✓ Batch upload completed: {len(self.uploaded_files)} total files uploaded"
-        )
+        print(f"\n✓ Batch upload completed: {len(self.uploaded_files)} total files uploaded")
 
     def demo_basic_download(self):
         """Demonstrate basic file download"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("4️⃣ BASIC DOWNLOAD DEMO")
-        print("=" * 60)
+        print("="*60)
 
         if not self.uploaded_files:
             print("⚠ No uploaded files to download")
@@ -467,24 +439,24 @@ class UploadDownloadDemo:
         try:
             start_time = time.time()
             success = self.sdk.file.download(
-                file_info["id"], download_dir, progress_callback=progress
+                file_info['id'],
+                download_dir,
+                progress_callback=progress
             )
             elapsed = time.time() - start_time
 
             if success:
-                downloaded_file = os.path.join(download_dir, file_info["name"])
+                downloaded_file = os.path.join(download_dir, file_info['name'])
                 if os.path.exists(downloaded_file):
                     downloaded_size = os.path.getsize(downloaded_file)
                     print(f"✓ Download completed in {elapsed:.1f}s")
                     print(f"   Downloaded size: {format_size(downloaded_size)}")
-                    print(
-                        f"   Average speed: {format_speed(downloaded_size / elapsed)}"
-                    )
+                    print(f"   Average speed: {format_speed(downloaded_size / elapsed)}")
 
                     # Verify file integrity if we have original hash
-                    if "original_hash" in file_info:
+                    if 'original_hash' in file_info:
                         downloaded_hash = calculate_file_hash(downloaded_file)
-                        if downloaded_hash == file_info["original_hash"]:
+                        if downloaded_hash == file_info['original_hash']:
                             print("✓ File integrity verified - hashes match!")
                         else:
                             print("⚠ File integrity check failed - hashes don't match")
@@ -501,9 +473,9 @@ class UploadDownloadDemo:
 
     def demo_batch_download(self):
         """Demonstrate batch download with verification"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("5️⃣ BATCH DOWNLOAD DEMO")
-        print("=" * 60)
+        print("="*60)
 
         if len(self.uploaded_files) < 2:
             print("⚠ Not enough uploaded files for batch download")
@@ -523,42 +495,38 @@ class UploadDownloadDemo:
 
         # Add files to batch manager
         for file_info in download_files:
-            batch_manager.add_file(file_info["name"], file_info["size"])
+            batch_manager.add_file(file_info['name'], file_info['size'])
 
         # Download files with progress tracking
         successful_downloads = 0
 
         for file_info in download_files:
             print(f"\n⚡ Downloading {file_info['name']}...")
-            progress_callback = batch_manager.create_progress_callback(
-                file_info["name"]
-            )
+            progress_callback = batch_manager.create_progress_callback(file_info['name'])
 
             try:
                 success = self.sdk.file.download(
-                    file_info["id"], download_dir, progress_callback=progress_callback
+                    file_info['id'],
+                    download_dir,
+                    progress_callback=progress_callback
                 )
 
                 if success:
                     successful_downloads += 1
-                    downloaded_file = os.path.join(download_dir, file_info["name"])
+                    downloaded_file = os.path.join(download_dir, file_info['name'])
 
                     # Quick verification
                     if os.path.exists(downloaded_file):
                         downloaded_size = os.path.getsize(downloaded_file)
-                        if downloaded_size == file_info["size"]:
+                        if downloaded_size == file_info['size']:
                             print(f"  ✓ Size verification passed")
                         else:
-                            print(
-                                f"   ⚠ Size mismatch: expected {file_info['size']}, got {downloaded_size}"
-                            )
+                            print(f"   ⚠ Size mismatch: expected {file_info['size']}, got {downloaded_size}")
 
             except Exception as e:
                 print(f"✗ Failed to download {file_info['name']}: {e}")
 
-        print(
-            f"\n✓ Batch download completed: {successful_downloads}/{len(download_files)} files"
-        )
+        print(f"\n✓ Batch download completed: {successful_downloads}/{len(download_files)} files")
 
         # Cleanup download directory
         if os.path.exists(download_dir):
@@ -566,9 +534,9 @@ class UploadDownloadDemo:
 
     def demo_file_operations(self):
         """Demonstrate file operations on uploaded files"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("6️⃣ FILE OPERATIONS DEMO")
-        print("=" * 60)
+        print("="*60)
 
         if not self.uploaded_files:
             print("⚠ No uploaded files for operations")
@@ -576,8 +544,8 @@ class UploadDownloadDemo:
 
         # Work with the first uploaded file
         file_info = self.uploaded_files[0]
-        file_id = file_info["id"]
-        original_name = file_info["name"]
+        file_id = file_info['id']
+        original_name = file_info['name']
 
         print(f"⚡ Performing operations on: {original_name} (ID: {file_id})")
 
@@ -585,7 +553,7 @@ class UploadDownloadDemo:
             # Get detailed file info
             print("\n⚡ Getting file information...")
             detailed_info = self.sdk.file.get_info(file_id)
-            metadata = detailed_info.get("metadata", {})
+            metadata = detailed_info.get('metadata', {})
 
             print(f"   Name: {metadata.get('name', 'N/A')}")
             print(f"   Size: {format_size(metadata.get('size', 0))}")
@@ -601,7 +569,7 @@ class UploadDownloadDemo:
             # Copy file
             print(f"\n⚡ Creating copy of file...")
             copy_result = self.sdk.file.copy(file_id, self.demo_folder_id)
-            copied_file_id = copy_result["metadata"]["fileid"]
+            copied_file_id = copy_result['metadata']['fileid']
             print(f"✓ File copied successfully (new ID: {copied_file_id})")
 
             # List folder to show both files
@@ -609,8 +577,8 @@ class UploadDownloadDemo:
             folder_contents = self.sdk.folder.get_content(self.demo_folder_id)
 
             for item in folder_contents:
-                if not item.get("isfolder"):
-                    size = format_size(item.get("size", 0))
+                if not item.get('isfolder'):
+                    size = format_size(item.get('size', 0))
                     print(f"   • {item['name']} ({size})")
 
             # Delete the copy
@@ -623,9 +591,9 @@ class UploadDownloadDemo:
 
     def demo_performance_analysis(self):
         """Analyze upload/download performance"""
-        print("\n" + "=" * 60)
+        print("\n" + "="*60)
         print("7️⃣ PERFORMANCE ANALYSIS")
-        print("=" * 60)
+        print("="*60)
 
         if not self.uploaded_files:
             print("⚠ No uploaded files for analysis")
@@ -638,9 +606,9 @@ class UploadDownloadDemo:
         total_time = 0
 
         for file_info in self.uploaded_files:
-            if "upload_time" in file_info:
-                size = file_info["size"]
-                time_taken = file_info["upload_time"]
+            if 'upload_time' in file_info:
+                size = file_info['size']
+                time_taken = file_info['upload_time']
                 speed = size / time_taken if time_taken > 0 else 0
 
                 total_size += size
@@ -720,7 +688,7 @@ def main():
     print()
 
     proceed = input("Continue with the upload/download demo? (y/N): ").strip().lower()
-    if proceed not in ["y", "yes"]:
+    if proceed not in ['y', 'yes']:
         print("Demo cancelled.")
         return
 

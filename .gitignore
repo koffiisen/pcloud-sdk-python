@@ -126,5 +126,3 @@ dmypy.json
 .pcloud_token
 downloads/
 test_pcloud_sdk.txt
-/.claude/
-/.idea/

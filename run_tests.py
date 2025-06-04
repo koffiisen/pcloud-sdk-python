@@ -4,10 +4,10 @@ Comprehensive test runner for pCloud SDK Python
 Provides different test execution modes and reporting options
 """
 
-import argparse
+import sys
 import os
 import subprocess
-import sys
+import argparse
 from pathlib import Path
 
 
@@ -32,49 +32,61 @@ def run_command(cmd, description=""):
 def run_unit_tests():
     """Run fast unit tests only"""
     cmd = [
-        "python",
-        "-m",
-        "pytest",
+        "python", "-m", "pytest",
         "tests/",
-        "-m",
-        "not integration and not slow and not real_api",
+        "-m", "not integration and not slow and not real_api",
         "-v",
-        "--tb=short",
+        "--tb=short"
     ]
     return run_command(cmd, "Unit tests")
 
 
 def run_integration_tests():
     """Run integration tests (may require credentials)"""
-    cmd = ["python", "-m", "pytest", "tests/", "-m", "integration", "-v", "--tb=short"]
+    cmd = [
+        "python", "-m", "pytest",
+        "tests/",
+        "-m", "integration",
+        "-v",
+        "--tb=short"
+    ]
     return run_command(cmd, "Integration tests")
 
 
 def run_all_tests():
     """Run all tests including slow ones"""
-    cmd = ["python", "-m", "pytest", "tests/", "-v", "--tb=short"]
+    cmd = [
+        "python", "-m", "pytest",
+        "tests/",
+        "-v",
+        "--tb=short"
+    ]
     return run_command(cmd, "All tests")
 
 
 def run_coverage_tests():
     """Run tests with coverage reporting"""
     cmd = [
-        "python",
-        "-m",
-        "pytest",
+        "python", "-m", "pytest",
         "tests/",
         "--cov=pcloud_sdk",
         "--cov-report=term-missing",
         "--cov-report=html:htmlcov",
         "--cov-fail-under=80",
-        "-v",
+        "-v"
     ]
     return run_command(cmd, "Coverage tests")
 
 
 def run_performance_tests():
     """Run performance/benchmark tests"""
-    cmd = ["python", "-m", "pytest", "tests/", "-m", "performance", "-v", "--tb=short"]
+    cmd = [
+        "python", "-m", "pytest",
+        "tests/",
+        "-m", "performance",
+        "-v",
+        "--tb=short"
+    ]
     return run_command(cmd, "Performance tests")
 
 
@@ -86,13 +98,23 @@ def run_specific_test_file(test_file):
     if not test_file.endswith(".py"):
         test_file += ".py"
 
-    cmd = ["python", "-m", "pytest", test_file, "-v", "--tb=short"]
+    cmd = [
+        "python", "-m", "pytest",
+        test_file,
+        "-v",
+        "--tb=short"
+    ]
     return run_command(cmd, f"Test file: {test_file}")
 
 
 def run_specific_test_function(test_path):
     """Run a specific test function (e.g., tests/test_auth.py::TestClass::test_method)"""
-    cmd = ["python", "-m", "pytest", test_path, "-v", "--tb=long"]
+    cmd = [
+        "python", "-m", "pytest",
+        test_path,
+        "-v",
+        "--tb=long"
+    ]
     return run_command(cmd, f"Specific test: {test_path}")
 
 
@@ -120,9 +142,20 @@ def run_lint_checks():
 
 def check_dependencies():
     """Check if required test dependencies are installed"""
-    required_packages = ["pytest", "pytest-cov", "responses", "pytest-mock"]
+    required_packages = [
+        "pytest",
+        "pytest-cov",
+        "responses",
+        "pytest-mock"
+    ]
 
-    optional_packages = ["pytest-benchmark", "pytest-xdist", "flake8", "pylint", "mypy"]
+    optional_packages = [
+        "pytest-benchmark",
+        "pytest-xdist",
+        "flake8",
+        "pylint",
+        "mypy"
+    ]
 
     print("\n📦 Checking dependencies...")
 
@@ -159,7 +192,11 @@ def check_dependencies():
 
 def run_test_discovery():
     """Discover and list all tests"""
-    cmd = ["python", "-m", "pytest", "--collect-only", "-q"]
+    cmd = [
+        "python", "-m", "pytest",
+        "--collect-only",
+        "-q"
+    ]
     return run_command(cmd, "Test discovery")
 
 
@@ -180,42 +217,48 @@ Examples:
   python run_tests.py --lint             # Run code quality checks
   python run_tests.py --check-deps       # Check dependencies
   python run_tests.py --discover         # Discover all tests
-        """,
+        """
     )
 
     parser.add_argument(
-        "--all", action="store_true", help="Run all tests including slow ones"
+        "--all", action="store_true",
+        help="Run all tests including slow ones"
     )
     parser.add_argument(
-        "--integration", action="store_true", help="Run integration tests"
+        "--integration", action="store_true",
+        help="Run integration tests"
     )
     parser.add_argument(
-        "--coverage", action="store_true", help="Run tests with coverage reporting"
+        "--coverage", action="store_true",
+        help="Run tests with coverage reporting"
     )
     parser.add_argument(
-        "--performance", action="store_true", help="Run performance/benchmark tests"
+        "--performance", action="store_true",
+        help="Run performance/benchmark tests"
     )
     parser.add_argument(
-        "--file",
-        type=str,
-        help="Run specific test file (e.g., 'auth' for test_authentication.py)",
+        "--file", type=str,
+        help="Run specific test file (e.g., 'auth' for test_authentication.py)"
     )
     parser.add_argument(
-        "--function",
-        type=str,
-        help="Run specific test function (e.g., 'tests/test_auth.py::TestClass::test_method')",
-    )
-    parser.add_argument("--lint", action="store_true", help="Run code quality checks")
-    parser.add_argument(
-        "--check-deps", action="store_true", help="Check test dependencies"
+        "--function", type=str,
+        help="Run specific test function (e.g., 'tests/test_auth.py::TestClass::test_method')"
     )
     parser.add_argument(
-        "--discover", action="store_true", help="Discover and list all tests"
+        "--lint", action="store_true",
+        help="Run code quality checks"
     )
     parser.add_argument(
-        "--real-api",
-        action="store_true",
-        help="Include real API tests (requires credentials)",
+        "--check-deps", action="store_true",
+        help="Check test dependencies"
+    )
+    parser.add_argument(
+        "--discover", action="store_true",
+        help="Discover and list all tests"
+    )
+    parser.add_argument(
+        "--real-api", action="store_true",
+        help="Include real API tests (requires credentials)"
     )
 
     args = parser.parse_args()
