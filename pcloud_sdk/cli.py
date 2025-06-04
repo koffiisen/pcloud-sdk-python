@@ -229,7 +229,7 @@ class PCloudCLI:
             return 1
 
     def cmd_download(self, args):
-        """Download un fichier"""
+        """Download a file"""
         if not self.setup_sdk(args):
             return 1
 
@@ -322,30 +322,30 @@ Exemples d'utilisation:
                         help='Progression minimale')
 
     # Sous-commandes
-    subparsers = parser.add_subparsers(dest='command', help='Commandes disponibles')
+    subparsers = parser.add_subparsers(dest='command', help='Available commands')
 
     # Login
-    login_parser = subparsers.add_parser('login', help='Se connecter à pCloud')
+    login_parser = subparsers.add_parser('login', help='Login to pCloud')
     login_parser.add_argument('--email', required=True, help='Email pCloud')
 
     # Logout
-    subparsers.add_parser('logout', help='Se déconnecter de pCloud')
+    subparsers.add_parser('logout', help='Logout from pCloud')
 
     # Info
-    subparsers.add_parser('info', help='Afficher les informations du compte')
+    subparsers.add_parser('info', help='Display account information')
 
     # List
-    list_parser = subparsers.add_parser('list', help='Lister le contenu d\'un dossier')
+    list_parser = subparsers.add_parser('list', help='List folder contents')
     list_parser.add_argument('--folder-id', type=int, help='ID du dossier (défaut=racine)')
 
     # Upload
-    upload_parser = subparsers.add_parser('upload', help='Upload un fichier')
+    upload_parser = subparsers.add_parser('upload', help='Upload a file')
     upload_parser.add_argument('--file', required=True, help='Chemin du fichier à uploader')
     upload_parser.add_argument('--folder-id', type=int, default=0, help='ID du dossier destination')
     upload_parser.add_argument('--name', help='Nom personnalisé pour le fichier')
 
     # Download
-    download_parser = subparsers.add_parser('download', help='Download un fichier')
+    download_parser = subparsers.add_parser('download', help='Download a file')
     download_parser.add_argument('--file-id', type=int, required=True, help='ID du fichier')
     download_parser.add_argument('--destination', default='.', help='Dossier de destination')
 
