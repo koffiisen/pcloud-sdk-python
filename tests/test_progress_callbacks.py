@@ -60,9 +60,11 @@ class TestSimpleProgressBar:
         # Verify print was called (title, progress updates, completion)
         assert mock_print.call_count >= 3
 
-    def test_simple_progress_bar_with_speed_and_eta(self):
+    @patch('time.time')
+    def test_simple_progress_bar_with_speed_and_eta(self, mock_time):
         """Test progress bar with speed and ETA calculations"""
         progress = SimpleProgressBar(show_speed=True, show_eta=True)
+        mock_time.side_effect = [100.0, 100.0, 100.2] # t_start, t_first_curr, t_second_curr
         
         with patch('builtins.print') as mock_print:
             # Initialize
@@ -72,7 +74,11 @@ class TestSimpleProgressBar:
             progress(256, 1024, 25.0, 512.0, filename="test.txt", operation="upload")
             
             # Check that speed is included in output
-            assert "MB/s" in str(mock_print.call_args_list[-1])
+            # mock_print.call_args_list should be: [title_call, 0%_bar_call, 25%_bar_call_with_speed]
+            assert len(mock_print.call_args_list) > 2, \
+                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "MB/s" in str(mock_print.call_args_list[2]), \
+                f"MB/s not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_without_speed_and_eta(self):
         """Test progress bar without speed and ETA display"""
@@ -87,9 +93,11 @@ class TestSimpleProgressBar:
         assert "MB/s" not in all_output
         assert "ETA:" not in all_output
 
-    def test_simple_progress_bar_eta_calculations(self):
+    @patch('time.time')
+    def test_simple_progress_bar_eta_calculations(self, mock_time):
         """Test ETA calculation accuracy"""
         progress = SimpleProgressBar(show_eta=True)
+        mock_time.side_effect = [200.0, 200.0, 200.2] # t_start, t_first_curr, t_second_curr
         
         with patch('builtins.print') as mock_print:
             progress(0, 3600, 0.0, 0.0, filename="test.txt", operation="upload")
@@ -98,7 +106,11 @@ class TestSimpleProgressBar:
             progress(1800, 3600, 50.0, 1048576.0, filename="test.txt", operation="upload")
             
             # Check that ETA is calculated
-            assert "ETA:" in str(mock_print.call_args_list[-1])
+            # mock_print.call_args_list should be: [title_call, 0%_bar_call, 50%_bar_call_with_eta]
+            assert len(mock_print.call_args_list) > 2, \
+                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "ETA:" in str(mock_print.call_args_list[2]), \
+                f"ETA: not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_update_throttling(self):
         """Test that progress updates are throttled to prevent flickering"""

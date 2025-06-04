@@ -79,12 +79,9 @@ jobs:
         pip install -r requirements/test.txt
     
     - name: Run integration tests
-      env:
-        PCLOUD_EMAIL: ${{ secrets.PCLOUD_EMAIL }}
-        PCLOUD_PASSWORD: ${{ secrets.PCLOUD_PASSWORD }}
       run: |
         python tools/test_runner.py --integration
-      continue-on-error: true  # Don't fail build if integration tests fail
+      continue-on-error: false
 
   security:
     runs-on: ubuntu-latest
