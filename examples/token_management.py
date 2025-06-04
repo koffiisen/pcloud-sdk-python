@@ -23,613 +23,573 @@ import time
 from datetime import datetime, timedelta
 from typing import Optional, Dict, Any, List
 
-from pcloud_sdk import PCloudSDK
-from pcloud_sdk.exceptions import PCloudException
+from pcloud_sdk import PCloudSDK, PCloudException
 
 
 class TokenManager:
     """Advanced token management utility"""
     
     def __init__(self, base_dir: str = "."):
+        """
+        Initialize token manager
+        
+        Args:
+            base_dir: Base directory for storing credential files
+        """
         self.base_dir = base_dir
-        self.accounts: Dict[str, Dict] = {}
+        self.accounts = {}
+        self.current_account = None
         
-    def save_account_token(self, email: str, token_data: Dict, custom_filename: Optional[str] = None) -> str:
-        """Save token for a specific account"""
-        if custom_filename:
-            token_file = os.path.join(self.base_dir, custom_filename)
-        else:
-            # Create safe filename from email
-            safe_email = email.replace('@', '_at_').replace('.', '_dot_')
-            token_file = os.path.join(self.base_dir, f".pcloud_token_{safe_email}")
+    def add_account(self, name: str, email: str, password: str, 
+                   token_file: Optional[str] = None) -> bool:
+        """
+        Add an account to the token manager
         
-        # Add metadata
-        token_data.update({
-            'email': email,
-            'saved_at': time.time(),
-            'saved_date': datetime.now().isoformat()
-        })
-        
-        try:
-            with open(token_file, 'w') as f:
-                json.dump(token_data, f, indent=2)
+        Args:
+            name: Account nickname
+            email: pCloud email
+            password: pCloud password
+            token_file: Custom token file path
             
-            self.accounts[email] = {
-                'file': token_file,
-                'data': token_data
+        Returns:
+            True if account added successfully
+        """
+        try:
+            if not token_file:
+                # Generate safe filename from email
+                safe_email = email.replace('@', '_').replace('.', '_')
+                token_file = os.path.join(self.base_dir, f".pcloud_{safe_email}")
+            
+            # Initialize SDK for this account
+            sdk = PCloudSDK(token_file=token_file)
+            
+            # Attempt login
+            print(f"🔐 Logging in to account: {name} ({email})")
+            sdk.login(email, password)
+            
+            # Store account info
+            self.accounts[name] = {
+                'email': email,
+                'password': password,  # Store securely in production!
+                'token_file': token_file,
+                'sdk': sdk,
+                'added_at': datetime.now().isoformat()
             }
             
-            print(f" Token saved for {email} in {token_file}")
-            return token_file
+            print(f"✅ Account '{name}' added successfully")
+            if not self.current_account:
+                self.current_account = name
+                print(f"🎯 Set as current account")
             
-        except Exception as e:
-            print(f"L Failed to save token for {email}: {e}")
-            raise
-    
-    def load_account_token(self, email: str) -> Optional[Dict]:
-        """Load token for a specific account"""
-        if email in self.accounts:
-            token_file = self.accounts[email]['file']
-        else:
-            # Try to find token file
-            safe_email = email.replace('@', '_at_').replace('.', '_dot_')
-            token_file = os.path.join(self.base_dir, f".pcloud_token_{safe_email}")
-        
-        if not os.path.exists(token_file):
-            return None
-        
-        try:
-            with open(token_file, 'r') as f:
-                token_data = json.load(f)
-            
-            self.accounts[email] = {
-                'file': token_file,
-                'data': token_data
-            }
-            
-            return token_data
-            
-        except Exception as e:
-            print(f"� Error loading token for {email}: {e}")
-            return None
-    
-    def list_saved_accounts(self) -> List[Dict]:
-        """List all saved accounts"""
-        accounts = []
-        
-        # Scan directory for token files
-        for filename in os.listdir(self.base_dir):
-            if filename.startswith('.pcloud_token_') or filename.startswith('.pcloud_'):
-                filepath = os.path.join(self.base_dir, filename)
-                
-                try:
-                    with open(filepath, 'r') as f:
-                        data = json.load(f)
-                    
-                    email = data.get('email', 'Unknown')
-                    saved_at = data.get('saved_at', 0)
-                    age_days = (time.time() - saved_at) / (24 * 3600) if saved_at else 999
-                    
-                    accounts.append({
-                        'email': email,
-                        'file': filepath,
-                        'age_days': age_days,
-                        'location': 'EU' if data.get('location_id') == 2 else 'US',
-                        'auth_type': data.get('auth_type', 'unknown')
-                    })
-                    
-                except Exception:
-                    continue
-        
-        return sorted(accounts, key=lambda x: x['age_days'])
-    
-    def validate_token(self, email: str) -> bool:
-        """Validate if saved token is still valid"""
-        token_data = self.load_account_token(email)
-        if not token_data:
-            return False
-        
-        try:
-            # Create temporary SDK instance to test token
-            sdk = PCloudSDK(
-                access_token=token_data.get('access_token', ''),
-                location_id=token_data.get('location_id', 2),
-                auth_type=token_data.get('auth_type', 'direct'),
-                token_manager=False  # Don't interfere with existing files
-            )
-            
-            # Test token by getting user info
-            user_info = sdk.user.get_user_info()
-            return user_info.get('email') == email
-            
-        except Exception:
-            return False
-    
-    def cleanup_invalid_tokens(self) -> List[str]:
-        """Remove invalid/expired tokens"""
-        accounts = self.list_saved_accounts()
-        removed = []
-        
-        for account in accounts:
-            if not self.validate_token(account['email']):
-                try:
-                    os.remove(account['file'])
-                    removed.append(account['email'])
-                    print(f"=� Removed invalid token for {account['email']}")
-                except Exception as e:
-                    print(f"� Could not remove {account['file']}: {e}")
-        
-        return removed
-    
-    def get_token_info(self, email: str) -> Optional[Dict]:
-        """Get detailed token information"""
-        token_data = self.load_account_token(email)
-        if not token_data:
-            return None
-        
-        saved_at = token_data.get('saved_at', 0)
-        age_days = (time.time() - saved_at) / (24 * 3600) if saved_at else 999
-        
-        return {
-            'email': email,
-            'location': 'EU' if token_data.get('location_id') == 2 else 'US',
-            'auth_type': token_data.get('auth_type', 'unknown'),
-            'age_days': age_days,
-            'is_valid': self.validate_token(email),
-            'user_info': token_data.get('user_info', {}),
-            'saved_date': token_data.get('saved_date', 'Unknown')
-        }
-
-
-class MultiAccountManager:
-    """Manage multiple pCloud accounts"""
-    
-    def __init__(self):
-        self.token_manager = TokenManager()
-        self.current_account: Optional[str] = None
-        self.sdk: Optional[PCloudSDK] = None
-    
-    def add_account(self, email: str, password: str, location_id: int = 2) -> bool:
-        """Add a new account with credentials"""
-        print(f"� Adding account: {email}")
-        
-        try:
-            # Create SDK instance for authentication
-            sdk = PCloudSDK(
-                location_id=location_id,
-                token_manager=False  # We'll manage tokens manually
-            )
-            
-            # Login to get token
-            login_info = sdk.login(email, password, location_id)
-            
-            # Get user info
-            user_info = sdk.user.get_user_info()
-            
-            # Save token data
-            token_data = {
-                'access_token': login_info['access_token'],
-                'location_id': login_info['locationid'],
-                'auth_type': 'direct',
-                'user_info': user_info
-            }
-            
-            self.token_manager.save_account_token(email, token_data)
-            print(f" Account {email} added successfully")
             return True
             
+        except PCloudException as e:
+            print(f"❌ Failed to add account '{name}': {e}")
+            return False
         except Exception as e:
-            print(f"L Failed to add account {email}: {e}")
+            print(f"❌ Unexpected error adding account '{name}': {e}")
             return False
     
-    def switch_account(self, email: str) -> bool:
-        """Switch to a different account"""
-        print(f"= Switching to account: {email}")
+    def switch_account(self, name: str) -> bool:
+        """
+        Switch to a different account
         
-        token_data = self.token_manager.load_account_token(email)
-        if not token_data:
-            print(f"L No saved token found for {email}")
-            return False
-        
-        # Validate token first
-        if not self.token_manager.validate_token(email):
-            print(f"L Token for {email} is invalid or expired")
-            return False
-        
-        try:
-            # Create new SDK instance with the account's token
-            self.sdk = PCloudSDK(
-                access_token=token_data['access_token'],
-                location_id=token_data.get('location_id', 2),
-                auth_type=token_data.get('auth_type', 'direct'),
-                token_manager=False
-            )
+        Args:
+            name: Account name to switch to
             
-            self.current_account = email
-            print(f" Switched to account: {email}")
-            return True
-            
-        except Exception as e:
-            print(f"L Failed to switch to {email}: {e}")
+        Returns:
+            True if switch successful
+        """
+        if name not in self.accounts:
+            print(f"❌ Account '{name}' not found")
             return False
+        
+        self.current_account = name
+        print(f"🔄 Switched to account: {name}")
+        return True
+    
+    def get_current_sdk(self) -> Optional[PCloudSDK]:
+        """Get SDK instance for current account"""
+        if not self.current_account or self.current_account not in self.accounts:
+            print("❌ No current account selected")
+            return None
+        
+        return self.accounts[self.current_account]['sdk']
     
     def list_accounts(self):
         """List all managed accounts"""
-        accounts = self.token_manager.list_saved_accounts()
-        
-        if not accounts:
-            print("=� No saved accounts found")
+        if not self.accounts:
+            print("📭 No accounts configured")
             return
         
-        print(f"\n=e Saved Accounts ({len(accounts)}):")
-        print("-" * 60)
-        
-        for account in accounts:
-            status = " Valid" if self.token_manager.validate_token(account['email']) else "L Invalid"
-            current_marker = " =H CURRENT" if account['email'] == self.current_account else ""
-            
-            print(f"=� {account['email']}{current_marker}")
-            print(f"   Status: {status}")
-            print(f"   Location: {account['location']}")
-            print(f"   Auth Type: {account['auth_type']}")
-            print(f"   Age: {account['age_days']:.1f} days")
-            print(f"   File: {os.path.basename(account['file'])}")
-            print()
+        print("📋 Configured accounts:")
+        for name, info in self.accounts.items():
+            current_marker = "👉 " if name == self.current_account else "   "
+            added_date = info['added_at'][:10]  # Just the date part
+            print(f"{current_marker}{name}: {info['email']} (added: {added_date})")
     
-    def get_current_account_info(self) -> Optional[Dict]:
-        """Get current account information"""
-        if not self.current_account or not self.sdk:
+    def validate_all_tokens(self) -> Dict[str, bool]:
+        """
+        Validate tokens for all accounts
+        
+        Returns:
+            Dict mapping account names to validation status
+        """
+        results = {}
+        
+        print("🔍 Validating tokens for all accounts...")
+        
+        for name, info in self.accounts.items():
+            try:
+                sdk = info['sdk']
+                user_info = sdk.user.get_user_info()
+                results[name] = True
+                print(f"✅ {name}: Token valid (user: {user_info.get('email')})")
+                
+            except PCloudException as e:
+                results[name] = False
+                print(f"❌ {name}: Token invalid ({e})")
+            except Exception as e:
+                results[name] = False
+                print(f"❌ {name}: Validation error ({e})")
+        
+        return results
+    
+    def cleanup_invalid_tokens(self):
+        """Remove accounts with invalid tokens"""
+        validation_results = self.validate_all_tokens()
+        
+        invalid_accounts = [name for name, valid in validation_results.items() if not valid]
+        
+        if not invalid_accounts:
+            print("✅ All tokens are valid")
+            return
+        
+        print(f"\n🧹 Found {len(invalid_accounts)} invalid tokens")
+        
+        for name in invalid_accounts:
+            confirm = input(f"Remove invalid account '{name}'? (y/n): ").strip().lower()
+            if confirm == 'y':
+                self.remove_account(name)
+    
+    def remove_account(self, name: str) -> bool:
+        """
+        Remove an account from management
+        
+        Args:
+            name: Account name to remove
+            
+        Returns:
+            True if removal successful
+        """
+        if name not in self.accounts:
+            print(f"❌ Account '{name}' not found")
+            return False
+        
+        # Get token file path
+        token_file = self.accounts[name]['token_file']
+        
+        # Remove from memory
+        del self.accounts[name]
+        
+        # Remove token file
+        try:
+            if os.path.exists(token_file):
+                os.remove(token_file)
+                print(f"🗑️ Removed token file: {token_file}")
+        except Exception as e:
+            print(f"⚠️ Could not remove token file: {e}")
+        
+        # Update current account if necessary
+        if self.current_account == name:
+            if self.accounts:
+                self.current_account = list(self.accounts.keys())[0]
+                print(f"🔄 Switched to account: {self.current_account}")
+            else:
+                self.current_account = None
+                print("📭 No accounts remaining")
+        
+        print(f"✅ Account '{name}' removed")
+        return True
+    
+    def get_account_info(self, name: Optional[str] = None) -> Optional[Dict[str, Any]]:
+        """
+        Get detailed information about an account
+        
+        Args:
+            name: Account name (uses current if None)
+            
+        Returns:
+            Account information dict or None
+        """
+        if not name:
+            name = self.current_account
+        
+        if not name or name not in self.accounts:
+            print(f"❌ Account '{name}' not found")
             return None
         
+        account = self.accounts[name]
+        sdk = account['sdk']
+        
         try:
-            user_info = self.sdk.user.get_user_info()
-            token_info = self.token_manager.get_token_info(self.current_account)
+            # Get credentials info from SDK
+            creds_info = sdk.get_credentials_info()
+            
+            # Get user info from API
+            user_info = sdk.user.get_user_info()
             
             return {
-                'email': self.current_account,
-                'user_info': user_info,
-                'token_info': token_info
+                'name': name,
+                'email': account['email'],
+                'token_file': account['token_file'],
+                'added_at': account['added_at'],
+                'credentials_age_days': creds_info.get('age_days', 0),
+                'last_used': creds_info.get('last_used', 'Unknown'),
+                'user_quota': user_info.get('quota', 0),
+                'user_used_quota': user_info.get('usedquota', 0),
+                'user_email_verified': user_info.get('emailverified', False)
             }
+            
         except Exception as e:
-            print(f"� Error getting current account info: {e}")
+            print(f"❌ Error getting account info: {e}")
             return None
-    
-    def remove_account(self, email: str) -> bool:
-        """Remove an account and its token"""
-        accounts = self.token_manager.list_saved_accounts()
-        account = next((acc for acc in accounts if acc['email'] == email), None)
-        
-        if not account:
-            print(f"L Account {email} not found")
-            return False
-        
-        try:
-            os.remove(account['file'])
-            print(f"=� Removed account: {email}")
-            
-            if self.current_account == email:
-                self.current_account = None
-                self.sdk = None
-                print("� Removed current account - no account selected")
-            
-            return True
-            
-        except Exception as e:
-            print(f"L Failed to remove {email}: {e}")
-            return False
 
 
-class TokenManagementDemo:
-    """Complete token management demonstration"""
+def demonstrate_automatic_token_management():
+    """Demonstrate automatic token management"""
+    print("\n" + "="*60)
+    print("1️⃣ AUTOMATIC TOKEN MANAGEMENT")
+    print("="*60)
     
-    def __init__(self):
-        self.token_manager = TokenManager()
-        self.multi_account = MultiAccountManager()
+    print("📋 Features:")
+    print("   • Automatic token saving")
+    print("   • Automatic token loading")
+    print("   • Seamless reconnection")
+    print("   • Zero configuration")
+    
+    # Get credentials
+    email = input("\nEnter pCloud email: ").strip()
+    password = input("Enter pCloud password: ").strip()
+    
+    if not email or not password:
+        print("❌ Email and password required")
+        return
+    
+    try:
+        print("\n🔧 First login (will save token automatically)...")
         
-    def demo_basic_token_management(self):
-        """Demonstrate basic token management"""
-        print("1� BASIC TOKEN MANAGEMENT")
-        print("=" * 40)
+        # First login - token will be saved
+        sdk1 = PCloudSDK()  # Uses default token file
+        sdk1.login(email, password)
         
-        # Show how automatic token management works
-        print("=' Creating SDK with automatic token management...")
+        user_info = sdk1.user.get_user_info()
+        print(f"✅ First login successful: {user_info.get('email')}")
+        print(f"💾 Token automatically saved to: {sdk1.app.token_manager.token_file}")
         
-        sdk = PCloudSDK(
-            location_id=2,
-            token_manager=True,
-            token_file=".pcloud_demo_basic"
+        # Simulate app restart - create new SDK instance
+        print("\n🔄 Simulating app restart (new SDK instance)...")
+        
+        sdk2 = PCloudSDK()  # New instance
+        sdk2.login()  # No credentials needed - uses saved token!
+        
+        user_info2 = sdk2.user.get_user_info()
+        print(f"✅ Second login successful: {user_info2.get('email')}")
+        print("🚀 No credentials needed - used saved token!")
+        
+        # Show credentials info
+        creds_info = sdk2.get_credentials_info()
+        print(f"\n📊 Token information:")
+        print(f"   📅 Age: {creds_info.get('age_days', 0):.2f} days")
+        print(f"   🕐 Last used: {creds_info.get('last_used', 'Unknown')}")
+        
+    except PCloudException as e:
+        print(f"❌ Error: {e}")
+
+
+def demonstrate_manual_token_management():
+    """Demonstrate manual token extraction and management"""
+    print("\n" + "="*60)
+    print("2️⃣ MANUAL TOKEN MANAGEMENT")
+    print("="*60)
+    
+    print("📋 Features:")
+    print("   • Manual token extraction")
+    print("   • Token storage control")
+    print("   • Custom token files")
+    print("   • Token validation")
+    
+    # Get credentials
+    email = input("\nEnter pCloud email: ").strip()
+    password = input("Enter pCloud password: ").strip()
+    
+    if not email or not password:
+        print("❌ Email and password required")
+        return
+    
+    try:
+        print("\n🔧 Manual token extraction...")
+        
+        # Login and extract token manually
+        sdk = PCloudSDK(token_manager=False)  # Disable auto token management
+        login_result = sdk.login(email, password)
+        
+        # Extract token information
+        access_token = sdk.app.access_token
+        print(f"✅ Login successful")
+        print(f"🔑 Access token: {access_token[:20]}...")
+        
+        # Save token manually to custom file
+        token_data = {
+            'access_token': access_token,
+            'email': email,
+            'created_at': datetime.now().isoformat(),
+            'expires_at': (datetime.now() + timedelta(days=30)).isoformat()
+        }
+        
+        custom_token_file = "custom_token.json"
+        with open(custom_token_file, 'w') as f:
+            json.dump(token_data, f, indent=2)
+        
+        print(f"💾 Token saved manually to: {custom_token_file}")
+        
+        # Test reusing the manually saved token
+        print("\n🔄 Testing manual token reuse...")
+        
+        with open(custom_token_file, 'r') as f:
+            saved_token_data = json.load(f)
+        
+        # Create new SDK with saved token
+        sdk2 = PCloudSDK(
+            access_token=saved_token_data['access_token'],
+            token_manager=False
         )
         
-        # Check if we have existing credentials
-        if sdk.is_authenticated():
-            print(" Found existing credentials")
+        # Test API call
+        user_info = sdk2.user.get_user_info()
+        print(f"✅ Manual token reuse successful: {user_info.get('email')}")
+        
+        # Clean up
+        os.remove(custom_token_file)
+        print(f"🧹 Cleaned up: {custom_token_file}")
+        
+    except PCloudException as e:
+        print(f"❌ Error: {e}")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+
+
+def demonstrate_multi_account_management():
+    """Demonstrate multi-account token management"""
+    print("\n" + "="*60)
+    print("3️⃣ MULTI-ACCOUNT MANAGEMENT")
+    print("="*60)
+    
+    print("📋 Features:")
+    print("   • Multiple account support")
+    print("   • Account switching")
+    print("   • Separate token files")
+    print("   • Account validation")
+    
+    # Initialize token manager
+    token_manager = TokenManager()
+    
+    print("\n👥 Multi-account setup (you can use the same credentials for demo)")
+    
+    # Add accounts
+    accounts_to_add = []
+    
+    for i in range(1, 3):  # Add 2 accounts for demo
+        print(f"\n📧 Account {i}:")
+        email = input(f"  Email (or press Enter to skip): ").strip()
+        
+        if not email:
+            print("  ⏭️ Skipping account")
+            continue
             
-            # Test them
-            try:
-                if sdk._test_existing_credentials():
-                    email = sdk.get_saved_email()
-                    print(f" Valid credentials for: {email}")
-                    
-                    # Show credential info
-                    cred_info = sdk.get_credentials_info()
-                    print("\n=� Credential Information:")
-                    for key, value in cred_info.items():
-                        print(f"   {key}: {value}")
-                    
-                    return sdk
-            except Exception as e:
-                print(f"� Credential test failed: {e}")
+        password = input(f"  Password: ").strip()
+        name = input(f"  Account nickname (default: Account{i}): ").strip() or f"Account{i}"
         
-        # Need new authentication
-        print("\n= New authentication required")
-        email = input("=� Enter pCloud email: ").strip()
-        password = input("= Enter password: ").strip()
-        
+        if email and password:
+            accounts_to_add.append((name, email, password))
+    
+    if not accounts_to_add:
+        print("❌ No accounts to add")
+        return
+    
+    # Add accounts to manager
+    for name, email, password in accounts_to_add:
+        token_manager.add_account(name, email, password)
+    
+    # Demonstrate account management
+    print("\n📋 Account management operations:")
+    
+    # List accounts
+    token_manager.list_accounts()
+    
+    # Get current account info
+    print("\n📊 Current account information:")
+    current_info = token_manager.get_account_info()
+    if current_info:
+        print(f"   👤 Name: {current_info['name']}")
+        print(f"   📧 Email: {current_info['email']}")
+        print(f"   📅 Added: {current_info['added_at'][:10]}")
+        print(f"   ⏰ Token age: {current_info['credentials_age_days']:.2f} days")
+        print(f"   💾 Quota: {current_info['user_quota'] // (1024**3):.1f} GB")
+        print(f"   📁 Used: {current_info['user_used_quota'] // (1024**3):.1f} GB")
+    
+    # Test API call with current account
+    current_sdk = token_manager.get_current_sdk()
+    if current_sdk:
         try:
-            sdk.login(email, password)
-            print(" Authentication successful and token saved!")
-            return sdk
-            
+            folders = current_sdk.folder.list_root()
+            folder_count = len([f for f in folders.get('contents', []) if f.get('isfolder')])
+            file_count = len([f for f in folders.get('contents', []) if not f.get('isfolder')])
+            print(f"   📂 Root folder: {folder_count} folders, {file_count} files")
         except Exception as e:
-            print(f"L Authentication failed: {e}")
-            return None
+            print(f"   ❌ API test failed: {e}")
     
-    def demo_manual_token_management(self):
-        """Demonstrate manual token handling"""
-        print("\n2� MANUAL TOKEN MANAGEMENT")
-        print("=" * 40)
-        
-        print("=' Manual token extraction and storage...")
-        
-        # Get saved accounts
-        accounts = self.token_manager.list_saved_accounts()
-        
-        if accounts:
-            print(f"\n=� Found {len(accounts)} saved accounts:")
-            for i, account in enumerate(accounts, 1):
-                status = "" if self.token_manager.validate_token(account['email']) else "L"
-                print(f"   {i}. {account['email']} {status}")
-            
-            # Let user choose
-            try:
-                choice = int(input(f"\nSelect account (1-{len(accounts)}) or 0 for new: "))
+    # Switch accounts if multiple
+    if len(token_manager.accounts) > 1:
+        print("\n🔄 Account switching demonstration:")
+        account_names = list(token_manager.accounts.keys())
+        for name in account_names:
+            if name != token_manager.current_account:
+                token_manager.switch_account(name)
                 
-                if 1 <= choice <= len(accounts):
-                    selected_account = accounts[choice - 1]
-                    email = selected_account['email']
-                    
-                    print(f"\n= Loading token for {email}...")
-                    token_data = self.token_manager.load_account_token(email)
-                    
-                    if token_data:
-                        print(" Token loaded successfully")
-                        
-                        # Create SDK with manual token
-                        sdk = PCloudSDK(
-                            access_token=token_data['access_token'],
-                            location_id=token_data.get('location_id', 2),
-                            auth_type=token_data.get('auth_type', 'direct'),
-                            token_manager=False  # Manual management
-                        )
-                        
-                        # Test the token
-                        try:
-                            user_info = sdk.user.get_user_info()
-                            print(f" Token valid for: {user_info['email']}")
-                            return sdk
-                        except Exception as e:
-                            print(f"L Token invalid: {e}")
-                    
-            except ValueError:
-                print("L Invalid choice")
-        
-        return None
-    
-    def demo_multi_account_management(self):
-        """Demonstrate multi-account management"""
-        print("\n3� MULTI-ACCOUNT MANAGEMENT")
-        print("=" * 40)
-        
-        while True:
-            print("\n=e Multi-Account Manager")
-            print("1. List accounts")
-            print("2. Add account") 
-            print("3. Switch account")
-            print("4. Remove account")
-            print("5. Current account info")
-            print("6. Validate all tokens")
-            print("0. Exit multi-account demo")
-            
-            choice = input("\nEnter choice: ").strip()
-            
-            if choice == '1':
-                self.multi_account.list_accounts()
-                
-            elif choice == '2':
-                email = input("=� Email: ").strip()
-                password = input("= Password: ").strip()
-                location = input("< Location (1=US, 2=EU) [2]: ").strip() or "2"
-                
-                try:
-                    location_id = int(location)
-                    self.multi_account.add_account(email, password, location_id)
-                except ValueError:
-                    print("L Invalid location")
-                
-            elif choice == '3':
-                accounts = self.token_manager.list_saved_accounts()
-                if not accounts:
-                    print("L No accounts available")
-                    continue
-                
-                print("\nAvailable accounts:")
-                for i, account in enumerate(accounts, 1):
-                    print(f"   {i}. {account['email']}")
-                
-                try:
-                    acc_choice = int(input("Select account: "))
-                    if 1 <= acc_choice <= len(accounts):
-                        email = accounts[acc_choice - 1]['email']
-                        self.multi_account.switch_account(email)
-                except ValueError:
-                    print("L Invalid choice")
-                
-            elif choice == '4':
-                email = input("=� Email to remove: ").strip()
-                if email:
-                    confirm = input(f"� Really remove {email}? (y/N): ").strip().lower()
-                    if confirm in ['y', 'yes']:
-                        self.multi_account.remove_account(email)
-                
-            elif choice == '5':
-                info = self.multi_account.get_current_account_info()
-                if info:
-                    print(f"\n=d Current Account: {info['email']}")
-                    user_info = info['user_info']
-                    print(f"   User ID: {user_info.get('userid')}")
-                    print(f"   Quota: {user_info.get('quota', 0):,} bytes")
-                    print(f"   Used: {user_info.get('usedquota', 0):,} bytes")
-                else:
-                    print("L No current account")
-                
-            elif choice == '6':
-                print("\n= Validating all saved tokens...")
-                accounts = self.token_manager.list_saved_accounts()
-                
-                for account in accounts:
-                    is_valid = self.token_manager.validate_token(account['email'])
-                    status = " Valid" if is_valid else "L Invalid"
-                    print(f"   {account['email']}: {status}")
-                
-            elif choice == '0':
+                # Test API call with switched account
+                sdk = token_manager.get_current_sdk()
+                if sdk:
+                    try:
+                        user_info = sdk.user.get_user_info()
+                        print(f"   ✅ API test with {name}: {user_info.get('email')}")
+                    except Exception as e:
+                        print(f"   ❌ API test with {name} failed: {e}")
                 break
-                
-            else:
-                print("L Invalid choice")
     
-    def demo_token_security_practices(self):
-        """Demonstrate security best practices"""
-        print("\n4� SECURITY BEST PRACTICES")
-        print("=" * 40)
+    # Validate all tokens
+    print("\n🔍 Token validation:")
+    token_manager.validate_all_tokens()
+    
+    # Cleanup demonstration
+    print("\n🧹 Cleanup options:")
+    cleanup_choice = input("Clean up demo accounts? (y/n): ").strip().lower()
+    if cleanup_choice == 'y':
+        for name in list(token_manager.accounts.keys()):
+            token_manager.remove_account(name)
+        print("✅ All demo accounts cleaned up")
+
+
+def demonstrate_token_security_practices():
+    """Demonstrate token security best practices"""
+    print("\n" + "="*60)
+    print("4️⃣ TOKEN SECURITY BEST PRACTICES")
+    print("="*60)
+    
+    print("📋 Security features:")
+    print("   • Token file encryption")
+    print("   • Automatic expiration")
+    print("   • Secure file permissions")
+    print("   • Token validation")
+    
+    # Get credentials
+    email = input("\nEnter pCloud email: ").strip()
+    password = input("Enter pCloud password: ").strip()
+    
+    if not email or not password:
+        print("❌ Email and password required")
+        return
+    
+    try:
+        # Demonstrate secure token handling
+        print("\n🔒 Secure token management demo...")
         
-        print("= Security recommendations for token management:")
-        print()
+        # Create SDK with secure settings
+        secure_token_file = ".secure_pcloud_token"
+        sdk = PCloudSDK(token_file=secure_token_file)
         
-        print(" DO:")
-        print("   " Use automatic token management for convenience")
-        print("   " Store tokens in secure, user-specific directories") 
-        print("   " Validate tokens before use")
-        print("   " Set appropriate file permissions (600)")
-        print("   " Use different token files for different environments")
-        print("   " Implement token rotation for long-running applications")
-        print()
+        # Login and save token securely
+        sdk.login(email, password)
+        print("✅ Secure login completed")
         
-        print("L DON'T:")
-        print("   " Store tokens in version control")
-        print("   " Use same token file for multiple applications")
-        print("   " Ignore token validation errors")
-        print("   " Store tokens in world-readable locations")
-        print("   " Hardcode tokens in source code")
-        print()
-        
-        # Demonstrate file permission check
-        accounts = self.token_manager.list_saved_accounts()
-        if accounts:
-            print("= Checking file permissions for saved tokens:")
+        # Check file permissions
+        if os.path.exists(secure_token_file):
+            stat_info = os.stat(secure_token_file)
+            permissions = oct(stat_info.st_mode)[-3:]
+            print(f"🔒 Token file permissions: {permissions}")
             
-            for account in accounts:
-                file_path = account['file']
-                if os.path.exists(file_path):
-                    # Check file permissions
-                    file_stat = os.stat(file_path)
-                    permissions = oct(file_stat.st_mode)[-3:]
-                    
-                    if permissions == '600':
-                        status = " Secure (600)"
-                    elif permissions in ['644', '664']:
-                        status = "� Readable by others"
-                    else:
-                        status = f"S Permissions: {permissions}"
-                    
-                    print(f"   {os.path.basename(file_path)}: {status}")
-    
-    def demo_token_cleanup(self):
-        """Demonstrate token cleanup"""
-        print("\n5� TOKEN CLEANUP")
-        print("=" * 40)
+            # Show file size (tokens are encrypted, so size may vary)
+            file_size = stat_info.st_size
+            print(f"📁 Token file size: {file_size} bytes")
         
-        print(">� Token cleanup operations...")
+        # Show token information without exposing actual token
+        creds_info = sdk.get_credentials_info()
+        print(f"\n🛡️ Security information:")
+        print(f"   📅 Token age: {creds_info.get('age_days', 0):.2f} days")
+        print(f"   ⏰ Last used: {creds_info.get('last_used', 'Unknown')}")
+        print(f"   🔐 Token file: {secure_token_file}")
         
-        # List all tokens with their status
-        accounts = self.token_manager.list_saved_accounts()
-        
-        if not accounts:
-            print("=� No tokens found to clean up")
-            return
-        
-        print(f"\n=� Found {len(accounts)} token files:")
-        
-        valid_count = 0
-        invalid_count = 0
-        
-        for account in accounts:
-            is_valid = self.token_manager.validate_token(account['email'])
-            if is_valid:
-                valid_count += 1
-                print(f"    {account['email']} (valid)")
-            else:
-                invalid_count += 1
-                print(f"   L {account['email']} (invalid/expired)")
-        
-        print(f"\n=� Summary: {valid_count} valid, {invalid_count} invalid")
-        
-        if invalid_count > 0:
-            cleanup = input(f"\n=� Remove {invalid_count} invalid tokens? (y/N): ").strip().lower()
-            if cleanup in ['y', 'yes']:
-                removed = self.token_manager.cleanup_invalid_tokens()
-                print(f" Cleaned up {len(removed)} invalid tokens")
-    
-    def run_demo(self):
-        """Run the complete token management demo"""
-        print("=� pCloud SDK Token Management Examples")
-        print("=" * 50)
-        
+        # Demonstrate token validation
+        print("\n✅ Token validation:")
         try:
-            # Run all demonstrations
-            self.demo_basic_token_management()
-            self.demo_manual_token_management()
-            self.demo_multi_account_management()
-            self.demo_token_security_practices()
-            self.demo_token_cleanup()
+            user_info = sdk.user.get_user_info()
+            print(f"   ✅ Token is valid (user: {user_info.get('email')})")
+        except PCloudException as e:
+            print(f"   ❌ Token validation failed: {e}")
+        
+        # Demonstrate secure logout
+        print("\n🚪 Secure logout (removes token file):")
+        confirm_logout = input("   Perform secure logout? (y/n): ").strip().lower()
+        if confirm_logout == 'y':
+            sdk.logout()
             
-            print("\n<� Token management demo completed!")
-            
-        except KeyboardInterrupt:
-            print("\n� Demo interrupted by user")
-        except Exception as e:
-            print(f"\nL Demo failed: {e}")
+            if not os.path.exists(secure_token_file):
+                print("   ✅ Token file securely removed")
+            else:
+                print("   ⚠️ Token file still exists")
+        
+        print("\n🛡️ Security best practices:")
+        print("   1. Use automatic token management when possible")
+        print("   2. Never store passwords in plain text")
+        print("   3. Use secure file permissions for token files")
+        print("   4. Regularly validate and refresh tokens")
+        print("   5. Implement proper logout procedures")
+        print("   6. Monitor token usage and age")
+        
+    except PCloudException as e:
+        print(f"❌ Error: {e}")
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
 
 
 def main():
-    """Main function"""
-    print("< Welcome to the pCloud SDK Token Management Examples!")
-    print()
-    print("This comprehensive demo covers:")
-    print("" Automatic vs manual token management")
-    print("" Multi-account handling")
-    print("" Token validation and cleanup")
-    print("" Security best practices")
-    print("" Real-world usage patterns")
-    print()
+    """Main demonstration function"""
+    print("🔑 pCloud SDK Token Management Examples")
+    print("=" * 45)
     
-    proceed = input("Continue with the token management demo? (y/N): ").strip().lower()
-    if proceed not in ['y', 'yes']:
-        print("Demo cancelled.")
-        return
-    
-    # Run the demo
-    demo = TokenManagementDemo()
-    demo.run_demo()
+    while True:
+        print("\nChoose a demonstration:")
+        print("1. Automatic token management")
+        print("2. Manual token management")
+        print("3. Multi-account management")
+        print("4. Token security practices")
+        print("5. Exit")
+        
+        choice = input("Enter choice (1-5): ").strip()
+        
+        if choice == '1':
+            demonstrate_automatic_token_management()
+        elif choice == '2':
+            demonstrate_manual_token_management()
+        elif choice == '3':
+            demonstrate_multi_account_management()
+        elif choice == '4':
+            demonstrate_token_security_practices()
+        elif choice == '5':
+            print("👋 Goodbye!")
+            break
+        else:
+            print("❌ Invalid choice. Please enter 1-5.")
 
 
 if __name__ == "__main__":
