@@ -1,69 +1,69 @@
 #!/usr/bin/env python3
 """
-Exemple d'utilisation basique du SDK pCloud
-Démontre les opérations les plus courantes
+Basic usage example for pCloud SDK Python
+Demonstrates the most common operations
 """
 
 import os
 import sys
 import tempfile
 
-# Import du SDK pCloud
+# Import pCloud SDK
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.progress_utils import create_progress_bar
 
 
 def main():
-    """Exemple d'utilisation basique du SDK pCloud"""
+    """Basic usage example for pCloud SDK"""
     
-    print("🚀 Exemple d'utilisation basique du SDK pCloud")
+    print("🚀 pCloud SDK Python - Basic Usage Example")
     print("=" * 50)
     
-    # 1. Configuration et authentification
-    print("\n1️⃣ Authentification...")
+    # 1. Configuration and authentication
+    print("\n1️⃣ Authentication...")
     
-    # Option A: Utiliser des variables d'environnement
+    # Option A: Use environment variables
     email = os.environ.get('PCLOUD_EMAIL')
     password = os.environ.get('PCLOUD_PASSWORD')
     
     pcloud = PCloudSDK()
     
     if email and password:
-        print(f"📧 Connexion avec email: {email}")
+        print(f"📧 Connecting with email: {email}")
         pcloud.login(email, password)
     else:
-        # Option B: Saisie manuelle (pour démo)
-        print("📧 Variables d'environnement non trouvées")
-        print("💡 Conseil: définissez PCLOUD_EMAIL et PCLOUD_PASSWORD")
+        # Option B: Manual input (for demo)
+        print("📧 Environment variables not found")
+        print("💡 Tip: set PCLOUD_EMAIL and PCLOUD_PASSWORD")
         
-        email = input("Email pCloud: ").strip()
-        password = input("Mot de passe: ").strip()
+        email = input("pCloud Email: ").strip()
+        password = input("Password: ").strip()
         
         if not email or not password:
-            print("❌ Email et mot de passe requis")
+            print("❌ Email and password required")
             return
             
         pcloud.login(email, password)
     
     try:
-        # 2. Informations utilisateur
-        print("\n2️⃣ Informations du compte...")
+        # 2. User information
+        print("\n2️⃣ Account Information...")
         user_info = pcloud.user.get_user_info()
         
-        print(f"👤 Utilisateur: {user_info.get('email', 'N/A')}")
+        print(f"👤 User: {user_info.get('email', 'N/A')}")
         print(f"💾 Quota: {user_info.get('quota', 0) // (1024**3):.1f} GB")
-        print(f"📁 Utilisé: {user_info.get('usedquota', 0) // (1024**3):.1f} GB")
+        print(f"📁 Used: {user_info.get('usedquota', 0) // (1024**3):.1f} GB")
         
-        # 3. Lister le contenu du dossier racine
-        print("\n3️⃣ Contenu du dossier racine...")
+        # 3. List root folder contents
+        print("\n3️⃣ Root folder contents...")
         root_content = pcloud.folder.list_root()
         
         folders = root_content.get('contents', [])
-        print(f"📂 {len([f for f in folders if f.get('isfolder')])} dossiers")
-        print(f"📄 {len([f for f in folders if not f.get('isfolder')])} fichiers")
+        print(f"📂 {len([f for f in folders if f.get('isfolder')])} folders")
+        print(f"📄 {len([f for f in folders if not f.get('isfolder')])} files")
         
-        # Afficher quelques éléments
-        for item in folders[:5]:  # Premiers 5 éléments
+        # Display some items
+        for item in folders[:5]:  # First 5 items
             icon = "📁" if item.get('isfolder') else "📄"
             name = item.get('name', 'N/A')
             size = item.get('size', 0)
@@ -74,40 +74,40 @@ def main():
                 print(f"  {icon} {name}/")
         
         if len(folders) > 5:
-            print(f"  ... et {len(folders) - 5} autres éléments")
+            print(f"  ... and {len(folders) - 5} more items")
         
-        # 4. Créer un dossier de test
-        print("\n4️⃣ Création d'un dossier de test...")
+        # 4. Create a test folder
+        print("\n4️⃣ Creating test folder...")
         test_folder_name = "SDK_Test_Folder"
         
         try:
             folder_id = pcloud.folder.create(test_folder_name, parent=0)
-            print(f"✅ Dossier créé: {test_folder_name} (ID: {folder_id})")
+            print(f"✅ Folder created: {test_folder_name} (ID: {folder_id})")
         except Exception as e:
-            print(f"⚠️ Dossier existe déjà ou erreur: {e}")
-            # Essayer de le trouver
+            print(f"⚠️ Folder already exists or error: {e}")
+            # Try to find it
             for item in folders:
                 if item.get('name') == test_folder_name and item.get('isfolder'):
                     folder_id = item.get('folderid')
-                    print(f"📁 Utilisation du dossier existant (ID: {folder_id})")
+                    print(f"📁 Using existing folder (ID: {folder_id})")
                     break
             else:
-                folder_id = 0  # Utiliser le dossier racine par défaut
+                folder_id = 0  # Use root folder as fallback
         
-        # 5. Upload d'un fichier de test
-        print("\n5️⃣ Upload d'un fichier de test...")
+        # 5. Upload a test file
+        print("\n5️⃣ Uploading test file...")
         
-        # Créer un fichier temporaire
+        # Create a temporary file
         with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp_file:
-            test_content = f"""Fichier de test du SDK pCloud
-Créé le: {__import__('datetime').datetime.now()}
-Contenu: Ceci est un test d'upload du SDK pCloud Python
-Taille: Environ 200 caractères pour tester l'upload
+            test_content = f"""pCloud SDK Test File
+Created on: {__import__('datetime').datetime.now()}
+Content: This is a test upload from the pCloud Python SDK
+Size: About 200 characters to test upload functionality
 """
             tmp_file.write(test_content)
             tmp_file_path = tmp_file.name
         
-        # Upload avec barre de progression
+        # Upload with progress bar
         progress_bar = create_progress_bar("Upload Test")
         
         try:
@@ -118,24 +118,24 @@ Taille: Environ 200 caractères pour tester l'upload
                 progress_callback=progress_bar
             )
             
-            file_id = upload_result.get('metadata', [{}])[0].get('fileid')
-            file_name = upload_result.get('metadata', [{}])[0].get('name')
-            print(f"✅ Fichier uploadé: {file_name} (ID: {file_id})")
+            file_id = upload_result['metadata']['fileid']
+            file_name = upload_result['metadata']['name']
+            print(f"✅ File uploaded: {file_name} (ID: {file_id})")
             
         except Exception as e:
-            print(f"❌ Erreur upload: {e}")
+            print(f"❌ Upload error: {e}")
             file_id = None
         
         finally:
-            # Nettoyer le fichier temporaire
+            # Clean up temporary file
             try:
                 os.unlink(tmp_file_path)
             except:
                 pass
         
-        # 6. Download du fichier
+        # 6. Download the file
         if file_id:
-            print("\n6️⃣ Download du fichier...")
+            print("\n6️⃣ Downloading file...")
             
             download_dir = tempfile.mkdtemp()
             progress_bar_dl = create_progress_bar("Download Test")
@@ -152,50 +152,50 @@ Taille: Environ 200 caractères pour tester l'upload
                     if downloaded_files:
                         downloaded_file = os.path.join(download_dir, downloaded_files[0])
                         file_size = os.path.getsize(downloaded_file)
-                        print(f"✅ Fichier téléchargé: {downloaded_files[0]} ({file_size} bytes)")
+                        print(f"✅ File downloaded: {downloaded_files[0]} ({file_size} bytes)")
                         
-                        # Vérifier le contenu
+                        # Verify content
                         with open(downloaded_file, 'r') as f:
                             content = f.read()
-                            if "SDK pCloud" in content:
-                                print("✅ Contenu vérifié - download réussi!")
+                            if "pCloud SDK" in content:
+                                print("✅ Content verified - download successful!")
                     
             except Exception as e:
-                print(f"❌ Erreur download: {e}")
+                print(f"❌ Download error: {e}")
             
             finally:
-                # Nettoyer le dossier de téléchargement
+                # Clean up download directory
                 try:
                     import shutil
                     shutil.rmtree(download_dir)
                 except:
                     pass
             
-            # 7. Suppression du fichier de test
-            print("\n7️⃣ Nettoyage...")
+            # 7. Delete test file
+            print("\n7️⃣ Cleanup...")
             try:
                 pcloud.file.delete(file_id)
-                print("✅ Fichier de test supprimé")
+                print("✅ Test file deleted")
             except Exception as e:
-                print(f"⚠️ Erreur suppression fichier: {e}")
+                print(f"⚠️ File deletion error: {e}")
         
-        # 8. Suppression du dossier de test
+        # 8. Delete test folder
         if folder_id and folder_id != 0:
             try:
                 pcloud.folder.delete(folder_id)
-                print("✅ Dossier de test supprimé")
+                print("✅ Test folder deleted")
             except Exception as e:
-                print(f"⚠️ Erreur suppression dossier: {e}")
+                print(f"⚠️ Folder deletion error: {e}")
         
-        print("\n🎉 Test basique terminé avec succès!")
-        print("\n💡 Ce que vous pouvez faire maintenant:")
-        print("   - Explorer les autres exemples dans le dossier examples/")
-        print("   - Consulter la documentation dans docs/")
-        print("   - Utiliser le CLI: pcloud-sdk --help")
+        print("\n🎉 Basic test completed successfully!")
+        print("\n💡 What you can do now:")
+        print("   - Explore other examples in the examples/ folder")
+        print("   - Check documentation in docs/")
+        print("   - Use the CLI: pcloud-sdk --help")
         
     except Exception as e:
-        print(f"\n❌ Erreur lors de l'exécution: {e}")
-        print("💡 Vérifiez vos identifiants et votre connexion internet")
+        print(f"\n❌ Error during execution: {e}")
+        print("💡 Check your credentials and internet connection")
         return 1
     
     return 0

@@ -1,0 +1,38 @@
+# Include package data and metadata
+include README.md
+include LICENSE
+include CHANGELOG.md
+include requirements.txt
+include requirements/*.txt
+include pyproject.toml
+include pytest.ini
+include tox.ini
+include .flake8
+
+# Include documentation
+recursive-include docs *.md *.rst *.txt
+
+# Include examples
+recursive-include examples *.py
+
+# Include tests
+recursive-include tests *.py
+
+# Include tools
+recursive-include tools *.py
+
+# Exclude development and build artifacts
+exclude .gitignore
+exclude .pre-commit-config.yaml
+exclude tox.ini
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+recursive-exclude * *.orig
+recursive-exclude * *.rej
+recursive-exclude * .git*
+recursive-exclude * .idea*
+recursive-exclude * .vscode*
+recursive-exclude * .DS_Store
+recursive-exclude * *.egg-info*
+exclude build
+exclude dist

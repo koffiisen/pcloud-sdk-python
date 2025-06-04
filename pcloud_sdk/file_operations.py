@@ -147,14 +147,14 @@ class File:
                         num_failures += 1
                         if num_failures < 10:
                             if not progress_callback:
-                                print(f"  ⚠️ Retry {num_failures}/10 pour ce chunk: {e}")
+                                print(f"  ⚠️ Retry {num_failures}/10 for this chunk: {e}")
                             time.sleep(3)
                         else:
                             if progress_callback:
                                 progress_callback(uploaded_bytes, file_size, percentage, speed,
                                                 operation="upload", filename=filename, 
-                                                status="error", error=f"Upload échoué après {num_failures} tentatives: {e}")
-                            raise PCloudException(f"Upload échoué après {num_failures} tentatives: {e}")
+                                                status="error", error=f"Upload failed after {num_failures} attempts: {e}")
+                            raise PCloudException(f"Upload failed after {num_failures} attempts: {e}")
 
         # Update progress for saving phase
         if progress_callback:
@@ -163,7 +163,7 @@ class File:
             progress_callback(uploaded_bytes, file_size, 100.0, speed,
                             operation="upload", filename=filename, status="saving")
         else:
-            print(f"✅ Upload terminé, sauvegarde...")
+            print(f"✅ Upload completed, saving...")
 
         # Save uploaded file
         try:
@@ -176,7 +176,7 @@ class File:
                 progress_callback(uploaded_bytes, file_size, 100.0, speed,
                                 operation="upload", filename=filename, status="completed")
             else:
-                print(f"✅ Fichier sauvegardé avec succès!")
+                print(f"✅ File saved successfully!")
             return result
         except Exception as e:
             if progress_callback:
@@ -184,8 +184,8 @@ class File:
                 speed = uploaded_bytes / elapsed if elapsed > 0 else 0
                 progress_callback(uploaded_bytes, file_size, 100.0, speed,
                                 operation="upload", filename=filename, 
-                                status="error", error=f"Erreur lors de la sauvegarde: {e}")
-            raise PCloudException(f"Erreur lors de la sauvegarde: {e}")
+                                status="error", error=f"Error during save: {e}")
+            raise PCloudException(f"Error during save: {e}")
 
     def delete(self, file_id: int) -> Dict[str, Any]:
         """Delete file"""
@@ -237,10 +237,10 @@ class File:
             "name": name
         }
 
-        # Gérer le dossier de destination
+        # Handle destination folder
         if folder_id is None or folder_id == 0:
-            # Pour le dossier racine, essayer différentes approches
-            # D'abord essayer avec folderid=0 (approche standard)
+            # For root folder, try different approaches
+            # First try with folderid=0 (standard approach)
             params["folderid"] = 0
         else:
             params["folderid"] = folder_id
@@ -252,9 +252,9 @@ class File:
             print(f"  ✅ upload_save réussi")
             return result
         except PCloudException as e:
-            # Si ça échoue avec folderid=0, essayer avec path="/"
+            # If it fails with folderid=0, try with path="/"
             if "folderid" in params and params["folderid"] == 0:
-                print(f"  🔄 Retry upload_save avec path='/' au lieu de folderid=0")
+                print(f"  🔄 Retry upload_save with path='/' instead of folderid=0")
                 params = {
                     "uploadid": upload_id,
                     "name": name,

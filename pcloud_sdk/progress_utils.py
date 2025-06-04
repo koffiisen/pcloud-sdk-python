@@ -97,7 +97,7 @@ class DetailedProgress:
             self.start_time = time.time()
             operation = kwargs.get('operation', 'transfer')
             filename = kwargs.get('filename', 'file')
-            print(f"\n🚀 Début {operation}: {filename} ({total_bytes:,} bytes)")
+            print(f"\n🚀 Starting {operation}: {filename} ({total_bytes:,} bytes)")
 
         # Enregistrer checkpoint
         checkpoint = {
@@ -131,7 +131,7 @@ class DetailedProgress:
                 print(f"📊 Progression: {percentage:.1f}% "
                       f"({bytes_transferred:,}/{total_bytes:,} bytes) "
                       f"- {speed / (1024 * 1024):.1f}MB/s "
-                      f"- {elapsed:.1f}s écoulé")
+                      f"- {elapsed:.1f}s elapsed")
 
         # Log dans fichier si spécifié
         if self.log_file:

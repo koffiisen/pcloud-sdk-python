@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Interface en ligne de commande pour pCloud SDK Python v2.0
+Command Line Interface for pCloud SDK Python v2.0
 Usage: pcloud-sdk [command] [options]
 """
 
@@ -13,19 +13,19 @@ try:
     from pcloud_sdk import PCloudSDK, PCloudException
     from pcloud_sdk.progress_utils import create_progress_bar, create_minimal_progress
 except ImportError:
-    print("❌ pCloud SDK non trouvé. Installez-le avec: pip install pcloud-sdk-python")
+    print("❌ pCloud SDK not found. Install it with: pip install pcloud-sdk-python")
     sys.exit(1)
 
 
 class PCloudCLI:
-    """Interface CLI pour pCloud SDK"""
+    """CLI Interface for pCloud SDK"""
 
     def __init__(self):
         self.sdk = None
         self.config_file = Path.home() / ".pcloud_cli_config"
 
     def load_config(self) -> dict:
-        """Charger la configuration CLI"""
+        """Load CLI configuration"""
         if self.config_file.exists():
             try:
                 with open(self.config_file, 'r') as f:
@@ -35,28 +35,28 @@ class PCloudCLI:
         return {}
 
     def save_config(self, config: dict):
-        """Sauvegarder la configuration CLI"""
+        """Save CLI configuration"""
         try:
             with open(self.config_file, 'w') as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
-            print(f"⚠️ Impossible de sauvegarder la config: {e}")
+            print(f"⚠️ Unable to save config: {e}")
 
     def setup_sdk(self, args) -> bool:
-        """Initialiser le SDK avec les arguments"""
+        """Initialize SDK with arguments"""
         try:
-            # Charger la config existante
+            # Load existing config
             config = self.load_config()
 
-            # Déterminer les paramètres de connexion
+            # Determine connection parameters
             email = args.email or config.get('email')
             location_id = args.location or config.get('location_id', 2)
 
             if not email and not args.token:
-                print("❌ Email requis pour la première connexion")
+                print("❌ Email required for first connection")
                 return False
 
-            # Initialiser le SDK
+            # Initialize SDK
             self.sdk = PCloudSDK(
                 access_token=args.token or "",
                 location_id=location_id,
@@ -64,26 +64,26 @@ class PCloudCLI:
                 token_file=args.token_file or config.get('token_file', '.pcloud_credentials')
             )
 
-            # Connexion si nécessaire
+            # Connect if necessary
             if not self.sdk.is_authenticated():
                 if not email:
-                    print("❌ Email requis pour l'authentification")
+                    print("❌ Email required for authentication")
                     return False
 
                 password = args.password
                 if not password:
                     import getpass
-                    password = getpass.getpass("🔑 Mot de passe pCloud: ")
+                    password = getpass.getpass("🔑 pCloud password: ")
 
                 if not password:
-                    print("❌ Mot de passe requis")
+                    print("❌ Password required")
                     return False
 
-                print(f"🔐 Connexion à pCloud...")
+                print(f"🔐 Connecting to pCloud...")
                 login_info = self.sdk.login(email, password, location_id)
-                print(f"✅ Connecté: {login_info['email']}")
+                print(f"✅ Connected: {login_info['email']}")
 
-                # Sauvegarder la config
+                # Save config
                 config.update({
                     'email': login_info['email'],
                     'location_id': login_info['locationid']
@@ -93,41 +93,41 @@ class PCloudCLI:
             return True
 
         except PCloudException as e:
-            print(f"❌ Erreur pCloud: {e}")
+            print(f"❌ pCloud error: {e}")
             return False
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"❌ Error: {e}")
             return False
 
     def cmd_login(self, args):
-        """Commande de connexion"""
+        """Login command"""
         if not args.email:
-            print("❌ Email requis: pcloud-sdk login --email your@email.com")
+            print("❌ Email required: pcloud-sdk login --email your@email.com")
             return 1
 
         if self.setup_sdk(args):
-            print("✅ Connexion réussie et sauvegardée")
+            print("✅ Login successful and saved")
             return 0
         return 1
 
     def cmd_logout(self, args):
-        """Commande de déconnexion"""
+        """Logout command"""
         try:
             sdk = PCloudSDK(token_manager=True)
             sdk.logout()
 
-            # Supprimer la config CLI
+            # Remove CLI config
             if self.config_file.exists():
                 self.config_file.unlink()
 
-            print("✅ Déconnecté et credentials supprimés")
+            print("✅ Logged out and credentials removed")
             return 0
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"❌ Error: {e}")
             return 1
 
     def cmd_info(self, args):
-        """Afficher les informations du compte"""
+        """Display account information"""
         if not self.setup_sdk(args):
             return 1
 
@@ -136,20 +136,20 @@ class PCloudCLI:
             used_quota = self.sdk.user.get_used_quota()
             total_quota = self.sdk.user.get_quota()
 
-            print("📊 Informations du compte:")
+            print("📊 Account information:")
             print(f"   📧 Email: {user_info.get('email', 'Unknown')}")
             print(f"   🆔 User ID: {user_info.get('userid', 'Unknown')}")
-            print(f"   💾 Quota utilisé: {used_quota:,} bytes ({used_quota / (1024 ** 3):.2f} GB)")
-            print(f"   📦 Quota total: {total_quota:,} bytes ({total_quota / (1024 ** 3):.2f} GB)")
-            print(f"   🆓 Espace libre: {(total_quota - used_quota) / (1024 ** 3):.2f} GB")
+            print(f"   💾 Quota used: {used_quota:,} bytes ({used_quota / (1024 ** 3):.2f} GB)")
+            print(f"   📦 Total quota: {total_quota:,} bytes ({total_quota / (1024 ** 3):.2f} GB)")
+            print(f"   🆓 Free space: {(total_quota - used_quota) / (1024 ** 3):.2f} GB")
 
             return 0
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"❌ Error: {e}")
             return 1
 
     def cmd_list(self, args):
-        """Lister le contenu d'un dossier"""
+        """List folder contents"""
         if not self.setup_sdk(args):
             return 1
 
@@ -161,14 +161,14 @@ class PCloudCLI:
                 contents = root_contents.get('contents', [])
 
             if not contents:
-                print("📁 Dossier vide")
+                print("📁 Empty folder")
                 return 0
 
-            print(f"📁 Contenu du dossier ({len(contents)} éléments):")
+            print(f"📁 Folder contents ({len(contents)} items):")
 
             for item in contents:
                 icon = "📁" if item.get('isfolder') else "📄"
-                name = item.get('name', 'Sans nom')
+                name = item.get('name', 'Unnamed')
 
                 if item.get('isfolder'):
                     print(f"   {icon} {name}/ (ID: {item.get('folderid', 'Unknown')})")
@@ -178,11 +178,11 @@ class PCloudCLI:
 
             return 0
         except Exception as e:
-            print(f"❌ Erreur: {e}")
+            print(f"❌ Error: {e}")
             return 1
 
     def cmd_upload(self, args):
-        """Upload un fichier"""
+        """Upload a file"""
         if not self.setup_sdk(args):
             return 1
 
@@ -268,7 +268,7 @@ class PCloudCLI:
             return 1
 
     def cmd_delete(self, args):
-        """Supprimer un fichier ou dossier"""
+        """Delete a file or folder"""
         if not self.setup_sdk(args):
             return 1
 
@@ -350,7 +350,7 @@ Exemples d'utilisation:
     download_parser.add_argument('--destination', default='.', help='Dossier de destination')
 
     # Delete
-    delete_parser = subparsers.add_parser('delete', help='Supprimer un fichier ou dossier')
+    delete_parser = subparsers.add_parser('delete', help='Delete a file or folder')
     delete_group = delete_parser.add_mutually_exclusive_group(required=True)
     delete_group.add_argument('--file-id', type=int, help='ID du fichier à supprimer')
     delete_group.add_argument('--folder-id', type=int, help='ID du dossier à supprimer')
