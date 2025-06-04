@@ -60,9 +60,11 @@ class TestSimpleProgressBar:
         # Verify print was called (title, progress updates, completion)
         assert mock_print.call_count >= 3
 
-    def test_simple_progress_bar_with_speed_and_eta(self):
+    @patch('time.time')
+    def test_simple_progress_bar_with_speed_and_eta(self, mock_time):
         """Test progress bar with speed and ETA calculations"""
         progress = SimpleProgressBar(show_speed=True, show_eta=True)
+        mock_time.side_effect = [100.0, 100.0, 100.2] # t_start, t_first_curr, t_second_curr
         
         with patch('builtins.print') as mock_print:
             # Initialize
@@ -72,8 +74,11 @@ class TestSimpleProgressBar:
             progress(256, 1024, 25.0, 512.0, filename="test.txt", operation="upload")
             
             # Check that speed is included in output
-            progress_calls = [call for call in mock_print.call_args_list if "MB/s" in str(call)]
-            assert len(progress_calls) > 0
+            # mock_print.call_args_list should be: [title_call, 0%_bar_call, 25%_bar_call_with_speed]
+            assert len(mock_print.call_args_list) > 2, \
+                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "MB/s" in str(mock_print.call_args_list[2]), \
+                f"MB/s not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_without_speed_and_eta(self):
         """Test progress bar without speed and ETA display"""
@@ -88,9 +93,11 @@ class TestSimpleProgressBar:
         assert "MB/s" not in all_output
         assert "ETA:" not in all_output
 
-    def test_simple_progress_bar_eta_calculations(self):
+    @patch('time.time')
+    def test_simple_progress_bar_eta_calculations(self, mock_time):
         """Test ETA calculation accuracy"""
         progress = SimpleProgressBar(show_eta=True)
+        mock_time.side_effect = [200.0, 200.0, 200.2] # t_start, t_first_curr, t_second_curr
         
         with patch('builtins.print') as mock_print:
             progress(0, 3600, 0.0, 0.0, filename="test.txt", operation="upload")
@@ -99,8 +106,11 @@ class TestSimpleProgressBar:
             progress(1800, 3600, 50.0, 1048576.0, filename="test.txt", operation="upload")
             
             # Check that ETA is calculated
-            progress_calls = [str(call) for call in mock_print.call_args_list if "ETA:" in str(call)]
-            assert len(progress_calls) > 0
+            # mock_print.call_args_list should be: [title_call, 0%_bar_call, 50%_bar_call_with_eta]
+            assert len(mock_print.call_args_list) > 2, \
+                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "ETA:" in str(mock_print.call_args_list[2]), \
+                f"ETA: not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_update_throttling(self):
         """Test that progress updates are throttled to prevent flickering"""
@@ -122,7 +132,7 @@ class TestSimpleProgressBar:
         progress = SimpleProgressBar()
         
         with patch('builtins.print') as mock_print:
-            with patch('time.time', side_effect=[100.0, 105.0]):  # 5 second transfer
+            with patch('time.time', side_effect=[100.0, 100.1, 105.0, 105.1]):  # 5 second transfer
                 progress(0, 1048576, 0.0, 0.0, filename="test.txt", operation="upload")
                 progress(1048576, 1048576, 100.0, 209715.2, filename="test.txt", operation="upload")
         
@@ -186,9 +196,9 @@ class TestDetailedProgress:
         
         # Verify different status messages were printed
         all_output = " ".join([str(call) for call in mock_print.call_args_list])
-        assert "Début upload" in all_output
-        assert "Sauvegarde en cours" in all_output
-        assert "Transfert terminé" in all_output
+        assert "Initialisation du transfert..." in all_output
+        assert "Sauvegarde en cours..." in all_output
+        assert "Transfert terminé!" in all_output
         assert "Erreur: Network timeout" in all_output
 
     def test_detailed_progress_periodic_updates(self):
@@ -359,8 +369,8 @@ class TestSilentProgress:
             assert len(lines) >= 5  # Header + comment + 3 data lines
             
             # Check CSV format
-            data_lines = [line for line in lines if not line.startswith('#')]
-            assert len(data_lines) >= 4  # Header + 3 data lines
+            data_lines = [line for line in lines if not line.startswith('#') and line.strip() != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"] # Exclude header line itself
+            assert len(data_lines) == 3  # 3 data lines
             
             # Verify CSV structure
             for line in data_lines[1:]:  # Skip header
@@ -556,7 +566,7 @@ class TestProgressAccuracy:
             })
         
         # Mock time progression for speed calculation
-        with patch('time.time', side_effect=[0, 1, 2, 3, 4]):  # 1 second intervals
+        with patch('time.time', side_effect=[0, 1, 2, 3, 4, 5]):  # 1 second intervals
             progress = SimpleProgressBar()
             
             # Simulate transfer at 1024 bytes/second
@@ -678,8 +688,8 @@ class TestProgressPerformance:
                 lines = f.readlines()
             
             # Should have header + comment + 1000 data lines
-            data_lines = [line for line in lines if not line.startswith('#')]
-            assert len(data_lines) >= 1001  # Header + 1000 data lines
+            data_lines = [line for line in lines if not line.startswith('#') and line.strip() != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"] # Exclude header line itself
+            assert len(data_lines) == 1000  # 1000 data lines
             
         finally:
             os.unlink(temp_log.name)

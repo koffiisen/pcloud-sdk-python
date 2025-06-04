@@ -5,8 +5,10 @@ Tests token saving/loading, validation, expiration, multi-account management, an
 
 import json
 import os
+import sys
 import tempfile
 import time
+from io import StringIO
 from unittest.mock import Mock, patch, mock_open
 
 import pytest
@@ -733,26 +735,43 @@ class TestTokenCleanupOperations:
         assert not os.path.exists(self.token_file)
         assert sdk._saved_credentials is None
 
-    def test_clear_credentials_with_permission_error(self):
-        """Test clearing credentials when file can't be deleted"""
+    @patch('os.remove')
+    def test_clear_credentials_with_permission_error(self, mock_os_remove):
+        """Test clearing credentials when os.remove raises PermissionError."""
+        mock_os_remove.side_effect = PermissionError("Mocked permission denied")
+
         sdk = PCloudSDK(token_file=self.token_file)
         
-        # Save credentials
-        sdk._save_credentials(
-            email="test@example.com",
-            token="test_token_123",
-            location_id=2
-        )
+        # Save credentials to ensure the file exists initially
+        with open(self.token_file, 'w') as f:
+            json.dump({"email": "test@example.com", "access_token": "token"}, f)
         
-        # Make file read-only (simulate permission error)
-        if os.name != 'nt':  # Not Windows
-            os.chmod(self.token_file, 0o444)
-            
-            # Should handle error gracefully
-            sdk.clear_saved_credentials()
-            
-            # Restore permissions for cleanup
-            os.chmod(self.token_file, 0o666)
+        assert os.path.exists(self.token_file)
+
+        original_stdout = sys.stdout
+        sys.stdout = captured_stdout = StringIO()
+
+        sdk.clear_saved_credentials()
+
+        sys.stdout = original_stdout # Restore stdout
+        output = captured_stdout.getvalue()
+
+        # Assertions
+        mock_os_remove.assert_called_once_with(self.token_file) # Verify os.remove was called
+        assert os.path.exists(self.token_file) # File should still exist because os.remove was mocked
+        assert "Could not delete credentials" in output
+        assert "due to a permission error" in output
+        assert "Mocked permission denied" in output # Check our mocked error message
+
+        # Clean up the manually created file if it still exists
+        if os.path.exists(self.token_file):
+            try:
+                # Temporarily remove mock to allow actual deletion for cleanup
+                with patch('os.remove') as actual_remove:
+                    actual_remove.side_effect = os.remove # Use real os.remove
+                    os.remove(self.token_file)
+            except:
+                pass # If cleanup fails, don't fail the test itself
 
     def test_cleanup_old_token_files(self):
         """Test cleanup of old token files"""
