@@ -4,8 +4,8 @@ Quick verification script to check if the test setup is working correctly
 """
 
 import os
-import sys
 import subprocess
+import sys
 from pathlib import Path
 
 

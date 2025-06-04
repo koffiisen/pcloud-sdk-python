@@ -9,19 +9,20 @@ import sys
 import tempfile
 import time
 from io import StringIO
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 import responses
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
+
 from .test_config import (
-    requires_real_credentials,
-    skip_if_no_integration_tests,
     get_test_credentials,
-    safe_remove_file,
+    requires_real_credentials,
     safe_cleanup_temp_dir,
+    safe_remove_file,
+    skip_if_no_integration_tests,
 )
 
 

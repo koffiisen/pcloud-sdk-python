@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Any, Dict
 
 from pcloud_sdk.app import App
 from pcloud_sdk.request import Request

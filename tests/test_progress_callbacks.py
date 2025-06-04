@@ -5,22 +5,22 @@ Tests all 4 built-in progress trackers, custom callbacks, accuracy, performance,
 
 import os
 import tempfile
-import time
 import threading
-from io import StringIO
-from unittest.mock import Mock, patch, call
+import time
 from contextlib import redirect_stdout
+from io import StringIO
+from unittest.mock import Mock, call, patch
 
 import pytest
 
 from pcloud_sdk.progress_utils import (
-    SimpleProgressBar,
     DetailedProgress,
     MinimalProgress,
     SilentProgress,
-    create_progress_bar,
+    SimpleProgressBar,
     create_detailed_progress,
     create_minimal_progress,
+    create_progress_bar,
     create_silent_progress,
 )
 

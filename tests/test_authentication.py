@@ -7,7 +7,7 @@ import json
 import os
 import tempfile
 import time
-from unittest.mock import Mock, patch, mock_open
+from unittest.mock import Mock, mock_open, patch
 
 import pytest
 import requests
@@ -16,22 +16,23 @@ import responses
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException
+
 from .test_config import (
-    PCLOUD_EMAIL,
-    PCLOUD_PASSWORD,
     PCLOUD_ACCESS_TOKEN,
     PCLOUD_CLIENT_ID,
     PCLOUD_CLIENT_SECRET,
+    PCLOUD_EMAIL,
     PCLOUD_LOCATION_ID,
-    has_real_credentials,
-    has_oauth2_credentials,
-    requires_real_credentials,
-    requires_oauth2_credentials,
-    skip_if_no_integration_tests,
-    get_test_credentials,
+    PCLOUD_PASSWORD,
     get_oauth2_credentials,
-    safe_remove_file,
+    get_test_credentials,
+    has_oauth2_credentials,
+    has_real_credentials,
+    requires_oauth2_credentials,
+    requires_real_credentials,
     safe_cleanup_temp_dir,
+    safe_remove_file,
+    skip_if_no_integration_tests,
 )
 
 

@@ -17,13 +17,13 @@ This example covers:
 - Token lifecycle handling
 """
 
-import os
 import json
+import os
 import time
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class TokenManager:

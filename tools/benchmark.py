@@ -8,9 +8,9 @@ import os
 import statistics
 import tempfile
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class PerformanceTracker:

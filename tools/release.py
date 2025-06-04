@@ -5,10 +5,10 @@ Release tool for pCloud SDK Python
 Automates version bumping, building, and publishing to PyPI
 """
 
+import json
 import re
 import subprocess
 import sys
-import json
 from pathlib import Path
 from typing import Optional
 

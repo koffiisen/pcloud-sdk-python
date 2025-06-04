@@ -8,7 +8,7 @@ This package provides a Python interface to the pCloud API.
 import os
 import time
 import warnings
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException

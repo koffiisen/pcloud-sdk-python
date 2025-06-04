@@ -12,16 +12,16 @@ from .exceptions import PCloudException
 from .file_operations import File
 from .folder_operations import Folder
 from .progress_utils import (
-    create_progress_bar,
-    create_detailed_progress,
-    create_minimal_progress,
-    create_silent_progress,
-    SimpleProgressBar,
     DetailedProgress,
     MinimalProgress,
     SilentProgress,
+    SimpleProgressBar,
+    create_detailed_progress,
+    create_minimal_progress,
+    create_progress_bar,
+    create_silent_progress,
 )
-from .request import Request, HttpClient
+from .request import HttpClient, Request
 from .response import Response
 from .user_operations import User
 

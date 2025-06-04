@@ -21,8 +21,8 @@ import tempfile
 import time
 from typing import Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
-from pcloud_sdk.progress_utils import create_progress_bar, create_detailed_progress
+from pcloud_sdk import PCloudException, PCloudSDK
+from pcloud_sdk.progress_utils import create_detailed_progress, create_progress_bar
 
 
 def create_test_file(filename: str, size_mb: int = 5) -> str:
