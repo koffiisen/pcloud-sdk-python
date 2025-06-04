@@ -1,5 +1,5 @@
 import time
-from typing import Optional, Dict, Any, Union
+from typing import Any, Dict, Optional, Union
 from urllib.parse import urlencode
 
 import requests

@@ -18,17 +18,17 @@ This comprehensive demo covers:
 - Real-world transfer scenarios
 """
 
-import os
-import tempfile
 import hashlib
-import time
-import shutil
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import List, Dict, Any, Optional, Tuple
 import mimetypes
+import os
+import shutil
+import tempfile
+import time
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
 
-from pcloud_sdk import PCloudSDK, create_progress_bar, create_detailed_progress
+from pcloud_sdk import PCloudSDK, create_detailed_progress, create_progress_bar
 from pcloud_sdk.exceptions import PCloudException
 
 

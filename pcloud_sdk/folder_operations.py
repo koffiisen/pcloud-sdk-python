@@ -1,5 +1,5 @@
 import os
-from typing import Optional, Dict, List, Any, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException

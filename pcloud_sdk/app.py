@@ -1,11 +1,11 @@
 import json
-from typing import Dict, List, Any, Union
+from typing import Any, Dict, List, Union
 from urllib.parse import urlencode
 
 import requests
 
-from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.config import Config
+from pcloud_sdk.exceptions import PCloudException
 
 
 class App:

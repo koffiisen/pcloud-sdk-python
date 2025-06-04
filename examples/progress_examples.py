@@ -21,23 +21,23 @@ This example shows:
 - Performance monitoring
 """
 
-import os
-import time
-import tempfile
 import csv
+import os
+import tempfile
+import time
 from datetime import datetime
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 from pcloud_sdk.progress_utils import (
-    create_progress_bar,
-    create_detailed_progress,
-    create_minimal_progress,
-    create_silent_progress,
-    SimpleProgressBar,
     DetailedProgress,
     MinimalProgress,
     SilentProgress,
+    SimpleProgressBar,
+    create_detailed_progress,
+    create_minimal_progress,
+    create_progress_bar,
+    create_silent_progress,
 )
 
 

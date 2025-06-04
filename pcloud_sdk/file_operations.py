@@ -1,12 +1,12 @@
 import os
 import time
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 import requests
 
 from pcloud_sdk.app import App
-from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.config import Config
+from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.request import Request
 
 

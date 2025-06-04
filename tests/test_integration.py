@@ -4,12 +4,12 @@ End-to-end workflow tests, real API interactions, performance benchmarks, and CL
 """
 
 import os
-import tempfile
-import time
 import subprocess
 import sys
-from unittest.mock import Mock, patch
+import tempfile
+import time
 from pathlib import Path
+from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -17,24 +17,25 @@ from responses import matchers
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
+
 from .test_config import (
-    PCLOUD_EMAIL,
-    PCLOUD_PASSWORD,
     PCLOUD_ACCESS_TOKEN,
     PCLOUD_CLIENT_ID,
     PCLOUD_CLIENT_SECRET,
+    PCLOUD_EMAIL,
     PCLOUD_LOCATION_ID,
+    PCLOUD_PASSWORD,
     PCLOUD_TEST_FOLDER_NAME,
-    has_real_credentials,
-    has_oauth2_credentials,
-    requires_real_credentials,
-    requires_oauth2_credentials,
-    skip_if_no_integration_tests,
-    get_test_credentials,
     get_oauth2_credentials,
-    safe_remove_file,
-    safe_remove_directory,
+    get_test_credentials,
+    has_oauth2_credentials,
+    has_real_credentials,
+    requires_oauth2_credentials,
+    requires_real_credentials,
     safe_cleanup_temp_dir,
+    safe_remove_directory,
+    safe_remove_file,
+    skip_if_no_integration_tests,
 )
 
 
@@ -837,7 +838,7 @@ class TestPerformanceBenchmarks:
     @pytest.mark.performance
     def test_progress_callback_performance(self):
         """Benchmark progress callback performance"""
-        from pcloud_sdk.progress_utils import SimpleProgressBar, SilentProgress
+        from pcloud_sdk.progress_utils import SilentProgress, SimpleProgressBar
 
         temp_log = os.path.join(self.temp_dir, "perf_test.log")
 

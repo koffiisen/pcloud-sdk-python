@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 try:
-    from pcloud_sdk import PCloudSDK, PCloudException
-    from pcloud_sdk.progress_utils import create_progress_bar, create_minimal_progress
+    from pcloud_sdk import PCloudException, PCloudSDK
+    from pcloud_sdk.progress_utils import create_minimal_progress, create_progress_bar
 except ImportError:
     print("❌ pCloud SDK not found. Install it with: pip install pcloud-sdk-python")
     sys.exit(1)

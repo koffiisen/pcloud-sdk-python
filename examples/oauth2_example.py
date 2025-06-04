@@ -20,14 +20,14 @@ This example shows:
 - Error handling for OAuth2 specific issues
 """
 
-import webbrowser
-import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import time
-from typing import Optional, Dict, Any
+import urllib.parse
+import webbrowser
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Any, Dict, Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class OAuth2CallbackHandler(BaseHTTPRequestHandler):
