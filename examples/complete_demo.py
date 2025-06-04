@@ -74,15 +74,18 @@ class PCloudDemo:
         )
 
         # Check if we have saved credentials
-        if self.sdk.app.token_manager and self.sdk.app.token_manager.has_valid_token():
-            print("🔑 Using saved credentials...")
+        # PCloudSDK's __init__ already attempts to load token if token_manager is True
+        if self.sdk.token_manager_enabled and self.sdk.app.get_access_token():
+            print("🔑 Attempting to use saved credentials...")
             try:
-                # Test the existing token
+                # Test the existing token by fetching user info
                 user_info = self.sdk.user.get_user_info()
-                print(f"✅ Successfully authenticated as: {user_info.get('email')}")
+                print(f"✅ Successfully authenticated using saved credentials as: {user_info.get('email')}")
                 return True
-            except Exception as e:
-                print(f"⚠️ Saved credentials expired: {e}")
+            except PCloudException as e: # Specifically catch PCloudException for auth/API errors
+                print(f"⚠️ Saved credentials might be invalid or expired: {e}")
+            except Exception as e: # Catch any other unexpected errors during the test
+                print(f"⚠️ An unexpected error occurred while using saved credentials: {e}")
 
         # Need fresh authentication
         print("\n🔐 Authentication Required")
