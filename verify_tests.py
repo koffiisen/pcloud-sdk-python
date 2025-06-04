@@ -14,11 +14,11 @@ def check_python_version():
     print("🐍 Checking Python version...")
     version = sys.version_info
     print(f"Python {version.major}.{version.minor}.{version.micro}")
-    
+
     if version.major < 3 or (version.major == 3 and version.minor < 7):
         print("❌ Python 3.7+ required")
         return False
-    
+
     print("✅ Python version compatible")
     return True
 
@@ -26,17 +26,17 @@ def check_python_version():
 def check_test_files():
     """Check if all test files exist"""
     print("\n📁 Checking test files...")
-    
+
     expected_files = [
         "tests/__init__.py",
         "tests/test_authentication.py",
-        "tests/test_file_operations.py", 
+        "tests/test_file_operations.py",
         "tests/test_folder_operations.py",
         "tests/test_progress_callbacks.py",
         "tests/test_token_manager.py",
-        "tests/test_integration.py"
+        "tests/test_integration.py",
     ]
-    
+
     missing_files = []
     for file_path in expected_files:
         if os.path.exists(file_path):
@@ -44,11 +44,11 @@ def check_test_files():
         else:
             print(f"❌ {file_path}")
             missing_files.append(file_path)
-    
+
     if missing_files:
         print(f"❌ Missing test files: {missing_files}")
         return False
-    
+
     print("✅ All test files present")
     return True
 
@@ -56,16 +56,16 @@ def check_test_files():
 def check_imports():
     """Check if SDK modules can be imported"""
     print("\n📦 Checking SDK imports...")
-    
+
     modules_to_test = [
         "pcloud_sdk",
         "pcloud_sdk.core",
         "pcloud_sdk.file_operations",
         "pcloud_sdk.folder_operations",
         "pcloud_sdk.progress_utils",
-        "pcloud_sdk.exceptions"
+        "pcloud_sdk.exceptions",
     ]
-    
+
     failed_imports = []
     for module in modules_to_test:
         try:
@@ -74,11 +74,11 @@ def check_imports():
         except ImportError as e:
             print(f"❌ {module}: {e}")
             failed_imports.append(module)
-    
+
     if failed_imports:
         print(f"❌ Failed imports: {failed_imports}")
         return False
-    
+
     print("✅ All SDK modules importable")
     return True
 
@@ -86,13 +86,9 @@ def check_imports():
 def check_test_dependencies():
     """Check if test dependencies are available"""
     print("\n🔧 Checking test dependencies...")
-    
-    dependencies = [
-        "pytest",
-        "responses", 
-        "requests"
-    ]
-    
+
+    dependencies = ["pytest", "responses", "requests"]
+
     missing_deps = []
     for dep in dependencies:
         try:
@@ -101,12 +97,12 @@ def check_test_dependencies():
         except ImportError:
             print(f"❌ {dep}")
             missing_deps.append(dep)
-    
+
     if missing_deps:
         print(f"❌ Missing dependencies: {missing_deps}")
         print("Install with: pip install " + " ".join(missing_deps))
         return False
-    
+
     print("✅ All test dependencies available")
     return True
 
@@ -114,15 +110,22 @@ def check_test_dependencies():
 def run_basic_test():
     """Run a basic test to verify pytest works"""
     print("\n🧪 Running basic test...")
-    
+
     try:
         # Run just one simple test to verify setup
-        result = subprocess.run([
-            sys.executable, "-m", "pytest", 
-            "tests/test_authentication.py::TestDirectAuthentication::test_missing_credentials",
-            "-v"
-        ], capture_output=True, text=True, timeout=30)
-        
+        result = subprocess.run(
+            [
+                sys.executable,
+                "-m",
+                "pytest",
+                "tests/test_authentication.py::TestDirectAuthentication::test_missing_credentials",
+                "-v",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+
         if result.returncode == 0:
             print("✅ Basic test passed")
             return True
@@ -131,7 +134,7 @@ def run_basic_test():
             print("STDOUT:", result.stdout)
             print("STDERR:", result.stderr)
             return False
-            
+
     except subprocess.TimeoutExpired:
         print("❌ Test timed out")
         return False
@@ -143,21 +146,23 @@ def run_basic_test():
 def count_tests():
     """Count total number of tests"""
     print("\n📊 Counting tests...")
-    
+
     try:
-        result = subprocess.run([
-            sys.executable, "-m", "pytest", 
-            "--collect-only", "-q"
-        ], capture_output=True, text=True, timeout=10)
-        
+        result = subprocess.run(
+            [sys.executable, "-m", "pytest", "--collect-only", "-q"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
         if result.returncode == 0:
-            lines = result.stdout.split('\n')
+            lines = result.stdout.split("\n")
             # Look for summary line like "collected 150 items"
             for line in lines:
                 if "collected" in line and "items" in line:
                     print(f"✅ {line.strip()}")
                     return True
-            
+
             # If no summary found, count test files
             test_count = len([line for line in lines if "::test_" in line])
             print(f"✅ Found approximately {test_count} tests")
@@ -165,7 +170,7 @@ def count_tests():
         else:
             print("❌ Could not collect tests")
             return False
-            
+
     except Exception as e:
         print(f"❌ Error counting tests: {e}")
         return False
@@ -174,22 +179,22 @@ def count_tests():
 def main():
     """Main verification function"""
     print("🔍 pCloud SDK Test Setup Verification")
-    print("="*50)
-    
+    print("=" * 50)
+
     # Change to script directory
     script_dir = Path(__file__).parent
     os.chdir(script_dir)
     print(f"Working directory: {os.getcwd()}")
-    
+
     checks = [
         ("Python Version", check_python_version),
         ("Test Files", check_test_files),
         ("SDK Imports", check_imports),
         ("Test Dependencies", check_test_dependencies),
         ("Basic Test", run_basic_test),
-        ("Test Count", count_tests)
+        ("Test Count", count_tests),
     ]
-    
+
     results = []
     for check_name, check_func in checks:
         try:
@@ -198,21 +203,21 @@ def main():
         except Exception as e:
             print(f"❌ {check_name} check failed with error: {e}")
             results.append(False)
-    
+
     # Summary
     print(f"\n{'='*50}")
     print("📋 VERIFICATION SUMMARY")
     print(f"{'='*50}")
-    
+
     passed = sum(results)
     total = len(results)
-    
+
     for i, (check_name, _) in enumerate(checks):
         status = "✅ PASS" if results[i] else "❌ FAIL"
         print(f"{check_name:20} {status}")
-    
+
     print(f"\nOverall: {passed}/{total} checks passed")
-    
+
     if passed == total:
         print("\n🎉 All checks passed! Test setup is ready.")
         print("\nNext steps:")

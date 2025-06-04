@@ -27,9 +27,11 @@ from pcloud_sdk.progress_utils import create_progress_bar, create_detailed_progr
 
 def create_test_file(filename: str, size_mb: int = 5) -> str:
     """Create a test file for upload demonstration"""
-    content = f"This is a test file created by pCloud SDK demo.\n" * (size_mb * 1024 * 20)
+    content = f"This is a test file created by pCloud SDK demo.\n" * (
+        size_mb * 1024 * 20
+    )
 
-    with open(filename, 'w', encoding='utf-8') as f:
+    with open(filename, "w", encoding="utf-8") as f:
         f.write(content)
 
     return filename
@@ -46,7 +48,7 @@ def calculate_file_hash(filepath: str) -> str:
 
 def format_bytes(bytes_value: int) -> str:
     """Format bytes into human readable format"""
-    for unit in ['B', 'KB', 'MB', 'GB']:
+    for unit in ["B", "KB", "MB", "GB"]:
         if bytes_value < 1024.0:
             return f"{bytes_value:.1f} {unit}"
         bytes_value /= 1024.0
@@ -70,7 +72,7 @@ class PCloudDemo:
         self.sdk = PCloudSDK(
             location_id=2,  # EU server
             token_manager=True,
-            token_file=".pcloud_demo_credentials"
+            token_file=".pcloud_demo_credentials",
         )
 
         # Check if we have saved credentials
@@ -80,12 +82,18 @@ class PCloudDemo:
             try:
                 # Test the existing token by fetching user info
                 user_info = self.sdk.user.get_user_info()
-                print(f"✅ Successfully authenticated using saved credentials as: {user_info.get('email')}")
+                print(
+                    f"✅ Successfully authenticated using saved credentials as: {user_info.get('email')}"
+                )
                 return True
-            except PCloudException as e: # Specifically catch PCloudException for auth/API errors
+            except (
+                PCloudException
+            ) as e:  # Specifically catch PCloudException for auth/API errors
                 print(f"⚠️ Saved credentials might be invalid or expired: {e}")
-            except Exception as e: # Catch any other unexpected errors during the test
-                print(f"⚠️ An unexpected error occurred while using saved credentials: {e}")
+            except Exception as e:  # Catch any other unexpected errors during the test
+                print(
+                    f"⚠️ An unexpected error occurred while using saved credentials: {e}"
+                )
 
         # Need fresh authentication
         print("\n🔐 Authentication Required")
@@ -128,9 +136,11 @@ class PCloudDemo:
         """OAuth2 authentication flow"""
         try:
             # Note: This requires app_key and app_secret to be set
-            if not hasattr(self.sdk.app, 'app_key') or not self.sdk.app.app_key:
+            if not hasattr(self.sdk.app, "app_key") or not self.sdk.app.app_key:
                 print("❌ OAuth2 requires app_key and app_secret to be configured")
-                print("Please modify this script to include your pCloud app credentials")
+                print(
+                    "Please modify this script to include your pCloud app credentials"
+                )
                 return False
 
             # Generate authorization URL
@@ -142,7 +152,9 @@ class PCloudDemo:
             print()
 
             # Get authorization code from user
-            code = input("📋 Enter the authorization code from the callback URL: ").strip()
+            code = input(
+                "📋 Enter the authorization code from the callback URL: "
+            ).strip()
 
             if not code:
                 print("❌ Authorization code is required")
@@ -169,8 +181,8 @@ class PCloudDemo:
             print(f"👤 Email: {user_info.get('email', 'N/A')}")
             print(f"🆔 User ID: {user_info.get('userid', 'N/A')}")
 
-            quota = user_info.get('quota', 0)
-            used_quota = user_info.get('usedquota', 0)
+            quota = user_info.get("quota", 0)
+            used_quota = user_info.get("usedquota", 0)
             free_space = quota - used_quota
 
             print(f"💾 Storage Used: {format_bytes(used_quota)}")
@@ -179,7 +191,7 @@ class PCloudDemo:
             print(f"📈 Usage: {(used_quota / quota) * 100:.1f}%")
 
             # Check if business account
-            if user_info.get('business'):
+            if user_info.get("business"):
                 print("🏢 Business Account: Yes")
 
         except Exception as e:
@@ -194,13 +206,13 @@ class PCloudDemo:
             # List root folder
             print("📂 Root folder contents:")
             root_contents = self.sdk.folder.list_root()
-            folders = root_contents.get('contents', [])
+            folders = root_contents.get("contents", [])
 
             for item in folders[:5]:  # Show first 5 items
-                if item.get('isfolder'):
+                if item.get("isfolder"):
                     print(f"  📁 {item['name']} (folder)")
                 else:
-                    size = format_bytes(item.get('size', 0))
+                    size = format_bytes(item.get("size", 0))
                     print(f"  📄 {item['name']} ({size})")
 
             if len(folders) > 5:
@@ -214,7 +226,9 @@ class PCloudDemo:
             print(f"✅ Demo folder created with ID: {self.demo_folder_id}")
 
             # Create subfolder
-            subfolder_id = self.sdk.folder.create("Subfolder_Test", parent=self.demo_folder_id)
+            subfolder_id = self.sdk.folder.create(
+                "Subfolder_Test", parent=self.demo_folder_id
+            )
             print(f"✅ Subfolder created with ID: {subfolder_id}")
 
             # List demo folder contents
@@ -223,7 +237,7 @@ class PCloudDemo:
 
             if demo_contents:
                 for item in demo_contents:
-                    if item.get('isfolder'):
+                    if item.get("isfolder"):
                         print(f"  📁 {item['name']}")
                     else:
                         print(f"  📄 {item['name']}")
@@ -260,9 +274,9 @@ class PCloudDemo:
             result = self.sdk.file.upload(
                 small_file,
                 folder_id=self.demo_folder_id,
-                progress_callback=progress_bar
+                progress_callback=progress_bar,
             )
-            small_file_id = result['metadata'][0]['fileid']
+            small_file_id = result["metadata"][0]["fileid"]
             print(f"   File ID: {small_file_id}")
 
             # Upload with detailed progress
@@ -272,9 +286,9 @@ class PCloudDemo:
             result = self.sdk.file.upload(
                 medium_file,
                 folder_id=self.demo_folder_id,
-                progress_callback=detailed_progress
+                progress_callback=detailed_progress,
             )
-            medium_file_id = result['metadata'][0]['fileid']
+            medium_file_id = result["metadata"][0]["fileid"]
             print(f"   File ID: {medium_file_id}")
 
             # Store file IDs for later operations
@@ -292,7 +306,7 @@ class PCloudDemo:
         print("\n📥 File Download Demo")
         print("-" * 30)
 
-        if not hasattr(self, 'uploaded_file_ids') or not self.uploaded_file_ids:
+        if not hasattr(self, "uploaded_file_ids") or not self.uploaded_file_ids:
             print("⚠️ No uploaded files to download")
             return
 
@@ -310,9 +324,7 @@ class PCloudDemo:
             progress_bar = create_progress_bar("Download Progress")
 
             success = self.sdk.file.download(
-                file_id,
-                destination=download_dir,
-                progress_callback=progress_bar
+                file_id, destination=download_dir, progress_callback=progress_bar
             )
 
             if success:
@@ -323,7 +335,9 @@ class PCloudDemo:
                 # Verify file integrity (if we have original)
                 if self.temp_files:
                     original_file = self.temp_files[0]
-                    downloaded_file = os.path.join(download_dir, os.path.basename(original_file))
+                    downloaded_file = os.path.join(
+                        download_dir, os.path.basename(original_file)
+                    )
 
                     if os.path.exists(downloaded_file):
                         original_hash = calculate_file_hash(original_file)
@@ -332,7 +346,9 @@ class PCloudDemo:
                         if original_hash == downloaded_hash:
                             print("✅ File integrity verified - checksums match!")
                         else:
-                            print("⚠️ File integrity check failed - checksums don't match")
+                            print(
+                                "⚠️ File integrity check failed - checksums don't match"
+                            )
 
             # Cleanup downloaded files
             for f in os.listdir(download_dir):
@@ -347,7 +363,7 @@ class PCloudDemo:
         print("\n🔧 File Operations Demo")
         print("-" * 30)
 
-        if not hasattr(self, 'uploaded_file_ids') or not self.uploaded_file_ids:
+        if not hasattr(self, "uploaded_file_ids") or not self.uploaded_file_ids:
             print("⚠️ No uploaded files for operations")
             return
 
@@ -357,7 +373,7 @@ class PCloudDemo:
             # Get original file info
             print("📋 Original file info:")
             file_info = self.sdk.file.get_info(file_id)
-            original_name = file_info['metadata']['name']
+            original_name = file_info["metadata"]["name"]
             print(f"   Name: {original_name}")
             print(f"   Size: {format_bytes(file_info['metadata']['size'])}")
 
@@ -370,16 +386,18 @@ class PCloudDemo:
             # Copy file
             print(f"\n📋 Copying file...")
             copy_result = self.sdk.file.copy(file_id, folder_id=self.demo_folder_id)
-            copied_file_id = copy_result['metadata']['fileid']
+            copied_file_id = copy_result["metadata"]["fileid"]
             print(f"✅ File copied successfully (new ID: {copied_file_id})")
 
             # Move copied file to subfolder (if exists)
             demo_contents = self.sdk.folder.get_content(self.demo_folder_id)
-            subfolder = next((item for item in demo_contents if item.get('isfolder')), None)
+            subfolder = next(
+                (item for item in demo_contents if item.get("isfolder")), None
+            )
 
             if subfolder:
                 print(f"\n📦 Moving copied file to subfolder...")
-                self.sdk.file.move(copied_file_id, folder_id=subfolder['folderid'])
+                self.sdk.file.move(copied_file_id, folder_id=subfolder["folderid"])
                 print("✅ File moved successfully")
 
             # Delete the copied file
@@ -446,7 +464,7 @@ def main():
 
     # Ask user if they want to proceed
     proceed = input("Do you want to continue? (y/N): ").strip().lower()
-    if proceed not in ['y', 'yes']:
+    if proceed not in ["y", "yes"]:
         print("Demo cancelled.")
         return
 
