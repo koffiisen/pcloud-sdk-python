@@ -8,7 +8,7 @@ This package provides a Python interface to the pCloud API.
 import os
 import time
 import warnings
-from typing import Optional, Dict, Any
+from typing import Any, Dict, Optional
 
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException
@@ -22,10 +22,17 @@ class PCloudSDK:
     Convenient wrapper class for the pCloud SDK with integrated token management
     """
 
-    def __init__(self, app_key: str = "", app_secret: str = "", access_token: str = "",
-                 location_id: int = 2, auth_type: str = "direct",
-                 token_manager: bool = True, token_file: str = ".pcloud_credentials",
-                 token_staleness_days: int = 30):
+    def __init__(
+        self,
+        app_key: str = "",
+        app_secret: str = "",
+        access_token: str = "",
+        location_id: int = 2,
+        auth_type: str = "direct",
+        token_manager: bool = True,
+        token_file: str = ".pcloud_credentials",
+        token_staleness_days: int = 30,
+    ):
         """
         Initialize the pCloud SDK
 
@@ -61,7 +68,9 @@ class PCloudSDK:
         self._folder = None
         self._file = None
 
-    def _save_credentials(self, email: str, token: str, location_id: int, user_info: Optional[Dict] = None):
+    def _save_credentials(
+        self, email: str, token: str, location_id: int, user_info: Optional[Dict] = None
+    ):
         """Save credentials to file if token manager is enabled"""
         if not self.token_manager_enabled:
             return
@@ -72,12 +81,13 @@ class PCloudSDK:
             "location_id": location_id,
             "auth_type": self.app.get_auth_type(),
             "user_info": user_info or {},
-            "saved_at": time.time()
+            "saved_at": time.time(),
         }
 
         try:
             import json
-            with open(self.token_file, 'w') as f:
+
+            with open(self.token_file, "w") as f:
                 json.dump(credentials, f, indent=2)
             print(f"✅ Credentials saved in {self.token_file}")
             # Update internal state only if write was successful
@@ -94,30 +104,39 @@ class PCloudSDK:
 
         try:
             import json
-            with open(self.token_file, 'r') as f:
+
+            with open(self.token_file, "r") as f:
                 credentials = json.load(f)
 
             # Check if credentials are valid (not too old)
-            saved_at = credentials.get('saved_at', 0)
+            saved_at = credentials.get("saved_at", 0)
             age_days = (time.time() - saved_at) / (24 * 3600)
 
             if age_days > self.token_staleness_days:  # Consider credentials stale
-                print(f"⚠️ Old credentials ({age_days:.1f} days, limit is {self.token_staleness_days} days), new login recommended")
+                print(
+                    f"⚠️ Old credentials ({age_days:.1f} days, limit is {self.token_staleness_days} days), new login recommended"
+                )
                 return False
 
             # Get essential credentials with defaults or check for presence
-            access_token = credentials.get('access_token')
-            auth_type = credentials.get('auth_type', 'direct')
-            location_id = credentials.get('location_id', 2) # Default to EU if not specified
+            access_token = credentials.get("access_token")
+            auth_type = credentials.get("auth_type", "direct")
+            location_id = credentials.get(
+                "location_id", 2
+            )  # Default to EU if not specified
 
             if access_token is None:
-                print(f"⚠️ Credentials in {self.token_file} are missing 'access_token'. Cannot load.")
+                print(
+                    f"⚠️ Credentials in {self.token_file} are missing 'access_token'. Cannot load."
+                )
                 return False
 
             # Set the loaded credentials
             self.app.set_access_token(access_token, auth_type)
             self.app.set_location_id(location_id)
-            self._saved_credentials = credentials # Save the full original credentials dict
+            self._saved_credentials = (
+                credentials  # Save the full original credentials dict
+            )
 
             print(f"🔄 Credentials loaded: {credentials.get('email', 'Unknown')}")
             return True
@@ -153,10 +172,12 @@ class PCloudSDK:
                 os.remove(self.token_file)
                 print(f"🧹 Credentials deleted from {self.token_file}")
             except PermissionError as e:
-                print(f"⚠️ Could not delete credentials from {self.token_file} due to a permission error: {e}")
-            except OSError as e: # Catch other OS-level errors during delete
+                print(
+                    f"⚠️ Could not delete credentials from {self.token_file} due to a permission error: {e}"
+                )
+            except OSError as e:  # Catch other OS-level errors during delete
                 print(f"⚠️ Error deleting credentials from {self.token_file}: {e}")
-            except Exception as e: # Catch any other unexpected error
+            except Exception as e:  # Catch any other unexpected error
                 print(f"⚠️ An unexpected error occurred while deleting credentials: {e}")
         self._saved_credentials = None
 
@@ -172,7 +193,7 @@ class PCloudSDK:
                            None otherwise.
         """
         if self._saved_credentials:
-            return self._saved_credentials.get('email')
+            return self._saved_credentials.get("email")
         return None
 
     @property
@@ -213,18 +234,23 @@ class PCloudSDK:
             try:
                 user_info = self.user.get_user_info()
                 self._save_credentials(
-                    email=user_info.get('email', ''),
+                    email=user_info.get("email", ""),
                     token=token_info["access_token"],
                     location_id=token_info["locationid"],
-                    user_info=user_info
+                    user_info=user_info,
                 )
             except Exception as e:
                 print(f"⚠️ Could not save after OAuth2: {e}")
 
         return token_info
 
-    def login(self, email: str = "", password: str = "", location_id: int = 2, force_login: bool = False) -> Dict[
-        str, Any]:
+    def login(
+        self,
+        email: str = "",
+        password: str = "",
+        location_id: int = 2,
+        force_login: bool = False,
+    ) -> Dict[str, Any]:
         """
         Login with email/password or use saved credentials
 
@@ -245,10 +271,14 @@ class PCloudSDK:
                 return {
                     "access_token": self.app.get_access_token(),
                     "locationid": self.app.get_location_id(),
-                    "email": self._saved_credentials.get('email', ''),
-                    "userid": self._saved_credentials.get('user_info', {}).get('userid'),
-                    "quota": self._saved_credentials.get('user_info', {}).get('quota'),
-                    "usedquota": self._saved_credentials.get('user_info', {}).get('usedquota')
+                    "email": self._saved_credentials.get("email", ""),
+                    "userid": self._saved_credentials.get("user_info", {}).get(
+                        "userid"
+                    ),
+                    "quota": self._saved_credentials.get("user_info", {}).get("quota"),
+                    "usedquota": self._saved_credentials.get("user_info", {}).get(
+                        "usedquota"
+                    ),
                 }
 
         # Need fresh login
@@ -256,7 +286,8 @@ class PCloudSDK:
             saved_email = self.get_saved_email()
             if not email and saved_email:
                 raise PCloudException(
-                    f"Credentials expired for {saved_email}. Provide email and password to reconnect.")
+                    f"Credentials expired for {saved_email}. Provide email and password to reconnect."
+                )
             elif not email:
                 raise PCloudException("Email and password required for first login")
 
@@ -268,18 +299,23 @@ class PCloudSDK:
             try:
                 user_info = self.user.get_user_info()
                 self._save_credentials(
-                    email=login_info['email'],
-                    token=login_info['access_token'],
-                    location_id=login_info['locationid'],
-                    user_info=user_info
+                    email=login_info["email"],
+                    token=login_info["access_token"],
+                    location_id=login_info["locationid"],
+                    user_info=user_info,
                 )
             except Exception as e:
                 print(f"⚠️ Could not save credentials: {e}")
 
         return login_info
 
-    def login_or_load(self, email: str = "", password: str = "", location_id: int = 2,
-                      force_login: bool = False) -> 'PCloudSDK':
+    def login_or_load(
+        self,
+        email: str = "",
+        password: str = "",
+        location_id: int = 2,
+        force_login: bool = False,
+    ) -> "PCloudSDK":
         """
         DEPRECATED: Logs in or loads saved credentials. Use login() instead.
 
@@ -306,7 +342,7 @@ class PCloudSDK:
             "The 'login_or_load' method is deprecated and will be removed in a future version. "
             "Please use the 'login' method instead.",
             DeprecationWarning,
-            stacklevel=2
+            stacklevel=2,
         )
         self.login(email, password, location_id, force_login)
         return self
@@ -331,20 +367,20 @@ class PCloudSDK:
     def get_credentials_info(self) -> Dict[str, Any]:
         """Get information about current credentials"""
         if self._saved_credentials:
-            saved_at = self._saved_credentials.get('saved_at', 0)
+            saved_at = self._saved_credentials.get("saved_at", 0)
             age_days = (time.time() - saved_at) / (24 * 3600)
 
             return {
-                "email": self._saved_credentials.get('email'),
-                "location_id": self._saved_credentials.get('location_id'),
-                "auth_type": self._saved_credentials.get('auth_type'),
+                "email": self._saved_credentials.get("email"),
+                "location_id": self._saved_credentials.get("location_id"),
+                "auth_type": self._saved_credentials.get("auth_type"),
                 "age_days": age_days,
                 "file": self.token_file,
-                "token_manager_enabled": self.token_manager_enabled
+                "token_manager_enabled": self.token_manager_enabled,
             }
 
         return {
             "authenticated": self.is_authenticated(),
             "token_manager_enabled": self.token_manager_enabled,
-            "file": self.token_file
+            "file": self.token_file,
         }

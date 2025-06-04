@@ -23,8 +23,8 @@ def main():
     print("\n1️⃣ Authentication...")
 
     # Option A: Use environment variables
-    email = os.environ.get('PCLOUD_EMAIL')
-    password = os.environ.get('PCLOUD_PASSWORD')
+    email = os.environ.get("PCLOUD_EMAIL")
+    password = os.environ.get("PCLOUD_PASSWORD")
 
     pcloud = PCloudSDK()
 
@@ -58,16 +58,16 @@ def main():
         print("\n3️⃣ Root folder contents...")
         root_content = pcloud.folder.list_root()
 
-        folders = root_content.get('contents', [])
+        folders = root_content.get("contents", [])
         print(f"📂 {len([f for f in folders if f.get('isfolder')])} folders")
         print(f"📄 {len([f for f in folders if not f.get('isfolder')])} files")
 
         # Display some items
         for item in folders[:5]:  # First 5 items
-            icon = "📁" if item.get('isfolder') else "📄"
-            name = item.get('name', 'N/A')
-            size = item.get('size', 0)
-            if not item.get('isfolder'):
+            icon = "📁" if item.get("isfolder") else "📄"
+            name = item.get("name", "N/A")
+            size = item.get("size", 0)
+            if not item.get("isfolder"):
                 size_mb = size / (1024 * 1024)
                 print(f"  {icon} {name} ({size_mb:.1f} MB)")
             else:
@@ -87,8 +87,8 @@ def main():
             print(f"⚠️ Folder already exists or error: {e}")
             # Try to find it
             for item in folders:
-                if item.get('name') == test_folder_name and item.get('isfolder'):
-                    folder_id = item.get('folderid')
+                if item.get("name") == test_folder_name and item.get("isfolder"):
+                    folder_id = item.get("folderid")
                     print(f"📁 Using existing folder (ID: {folder_id})")
                     break
             else:
@@ -98,7 +98,9 @@ def main():
         print("\n5️⃣ Uploading test file...")
 
         # Create a temporary file
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp_file:
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", delete=False
+        ) as tmp_file:
             test_content = f"""pCloud SDK Test File
 Created on: {__import__('datetime').datetime.now()}
 Content: This is a test upload from the pCloud Python SDK
@@ -115,11 +117,11 @@ Size: About 200 characters to test upload functionality
                 tmp_file_path,
                 folder_id=folder_id,
                 filename="test_sdk.txt",
-                progress_callback=progress_bar
+                progress_callback=progress_bar,
             )
 
-            file_id = upload_result['metadata']['fileid']
-            file_name = upload_result['metadata']['name']
+            file_id = upload_result["metadata"]["fileid"]
+            file_name = upload_result["metadata"]["name"]
             print(f"✅ File uploaded: {file_name} (ID: {file_id})")
 
         except Exception as e:
@@ -142,20 +144,22 @@ Size: About 200 characters to test upload functionality
 
             try:
                 success = pcloud.file.download(
-                    file_id,
-                    destination=download_dir,
-                    progress_callback=progress_bar_dl
+                    file_id, destination=download_dir, progress_callback=progress_bar_dl
                 )
 
                 if success:
                     downloaded_files = os.listdir(download_dir)
                     if downloaded_files:
-                        downloaded_file = os.path.join(download_dir, downloaded_files[0])
+                        downloaded_file = os.path.join(
+                            download_dir, downloaded_files[0]
+                        )
                         file_size = os.path.getsize(downloaded_file)
-                        print(f"✅ File downloaded: {downloaded_files[0]} ({file_size} bytes)")
+                        print(
+                            f"✅ File downloaded: {downloaded_files[0]} ({file_size} bytes)"
+                        )
 
                         # Verify content
-                        with open(downloaded_file, 'r') as f:
+                        with open(downloaded_file, "r") as f:
                             content = f.read()
                             if "pCloud SDK" in content:
                                 print("✅ Content verified - download successful!")
@@ -167,6 +171,7 @@ Size: About 200 characters to test upload functionality
                 # Clean up download directory
                 try:
                     import shutil
+
                     shutil.rmtree(download_dir)
                 except:
                     pass

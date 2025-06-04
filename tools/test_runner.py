@@ -4,9 +4,9 @@ Test runner for pCloud SDK Python
 Runs unit tests, integration tests, and generates coverage reports
 """
 
+import os
 import subprocess
 import sys
-import os
 from pathlib import Path
 
 
@@ -69,8 +69,12 @@ def main():
         print("\nExamples:")
         print("  python tools/test_runner.py                    # Run all tests")
         print("  python tools/test_runner.py -c                # Run with coverage")
-        print("  python tools/test_runner.py -u -v             # Run unit tests verbosely")
-        print("  python tools/test_runner.py -i --fail-fast    # Run integration tests, stop on failure")
+        print(
+            "  python tools/test_runner.py -u -v             # Run unit tests verbosely"
+        )
+        print(
+            "  python tools/test_runner.py -i --fail-fast    # Run integration tests, stop on failure"
+        )
         return 0
 
     # Run tests
@@ -78,7 +82,11 @@ def main():
 
     # Basic import test first
     print("\n📦 Testing basic imports...")
-    import_cmd = ["python", "-c", "import pcloud_sdk; print('✅ All imports successful')"]
+    import_cmd = [
+        "python",
+        "-c",
+        "import pcloud_sdk; print('✅ All imports successful')",
+    ]
     if not run_command(import_cmd, "Basic import test"):
         success = False
         return 1
