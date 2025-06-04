@@ -33,23 +33,20 @@ PCLOUD_API_BASE_URL = os.getenv("PCLOUD_API_BASE_URL", "https://eapi.pcloud.com"
 RUN_INTEGRATION_TESTS = os.getenv("RUN_INTEGRATION_TESTS", "false").lower() == "true"
 RUN_PERFORMANCE_TESTS = os.getenv("RUN_PERFORMANCE_TESTS", "false").lower() == "true"
 
-
 def has_real_credentials():
     """Check if real pCloud credentials are available"""
     return (
-        PCLOUD_EMAIL != "test@example.com"
-        and PCLOUD_PASSWORD != "test_password"
-        and "@" in PCLOUD_EMAIL
+        PCLOUD_EMAIL != "test@example.com" and
+        PCLOUD_PASSWORD != "test_password" and
+        "@" in PCLOUD_EMAIL
     )
-
 
 def has_oauth2_credentials():
     """Check if OAuth2 credentials are available"""
     return (
-        PCLOUD_CLIENT_ID != "test_client_id"
-        and PCLOUD_CLIENT_SECRET != "test_client_secret"
+        PCLOUD_CLIENT_ID != "test_client_id" and
+        PCLOUD_CLIENT_SECRET != "test_client_secret"
     )
-
 
 def get_test_credentials():
     """Get test credentials dictionary"""
@@ -57,18 +54,16 @@ def get_test_credentials():
         "email": PCLOUD_EMAIL,
         "password": PCLOUD_PASSWORD,
         "access_token": PCLOUD_ACCESS_TOKEN,
-        "location_id": PCLOUD_LOCATION_ID,
+        "location_id": PCLOUD_LOCATION_ID
     }
-
 
 def get_oauth2_credentials():
     """Get OAuth2 credentials dictionary"""
     return {
         "client_id": PCLOUD_CLIENT_ID,
         "client_secret": PCLOUD_CLIENT_SECRET,
-        "location_id": PCLOUD_LOCATION_ID,
+        "location_id": PCLOUD_LOCATION_ID
     }
-
 
 def requires_real_credentials(func):
     """Decorator to skip tests that require real credentials"""
@@ -78,9 +73,7 @@ def requires_real_credentials(func):
         if not has_real_credentials():
             pytest.skip("Requires real pCloud credentials in .env file")
         return func(*args, **kwargs)
-
     return wrapper
-
 
 def requires_oauth2_credentials(func):
     """Decorator to skip tests that require OAuth2 credentials"""
@@ -90,9 +83,7 @@ def requires_oauth2_credentials(func):
         if not has_oauth2_credentials():
             pytest.skip("Requires OAuth2 credentials in .env file")
         return func(*args, **kwargs)
-
     return wrapper
-
 
 def skip_if_no_integration_tests(func):
     """Decorator to skip integration tests unless explicitly enabled"""
@@ -100,11 +91,8 @@ def skip_if_no_integration_tests(func):
 
     def wrapper(*args, **kwargs):
         if not RUN_INTEGRATION_TESTS:
-            pytest.skip(
-                "Integration tests disabled. Set RUN_INTEGRATION_TESTS=true in .env to enable"
-            )
+            pytest.skip("Integration tests disabled. Set RUN_INTEGRATION_TESTS=true in .env to enable")
         return func(*args, **kwargs)
-
     return wrapper
 
 

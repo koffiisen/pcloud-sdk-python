@@ -1,12 +1,12 @@
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Optional, Dict, Any
 
 import requests
 
 from pcloud_sdk.app import App
-from pcloud_sdk.config import Config
 from pcloud_sdk.exceptions import PCloudException
+from pcloud_sdk.config import Config
 from pcloud_sdk.request import Request
 
 
@@ -23,7 +23,7 @@ class File:
         try:
             response = self.request.get("getfilelink", params)
             # Assuming self.request.get raises PCloudException if response['result'] != 0
-            if "hosts" in response:
+            if 'hosts' in response:
                 return f"https://{response['hosts'][0]}{response['path']}"
             else:
                 # Handles cases where the API call might 'succeed' (result=0) but not return 'hosts'
@@ -33,12 +33,7 @@ class File:
             # or from the 'else' block above. Re-raises with the consistent message.
             raise PCloudException("Failed to get file link!")
 
-    def download(
-        self,
-        file_id: int,
-        destination: str = "",
-        progress_callback: Optional[callable] = None,
-    ) -> bool:
+    def download(self, file_id: int, destination: str = "", progress_callback: Optional[callable] = None) -> bool:
         """Download file to local destination"""
         file_link = self.get_link(file_id)
 
@@ -59,24 +54,17 @@ class File:
         response.raise_for_status()
 
         # Get file size from headers
-        total_size = int(response.headers.get("content-length", 0))
+        total_size = int(response.headers.get('content-length', 0))
         downloaded_bytes = 0
         start_time = time.time()
 
         # Initialize progress callback
         if progress_callback:
-            progress_callback(
-                0,
-                total_size,
-                0.0,
-                0.0,
-                operation="download",
-                filename=filename,
-                status="starting",
-            )
+            progress_callback(0, total_size, 0.0, 0.0,
+                            operation="download", filename=filename, status="starting")
 
         temp_path = file_path + ".download"
-        with open(temp_path, "wb") as f:
+        with open(temp_path, 'wb') as f:
             for chunk in response.iter_content(chunk_size=self.part_size):
                 if chunk:
                     f.write(chunk)
@@ -87,40 +75,21 @@ class File:
                         elapsed = time.time() - start_time
                         speed = downloaded_bytes / elapsed if elapsed > 0 else 0
                         percentage = (downloaded_bytes / total_size) * 100
-                        progress_callback(
-                            downloaded_bytes,
-                            total_size,
-                            percentage,
-                            speed,
-                            operation="download",
-                            filename=filename,
-                        )
+                        progress_callback(downloaded_bytes, total_size, percentage, speed,
+                                        operation="download", filename=filename)
 
         # Final progress update
         if progress_callback:
             elapsed = time.time() - start_time
             speed = downloaded_bytes / elapsed if elapsed > 0 else 0
-            progress_callback(
-                downloaded_bytes,
-                total_size,
-                100.0,
-                speed,
-                operation="download",
-                filename=filename,
-                status="completed",
-            )
+            progress_callback(downloaded_bytes, total_size, 100.0, speed,
+                            operation="download", filename=filename, status="completed")
 
         # Rename temp file to final name
         os.rename(temp_path, file_path)
         return True
 
-    def upload(
-        self,
-        file_path: str,
-        folder_id: int = 0,
-        filename: Optional[str] = None,
-        progress_callback: Optional[callable] = None,
-    ) -> Dict[str, Any]:
+    def upload(self, file_path: str, folder_id: int = 0, filename: Optional[str] = None, progress_callback: Optional[callable] = None) -> Dict[str, Any]:
         """Upload file to pCloud"""
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
             raise PCloudException("Invalid file")
@@ -133,35 +102,29 @@ class File:
         # Create upload session
         try:
             upload_info = self._create_upload()
-            upload_id = upload_info["uploadid"]
+            upload_id = upload_info['uploadid']
             print(f"✅ Session d'upload créée: {upload_id}")
         except Exception as e:
-            raise PCloudException(
-                f"Erreur lors de la création de la session d'upload: {e}"
-            )
+            raise PCloudException(f"Erreur lors de la création de la session d'upload: {e}")
 
         # Upload file in chunks
         file_size = os.path.getsize(file_path)
         uploaded_bytes = 0
         start_time = time.time()
 
-        params = {"uploadid": upload_id, "uploadoffset": 0}
+        params = {
+            "uploadid": upload_id,
+            "uploadoffset": 0
+        }
 
         # Initialize progress callback
         if progress_callback:
-            progress_callback(
-                0,
-                file_size,
-                0.0,
-                0.0,
-                operation="upload",
-                filename=filename,
-                status="starting",
-            )
+            progress_callback(0, file_size, 0.0, 0.0,
+                            operation="upload", filename=filename, status="starting")
         else:
             print(f"📤 Upload en cours... ({file_size:,} bytes)")
 
-        with open(file_path, "rb") as f:
+        with open(file_path, 'rb') as f:
             while True:
                 chunk = f.read(self.part_size)
                 if not chunk:
@@ -181,56 +144,30 @@ class File:
                         percentage = (uploaded_bytes / file_size) * 100
 
                         if progress_callback:
-                            progress_callback(
-                                uploaded_bytes,
-                                file_size,
-                                percentage,
-                                speed,
-                                operation="upload",
-                                filename=filename,
-                            )
+                            progress_callback(uploaded_bytes, file_size, percentage, speed,
+                                            operation="upload", filename=filename)
                         else:
-                            print(
-                                f"  📊 Progression: {percentage:.1f}% ({uploaded_bytes:,}/{file_size:,} bytes)"
-                            )
+                            print(f"  📊 Progression: {percentage:.1f}% ({uploaded_bytes:,}/{file_size:,} bytes)")
                         break
                     except Exception as e:
                         num_failures += 1
                         if num_failures < 10:
                             if not progress_callback:
-                                print(
-                                    f"  ⚠️ Retry {num_failures}/10 for this chunk: {e}"
-                                )
+                                print(f"  ⚠️ Retry {num_failures}/10 for this chunk: {e}")
                             time.sleep(3)
                         else:
                             if progress_callback:
-                                progress_callback(
-                                    uploaded_bytes,
-                                    file_size,
-                                    percentage,
-                                    speed,
-                                    operation="upload",
-                                    filename=filename,
-                                    status="error",
-                                    error=f"Upload échoué après {num_failures} tentatives: {e}",
-                                )
-                            raise PCloudException(
-                                f"Upload échoué après {num_failures} tentatives: {e}"
-                            )
+                                progress_callback(uploaded_bytes, file_size, percentage, speed,
+                                                operation="upload", filename=filename,
+                                                status="error", error=f"Upload échoué après {num_failures} tentatives: {e}")
+                            raise PCloudException(f"Upload échoué après {num_failures} tentatives: {e}")
 
         # Update progress for saving phase
         if progress_callback:
             elapsed = time.time() - start_time
             speed = uploaded_bytes / elapsed if elapsed > 0 else 0
-            progress_callback(
-                uploaded_bytes,
-                file_size,
-                100.0,
-                speed,
-                operation="upload",
-                filename=filename,
-                status="saving",
-            )
+            progress_callback(uploaded_bytes, file_size, 100.0, speed,
+                            operation="upload", filename=filename, status="saving")
         else:
             print(f"✅ Upload completed, saving...")
 
@@ -242,15 +179,8 @@ class File:
             if progress_callback:
                 elapsed = time.time() - start_time
                 speed = uploaded_bytes / elapsed if elapsed > 0 else 0
-                progress_callback(
-                    uploaded_bytes,
-                    file_size,
-                    100.0,
-                    speed,
-                    operation="upload",
-                    filename=filename,
-                    status="completed",
-                )
+                progress_callback(uploaded_bytes, file_size, 100.0, speed,
+                                operation="upload", filename=filename, status="completed")
             else:
                 print(f"✅ File saved successfully!")
             return result
@@ -258,39 +188,41 @@ class File:
             if progress_callback:
                 elapsed = time.time() - start_time
                 speed = uploaded_bytes / elapsed if elapsed > 0 else 0
-                progress_callback(
-                    uploaded_bytes,
-                    file_size,
-                    100.0,
-                    speed,
-                    operation="upload",
-                    filename=filename,
-                    status="error",
-                    error=f"Error during save: {e}",
-                )
+                progress_callback(uploaded_bytes, file_size, 100.0, speed,
+                                operation="upload", filename=filename,
+                                status="error", error=f"Error during save: {e}")
             raise PCloudException(f"Error during save: {e}")
 
     def delete(self, file_id: int) -> Dict[str, Any]:
         """Delete file"""
         response = self.request.get("deletefile", {"fileid": file_id})
-        return response.get("metadata", {}).get("isdeleted", response)
+        return response.get('metadata', {}).get('isdeleted', response)
 
     def rename(self, file_id: int, name: str) -> Dict[str, Any]:
         """Rename file"""
         if not name:
             raise PCloudException("Please provide valid file name!")
 
-        params = {"fileid": file_id, "toname": name}
+        params = {
+            "fileid": file_id,
+            "toname": name
+        }
         return self.request.get("renamefile", params)
 
     def move(self, file_id: int, folder_id: int) -> Dict[str, Any]:
         """Move file to another folder"""
-        params = {"fileid": file_id, "tofolderid": folder_id}
+        params = {
+            "fileid": file_id,
+            "tofolderid": folder_id
+        }
         return self.request.get("renamefile", params)
 
     def copy(self, file_id: int, folder_id: int) -> Dict[str, Any]:
         """Copy file to another folder"""
-        params = {"fileid": file_id, "tofolderid": folder_id}
+        params = {
+            "fileid": file_id,
+            "tofolderid": folder_id
+        }
         return self.request.get("copyfile", params)
 
     def get_info(self, file_id: int) -> Dict[str, Any]:
@@ -304,11 +236,12 @@ class File:
     def _save(self, upload_id: int, name: str, folder_id: int) -> Dict[str, Any]:
         """Save uploaded file"""
         # Debug: afficher les paramètres reçus
-        print(
-            f"  🔍 _save debug: upload_id={upload_id}, name='{name}', folder_id={folder_id}"
-        )
+        print(f"  🔍 _save debug: upload_id={upload_id}, name='{name}', folder_id={folder_id}")
 
-        params = {"uploadid": upload_id, "name": name}
+        params = {
+            "uploadid": upload_id,
+            "name": name
+        }
 
         # Handle destination folder
         if folder_id is None or folder_id == 0:
@@ -328,7 +261,11 @@ class File:
             # If it fails with folderid=0, try with path="/"
             if "folderid" in params and params["folderid"] == 0:
                 print(f"  🔄 Retry upload_save with path='/' instead of folderid=0")
-                params = {"uploadid": upload_id, "name": name, "path": "/"}
+                params = {
+                    "uploadid": upload_id,
+                    "name": name,
+                    "path": "/"
+                }
                 print(f"  🔍 Nouveaux paramètres: {params}")
                 return self.request.get("upload_save", params)
             else:

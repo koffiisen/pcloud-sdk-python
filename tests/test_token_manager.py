@@ -9,20 +9,16 @@ import sys
 import tempfile
 import time
 from io import StringIO
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch, mock_open
 
 import pytest
 import responses
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
-
 from .test_config import (
-    get_test_credentials,
-    requires_real_credentials,
-    safe_cleanup_temp_dir,
-    safe_remove_file,
-    skip_if_no_integration_tests,
+    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
 )
 
 
@@ -50,22 +46,22 @@ class TestTokenSavingAndLoading:
             "user_info": {
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
-            },
+                "usedquota": 1073741824
+            }
         }
 
         sdk._save_credentials(
             email=test_credentials["email"],
             token=test_credentials["token"],
             location_id=test_credentials["location_id"],
-            user_info=test_credentials["user_info"],
+            user_info=test_credentials["user_info"]
         )
 
         # Verify file was created
         assert os.path.exists(self.token_file)
 
         # Verify content
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             saved_data = json.load(f)
 
         assert saved_data["email"] == test_credentials["email"]
@@ -83,10 +79,10 @@ class TestTokenSavingAndLoading:
             email="oauth@example.com",
             token="oauth_token_456",
             location_id=1,
-            user_info={"userid": 67890},
+            user_info={"userid": 67890}
         )
 
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             saved_data = json.load(f)
 
         assert saved_data["auth_type"] == "oauth2"
@@ -97,7 +93,9 @@ class TestTokenSavingAndLoading:
         sdk = PCloudSDK(token_file=self.token_file, token_manager=False)
 
         sdk._save_credentials(
-            email="test@example.com", token="test_token_123", location_id=2
+            email="test@example.com",
+            token="test_token_123",
+            location_id=2
         )
 
         # File should not be created
@@ -111,10 +109,10 @@ class TestTokenSavingAndLoading:
             "location_id": 2,
             "auth_type": "direct",
             "user_info": {"userid": 12345},
-            "saved_at": time.time(),  # Recent save
+            "saved_at": time.time()  # Recent save
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(test_credentials, f)
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -136,7 +134,7 @@ class TestTokenSavingAndLoading:
 
     def test_load_malformed_json(self):
         """Test loading credentials from malformed JSON file"""
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             f.write("invalid json content {")
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -150,10 +148,10 @@ class TestTokenSavingAndLoading:
             "email": "test@example.com",
             # Missing access_token
             "location_id": 2,
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(incomplete_credentials, f)
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -174,7 +172,9 @@ class TestTokenSavingAndLoading:
 
         # Should not raise exception, just log error
         sdk._save_credentials(
-            email="test@example.com", token="test_token_123", location_id=2
+            email="test@example.com",
+            token="test_token_123",
+            location_id=2
         )
 
     def test_credentials_file_format_consistency(self):
@@ -187,20 +187,14 @@ class TestTokenSavingAndLoading:
                 email=f"test{i}@example.com",
                 token=f"token_{i}",
                 location_id=i + 1,
-                user_info={"userid": 1000 + i},
+                user_info={"userid": 1000 + i}
             )
 
             # Load and verify format
-            with open(self.token_file, "r") as f:
+            with open(self.token_file, 'r') as f:
                 data = json.load(f)
 
-            required_fields = [
-                "email",
-                "access_token",
-                "location_id",
-                "auth_type",
-                "saved_at",
-            ]
+            required_fields = ["email", "access_token", "location_id", "auth_type", "saved_at"]
             for field in required_fields:
                 assert field in data
 
@@ -227,51 +221,38 @@ class TestTokenValidationAndExpiration:
             "access_token": "old_token_123",
             "location_id": 2,
             "auth_type": "direct",
-            "saved_at": old_time,
+            "saved_at": old_time
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(old_credentials, f)
 
-        sdk = PCloudSDK(token_file=self.token_file)  # Default staleness = 30 days
+        sdk = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
         loaded = sdk._load_saved_credentials()
-        assert (
-            loaded is False
-        ), "Token saved 31 days ago should be stale with default staleness (30 days)"
+        assert loaded is False, "Token saved 31 days ago should be stale with default staleness (30 days)"
         assert sdk.app.get_access_token() == ""
         safe_remove_file(self.token_file)
 
         # Scenario 2: token_staleness_days = 40, token saved 31 days ago (should be valid)
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(old_credentials, f)
-        sdk_long_staleness = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=40
-        )
+        sdk_long_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=40)
         loaded_long = sdk_long_staleness._load_saved_credentials()
-        assert (
-            loaded_long is True
-        ), "Token saved 31 days ago should be valid with token_staleness_days=40"
+        assert loaded_long is True, "Token saved 31 days ago should be valid with token_staleness_days=40"
         assert sdk_long_staleness.app.get_access_token() == "old_token_123"
         safe_remove_file(self.token_file)
 
         # Scenario 3: token_staleness_days = 0, token saved 1 second ago (should be stale)
-        very_recent_time = time.time() - 1  # 1 second ago
+        very_recent_time = time.time() - 1 # 1 second ago
         very_recent_credentials = {
-            "email": "test@example.com",
-            "access_token": "recent_token_stale_immediately",
-            "location_id": 2,
-            "auth_type": "direct",
-            "saved_at": very_recent_time,
+            "email": "test@example.com", "access_token": "recent_token_stale_immediately",
+            "location_id": 2, "auth_type": "direct", "saved_at": very_recent_time
         }
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(very_recent_credentials, f)
-        sdk_zero_staleness = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=0
-        )
+        sdk_zero_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=0)
         loaded_zero = sdk_zero_staleness._load_saved_credentials()
-        assert (
-            loaded_zero is False
-        ), "Token saved 1s ago should be stale with token_staleness_days=0"
+        assert loaded_zero is False, "Token saved 1s ago should be stale with token_staleness_days=0"
         assert sdk_zero_staleness.app.get_access_token() == ""
 
     def test_load_recent_credentials(self):
@@ -283,45 +264,33 @@ class TestTokenValidationAndExpiration:
             "access_token": "recent_token_123",
             "location_id": 2,
             "auth_type": "direct",
-            "saved_at": fifteen_days_ago,
+            "saved_at": fifteen_days_ago
         }
 
         # Scenario 1: Default staleness (30 days), 15-day old token (should be valid)
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(recent_credentials, f)
-        sdk_default = PCloudSDK(
-            token_file=self.token_file
-        )  # Default staleness = 30 days
+        sdk_default = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
         loaded_default = sdk_default._load_saved_credentials()
-        assert (
-            loaded_default is True
-        ), "15-day old token should be valid with default staleness (30 days)"
+        assert loaded_default is True, "15-day old token should be valid with default staleness (30 days)"
         assert sdk_default.app.get_access_token() == "recent_token_123"
         safe_remove_file(self.token_file)
 
         # Scenario 2: staleness = 10 days, 15-day old token (should be stale)
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(recent_credentials, f)
-        sdk_short_staleness = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=10
-        )
+        sdk_short_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=10)
         loaded_short = sdk_short_staleness._load_saved_credentials()
-        assert (
-            loaded_short is False
-        ), "15-day old token should be stale with token_staleness_days=10"
+        assert loaded_short is False, "15-day old token should be stale with token_staleness_days=10"
         assert sdk_short_staleness.app.get_access_token() == ""
         safe_remove_file(self.token_file)
 
         # Scenario 3: staleness = 20 days, 15-day old token (should be valid)
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(recent_credentials, f)
-        sdk_custom_valid_staleness = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=20
-        )
+        sdk_custom_valid_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=20)
         loaded_custom_valid = sdk_custom_valid_staleness._load_saved_credentials()
-        assert (
-            loaded_custom_valid is True
-        ), "15-day old token should be valid with token_staleness_days=20"
+        assert loaded_custom_valid is True, "15-day old token should be valid with token_staleness_days=20"
         assert sdk_custom_valid_staleness.app.get_access_token() == "recent_token_123"
 
     def test_load_credentials_no_timestamp(self):
@@ -330,32 +299,24 @@ class TestTokenValidationAndExpiration:
             "email": "test@example.com",
             "access_token": "token_no_time",
             "location_id": 2,
-            "auth_type": "direct",
+            "auth_type": "direct"
             # No saved_at field
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(credentials_no_time, f)
 
-        sdk_default = PCloudSDK(
-            token_file=self.token_file
-        )  # Default staleness = 30 days
+        sdk_default = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
         loaded_default = sdk_default._load_saved_credentials()
-        assert (
-            loaded_default is False
-        ), "Credentials with no timestamp should be stale with default staleness"
+        assert loaded_default is False, "Credentials with no timestamp should be stale with default staleness"
         safe_remove_file(self.token_file)
 
         # Test with a very long staleness period, should still be stale
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(credentials_no_time, f)
-        sdk_long_staleness = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=1000
-        )
+        sdk_long_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=1000)
         loaded_long_staleness = sdk_long_staleness._load_saved_credentials()
-        assert (
-            loaded_long_staleness is False
-        ), "Credentials with no timestamp should always be stale"
+        assert loaded_long_staleness is False, "Credentials with no timestamp should always be stale"
 
     @responses.activate
     def test_validate_existing_credentials_valid(self):
@@ -363,8 +324,12 @@ class TestTokenValidationAndExpiration:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            json={
+                "result": 0,
+                "email": "test@example.com",
+                "userid": 12345
+            },
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -379,8 +344,11 @@ class TestTokenValidationAndExpiration:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 2000, "error": "Invalid auth token"},
-            status=200,
+            json={
+                "result": 2000,
+                "error": "Invalid auth token"
+            },
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -405,7 +373,7 @@ class TestTokenValidationAndExpiration:
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             body=Exception("Network error"),
-            headers={"content-length": "0"},
+            headers={'content-length': '0'}
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -421,7 +389,7 @@ class TestTokenValidationAndExpiration:
         # Test different ages
         test_cases = [
             (time.time(), 0),  # Current time
-            (time.time() - 3600, 1 / 24),  # 1 hour ago
+            (time.time() - 3600, 1/24),  # 1 hour ago
             (time.time() - 86400, 1),  # 1 day ago
             (time.time() - (7 * 86400), 7),  # 1 week ago
             (time.time() - (30 * 86400), 30),  # 30 days ago
@@ -433,10 +401,10 @@ class TestTokenValidationAndExpiration:
                 "access_token": "test_token",
                 "location_id": 2,
                 "auth_type": "direct",
-                "saved_at": saved_time,
+                "saved_at": saved_time
             }
 
-            with open(self.token_file, "w") as f:
+            with open(self.token_file, 'w') as f:
                 json.dump(credentials, f)
 
             sdk._saved_credentials = None  # Reset
@@ -475,14 +443,14 @@ class TestMultiAccountTokenManagement:
             email="user1@example.com",
             token="token1_123",
             location_id=1,
-            user_info={"userid": 11111},
+            user_info={"userid": 11111}
         )
 
         sdk2._save_credentials(
             email="user2@example.com",
             token="token2_456",
             location_id=2,
-            user_info={"userid": 22222},
+            user_info={"userid": 22222}
         )
 
         # Verify separate files exist
@@ -490,9 +458,9 @@ class TestMultiAccountTokenManagement:
         assert os.path.exists(account2_file)
 
         # Verify content is different
-        with open(account1_file, "r") as f:
+        with open(account1_file, 'r') as f:
             data1 = json.load(f)
-        with open(account2_file, "r") as f:
+        with open(account2_file, 'r') as f:
             data2 = json.load(f)
 
         assert data1["email"] == "user1@example.com"
@@ -511,7 +479,7 @@ class TestMultiAccountTokenManagement:
             "access_token": "token1_123",
             "location_id": 1,
             "auth_type": "direct",
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
         account2_creds = {
@@ -519,12 +487,12 @@ class TestMultiAccountTokenManagement:
             "access_token": "token2_456",
             "location_id": 2,
             "auth_type": "oauth2",
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
-        with open(account1_file, "w") as f:
+        with open(account1_file, 'w') as f:
             json.dump(account1_creds, f)
-        with open(account2_file, "w") as f:
+        with open(account2_file, 'w') as f:
             json.dump(account2_creds, f)
 
         # Load account 1
@@ -550,7 +518,9 @@ class TestMultiAccountTokenManagement:
 
         # Save credentials for account 1
         sdk1._save_credentials(
-            email="user1@example.com", token="token1_123", location_id=1
+            email="user1@example.com",
+            token="token1_123",
+            location_id=1
         )
 
         # SDK2 should not have access to SDK1's credentials
@@ -559,7 +529,9 @@ class TestMultiAccountTokenManagement:
 
         # Save credentials for account 2
         sdk2._save_credentials(
-            email="user2@example.com", token="token2_456", location_id=2
+            email="user2@example.com",
+            token="token2_456",
+            location_id=2
         )
 
         # SDK1 should still have its own credentials
@@ -580,7 +552,7 @@ class TestMultiAccountTokenManagement:
                 sdk._save_credentials(
                     email=f"user{worker_id}@example.com",
                     token=f"token_{worker_id}",
-                    location_id=worker_id,
+                    location_id=worker_id
                 )
                 results.append(worker_id)
             except Exception as e:
@@ -623,7 +595,9 @@ class TestTokenFileEncryptionAndSecurity:
         sdk = PCloudSDK(token_file=self.token_file)
 
         sdk._save_credentials(
-            email="test@example.com", token="secret_token_123", location_id=2
+            email="test@example.com",
+            token="secret_token_123",
+            location_id=2
         )
 
         # Check file permissions (should be readable only by owner)
@@ -632,8 +606,8 @@ class TestTokenFileEncryptionAndSecurity:
 
         # On Unix systems, should be 600 or similar (owner read/write only)
         # On Windows, this test might behave differently
-        if os.name != "nt":  # Not Windows
-            assert file_permissions in ["600", "644"]  # Allow some variation
+        if os.name != 'nt':  # Not Windows
+            assert file_permissions in ['600', '644']  # Allow some variation
 
     def test_sensitive_data_handling(self):
         """Test that sensitive data is handled appropriately"""
@@ -645,11 +619,11 @@ class TestTokenFileEncryptionAndSecurity:
             email="test@example.com",
             token=sensitive_token,
             location_id=2,
-            user_info={"sensitive_field": "sensitive_value"},
+            user_info={"sensitive_field": "sensitive_value"}
         )
 
         # Verify data is saved correctly
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             data = json.load(f)
 
         assert data["access_token"] == sensitive_token
@@ -665,7 +639,9 @@ class TestTokenFileEncryptionAndSecurity:
             sdk = PCloudSDK(token_file=home_token_file)
 
             sdk._save_credentials(
-                email="test@example.com", token="test_token", location_id=2
+                email="test@example.com",
+                token="test_token",
+                location_id=2
             )
 
             # Verify file is created in home directory
@@ -699,7 +675,9 @@ class TestTokenFileEncryptionAndSecurity:
 
         # Save credentials
         sdk._save_credentials(
-            email="test@example.com", token="token_to_be_cleared", location_id=2
+            email="test@example.com",
+            token="token_to_be_cleared",
+            location_id=2
         )
 
         # Verify credentials exist
@@ -734,7 +712,9 @@ class TestTokenCleanupOperations:
 
         # Save credentials
         sdk._save_credentials(
-            email="test@example.com", token="test_token_123", location_id=2
+            email="test@example.com",
+            token="test_token_123",
+            location_id=2
         )
 
         assert os.path.exists(self.token_file)
@@ -755,7 +735,7 @@ class TestTokenCleanupOperations:
         assert not os.path.exists(self.token_file)
         assert sdk._saved_credentials is None
 
-    @patch("os.remove")
+    @patch('os.remove')
     def test_clear_credentials_with_permission_error(self, mock_os_remove):
         """Test clearing credentials when os.remove raises PermissionError."""
         mock_os_remove.side_effect = PermissionError("Mocked permission denied")
@@ -763,7 +743,7 @@ class TestTokenCleanupOperations:
         sdk = PCloudSDK(token_file=self.token_file)
 
         # Save credentials to ensure the file exists initially
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump({"email": "test@example.com", "access_token": "token"}, f)
 
         assert os.path.exists(self.token_file)
@@ -773,29 +753,25 @@ class TestTokenCleanupOperations:
 
         sdk.clear_saved_credentials()
 
-        sys.stdout = original_stdout  # Restore stdout
+        sys.stdout = original_stdout # Restore stdout
         output = captured_stdout.getvalue()
 
         # Assertions
-        mock_os_remove.assert_called_once_with(
-            self.token_file
-        )  # Verify os.remove was called
-        assert os.path.exists(
-            self.token_file
-        )  # File should still exist because os.remove was mocked
+        mock_os_remove.assert_called_once_with(self.token_file) # Verify os.remove was called
+        assert os.path.exists(self.token_file) # File should still exist because os.remove was mocked
         assert "Could not delete credentials" in output
         assert "due to a permission error" in output
-        assert "Mocked permission denied" in output  # Check our mocked error message
+        assert "Mocked permission denied" in output # Check our mocked error message
 
         # Clean up the manually created file if it still exists
         if os.path.exists(self.token_file):
             try:
                 # Temporarily remove mock to allow actual deletion for cleanup
-                with patch("os.remove") as actual_remove:
-                    actual_remove.side_effect = os.remove  # Use real os.remove
+                with patch('os.remove') as actual_remove:
+                    actual_remove.side_effect = os.remove # Use real os.remove
                     os.remove(self.token_file)
             except:
-                pass  # If cleanup fails, don't fail the test itself
+                pass # If cleanup fails, don't fail the test itself
 
     def test_cleanup_old_token_files(self):
         """Test cleanup of old token files"""
@@ -803,8 +779,8 @@ class TestTokenCleanupOperations:
         files_info = [
             ("current.json", time.time()),
             ("recent.json", time.time() - (7 * 24 * 3600)),  # 7 days old
-            ("old.json", time.time() - (45 * 24 * 3600)),  # 45 days old
-            ("ancient.json", time.time() - (90 * 24 * 3600)),  # 90 days old
+            ("old.json", time.time() - (45 * 24 * 3600)),    # 45 days old
+            ("ancient.json", time.time() - (90 * 24 * 3600)) # 90 days old
         ]
 
         for filename, timestamp in files_info:
@@ -813,34 +789,18 @@ class TestTokenCleanupOperations:
                 "email": f"user@{filename}",
                 "access_token": f"token_{filename}",
                 "location_id": 2,
-                "saved_at": timestamp,
+                "saved_at": timestamp
             }
 
-            with open(filepath, "w") as f:
+            with open(filepath, 'w') as f:
                 json.dump(credentials, f)
 
         # Test loading with different staleness settings
         staleness_settings_to_test = [
-            {
-                "days": 30,
-                "expected_rejection_for_old": True,
-                "expected_rejection_for_ancient": True,
-            },  # Default
-            {
-                "days": 60,
-                "expected_rejection_for_old": False,
-                "expected_rejection_for_ancient": True,
-            },  # Longer
-            {
-                "days": 100,
-                "expected_rejection_for_old": False,
-                "expected_rejection_for_ancient": False,
-            },  # Very long
-            {
-                "days": 0,
-                "expected_rejection_for_old": True,
-                "expected_rejection_for_ancient": True,
-            },  # Immediate
+            {"days": 30, "expected_rejection_for_old": True, "expected_rejection_for_ancient": True}, # Default
+            {"days": 60, "expected_rejection_for_old": False, "expected_rejection_for_ancient": True}, # Longer
+            {"days": 100, "expected_rejection_for_old": False, "expected_rejection_for_ancient": False}, # Very long
+            {"days": 0, "expected_rejection_for_old": True, "expected_rejection_for_ancient": True} # Immediate
         ]
 
         for setting in staleness_settings_to_test:
@@ -849,12 +809,10 @@ class TestTokenCleanupOperations:
                 filepath = os.path.join(self.temp_dir, filename)
                 # Ensure file exists for this iteration
                 temp_creds = {
-                    "email": f"user@{filename}",
-                    "access_token": f"token_{filename}",
-                    "location_id": 2,
-                    "saved_at": timestamp,
+                    "email": f"user@{filename}", "access_token": f"token_{filename}",
+                    "location_id": 2, "saved_at": timestamp
                 }
-                with open(filepath, "w") as f_temp:
+                with open(filepath, 'w') as f_temp:
                     json.dump(temp_creds, f_temp)
 
                 sdk = PCloudSDK(token_file=filepath, token_staleness_days=staleness)
@@ -862,33 +820,32 @@ class TestTokenCleanupOperations:
 
                 age_days = (time.time() - timestamp) / (24 * 3600)
 
-                is_old_file_scenario = "old.json" in filename  # 45 days
-                is_ancient_file_scenario = "ancient.json" in filename  # 90 days
+                is_old_file_scenario = "old.json" in filename # 45 days
+                is_ancient_file_scenario = "ancient.json" in filename # 90 days
 
                 expected_to_load = True
                 if age_days > staleness:
                     expected_to_load = False
 
                 # For no timestamp, it should always be false
-                if (
-                    "saved_at" not in temp_creds and timestamp == 0
-                ):  # A bit of a hack for this test structure
-                    expected_to_load = False
+                if "saved_at" not in temp_creds and timestamp == 0 : # A bit of a hack for this test structure
+                     expected_to_load = False
 
-                assert (
-                    loaded is expected_to_load
-                ), f"File {filename} (age {age_days:.1f}d) load status {loaded} was not {expected_to_load} with staleness {staleness}d"
+
+                assert loaded is expected_to_load, \
+                    f"File {filename} (age {age_days:.1f}d) load status {loaded} was not {expected_to_load} with staleness {staleness}d"
 
             # Clean up files for the next staleness setting iteration
             for filename, _ in files_info:
                 safe_remove_file(os.path.join(self.temp_dir, filename))
+
 
     def test_token_file_corruption_recovery(self):
         """Test recovery from corrupted token files"""
         sdk = PCloudSDK(token_file=self.token_file)
 
         # Create corrupted file
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             f.write("corrupted json data {{{")
 
         # Should handle gracefully
@@ -897,7 +854,9 @@ class TestTokenCleanupOperations:
 
         # Should be able to save new credentials
         sdk._save_credentials(
-            email="recovery@example.com", token="recovery_token", location_id=2
+            email="recovery@example.com",
+            token="recovery_token",
+            location_id=2
         )
 
         # Verify new credentials work
@@ -911,18 +870,26 @@ class TestTokenCleanupOperations:
         sdk = PCloudSDK(token_file=self.token_file)
 
         # Save initial credentials
-        sdk._save_credentials(email="user1@example.com", token="token1", location_id=1)
+        sdk._save_credentials(
+            email="user1@example.com",
+            token="token1",
+            location_id=1
+        )
 
         # Verify initial state
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             initial_data = json.load(f)
         assert initial_data["email"] == "user1@example.com"
 
         # Update credentials
-        sdk._save_credentials(email="user2@example.com", token="token2", location_id=2)
+        sdk._save_credentials(
+            email="user2@example.com",
+            token="token2",
+            location_id=2
+        )
 
         # Verify update
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             updated_data = json.load(f)
         assert updated_data["email"] == "user2@example.com"
         assert updated_data["access_token"] == "token2"
@@ -973,7 +940,11 @@ class TestTokenManagerEdgeCases:
         # Create very long token (simulating edge case)
         long_token = "x" * 10000
 
-        sdk._save_credentials(email="test@example.com", token=long_token, location_id=2)
+        sdk._save_credentials(
+            email="test@example.com",
+            token=long_token,
+            location_id=2
+        )
 
         # Should save and load correctly
         sdk2 = PCloudSDK(token_file=self.token_file)
@@ -993,7 +964,7 @@ class TestTokenManagerEdgeCases:
             email=unicode_email,
             token=unicode_token,
             location_id=2,
-            user_info={"name": "Test User"},
+            user_info={"name": "Test User"}
         )
 
         # Should handle unicode correctly
@@ -1009,7 +980,12 @@ class TestTokenManagerEdgeCases:
         sdk = PCloudSDK(token_file=self.token_file)
 
         # Test with empty values
-        sdk._save_credentials(email="", token="", location_id=0, user_info={})
+        sdk._save_credentials(
+            email="",
+            token="",
+            location_id=0,
+            user_info={}
+        )
 
         sdk2 = PCloudSDK(token_file=self.token_file)
         loaded = sdk2._load_saved_credentials()
@@ -1026,7 +1002,9 @@ class TestTokenManagerEdgeCases:
         # Perform rapid save/load operations
         for i in range(100):
             sdk._save_credentials(
-                email=f"user{i}@example.com", token=f"token_{i}", location_id=i % 3 + 1
+                email=f"user{i}@example.com",
+                token=f"token_{i}",
+                location_id=i % 3 + 1
             )
 
             # Immediately load
@@ -1038,7 +1016,7 @@ class TestTokenManagerEdgeCases:
 
     def test_token_file_in_readonly_directory(self):
         """Test token file operations in read-only directory"""
-        if os.name == "nt":  # Windows
+        if os.name == 'nt':  # Windows
             pytest.skip("Read-only directory test not reliable on Windows")
 
         readonly_dir = os.path.join(self.temp_dir, "readonly")
@@ -1053,7 +1031,9 @@ class TestTokenManagerEdgeCases:
 
             # Should handle gracefully and not crash
             sdk._save_credentials(
-                email="test@example.com", token="test_token", location_id=2
+                email="test@example.com",
+                token="test_token",
+                location_id=2
             )
 
         finally:
@@ -1068,14 +1048,14 @@ class TestTokenManagerEdgeCases:
         large_user_info = {
             "large_field": "x" * 100000,  # 100KB of data
             "array_field": ["item"] * 10000,
-            "nested": {"deep": {"data": "y" * 50000}},
+            "nested": {"deep": {"data": "y" * 50000}}
         }
 
         sdk._save_credentials(
             email="test@example.com",
             token="test_token",
             location_id=2,
-            user_info=large_user_info,
+            user_info=large_user_info
         )
 
         # Should handle large files correctly
@@ -1094,7 +1074,9 @@ class TestTokenManagerEdgeCases:
 
         # Save from one instance
         sdk1._save_credentials(
-            email="shared@example.com", token="shared_token", location_id=2
+            email="shared@example.com",
+            token="shared_token",
+            location_id=2
         )
 
         # Other instances should be able to load
@@ -1133,9 +1115,9 @@ class TestTokenManagerIntegration:
                 "userid": 12345,
                 "email": "test@example.com",
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Mock user info for credential saving
@@ -1147,9 +1129,9 @@ class TestTokenManagerIntegration:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -1161,7 +1143,7 @@ class TestTokenManagerIntegration:
         # Verify credentials were saved
         assert os.path.exists(self.token_file)
 
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             saved_data = json.load(f)
 
         assert saved_data["email"] == "test@example.com"
@@ -1174,8 +1156,12 @@ class TestTokenManagerIntegration:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/oauth2_token",
-            json={"result": 0, "access_token": "oauth2_token_456", "locationid": 2},
-            status=200,
+            json={
+                "result": 0,
+                "access_token": "oauth2_token_456",
+                "locationid": 2
+            },
+            status=200
         )
 
         # Mock user info for credential saving
@@ -1187,16 +1173,16 @@ class TestTokenManagerIntegration:
                 "email": "oauth@example.com",
                 "userid": 67890,
                 "quota": 10737418240,
-                "usedquota": 2147483648,
+                "usedquota": 2147483648
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(
             app_key="test_client_id",
             app_secret="test_client_secret",
             auth_type="oauth2",
-            token_file=self.token_file,
+            token_file=self.token_file
         )
 
         token_info = sdk.authenticate("oauth_code_123", location_id=2)
@@ -1207,7 +1193,7 @@ class TestTokenManagerIntegration:
         # Verify credentials were saved with OAuth2 type
         assert os.path.exists(self.token_file)
 
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             saved_data = json.load(f)
 
         assert saved_data["access_token"] == "oauth2_token_456"
@@ -1223,18 +1209,22 @@ class TestTokenManagerIntegration:
             "location_id": 2,
             "auth_type": "direct",
             "user_info": {"userid": 12345},
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(valid_credentials, f)
 
         # Mock token validation
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            json={
+                "result": 0,
+                "email": "test@example.com",
+                "userid": 12345
+            },
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -1276,7 +1266,7 @@ class TestTokenManagerIntegration:
             email="info@example.com",
             token="info_token",
             location_id=1,
-            user_info={"userid": 99999},
+            user_info={"userid": 99999}
         )
 
         info = sdk.get_credentials_info()
@@ -1304,21 +1294,14 @@ class TestTokenManagerIntegrationReal:
         try:
             # First login - should save credentials
             sdk1 = PCloudSDK(token_file=token_file)
-            login_info1 = sdk1.login(
-                creds["email"], creds["password"], location_id=creds["location_id"]
-            )
+            login_info1 = sdk1.login(creds["email"], creds["password"], location_id=creds["location_id"])
 
             assert "access_token" in login_info1
             assert os.path.exists(token_file)
 
             # Second instance - should load saved credentials
             sdk2 = PCloudSDK(token_file=token_file)
-            login_info2 = sdk2.login(
-                creds["email"],
-                creds["password"],
-                location_id=creds["location_id"],
-                force_login=False,
-            )
+            login_info2 = sdk2.login(creds["email"], creds["password"], location_id=creds["location_id"], force_login=False)
 
             # Should reuse existing token
             assert login_info2["access_token"] == login_info1["access_token"]

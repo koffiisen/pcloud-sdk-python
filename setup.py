@@ -3,27 +3,21 @@
 Setup script for pCloud SDK Python v1.0
 """
 
+from setuptools import setup, find_packages
 import os
-
-from setuptools import find_packages, setup
-
 
 def read_file(filename):
     """Read file content"""
-    with open(os.path.join(os.path.dirname(__file__), filename), encoding="utf-8") as f:
+    with open(os.path.join(os.path.dirname(__file__), filename), encoding='utf-8') as f:
         return f.read()
-
 
 def read_requirements(filename):
     """Read requirements from file"""
     try:
-        with open(filename, "r", encoding="utf-8") as f:
-            return [
-                line.strip() for line in f if line.strip() and not line.startswith("#")
-            ]
+        with open(filename, 'r', encoding='utf-8') as f:
+            return [line.strip() for line in f if line.strip() and not line.startswith('#')]
     except FileNotFoundError:
         return []
-
 
 setup(
     name="pcloud-sdk-python",
@@ -71,20 +65,8 @@ setup(
         ],
     },
     keywords=[
-        "pcloud",
-        "api",
-        "sdk",
-        "cloud",
-        "storage",
-        "file",
-        "upload",
-        "download",
-        "backup",
-        "sync",
-        "progress",
-        "token",
-        "oauth2",
-        "rest",
+        "pcloud", "api", "sdk", "cloud", "storage", "file", "upload", "download",
+        "backup", "sync", "progress", "token", "oauth2", "rest"
     ],
     include_package_data=True,
     zip_safe=False,

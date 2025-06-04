@@ -43,42 +43,20 @@ def main():
     # List of checks to run
     checks = [
         # Black formatting check
-        (
-            [
-                "python",
-                "-m",
-                "black",
-                "--check",
-                "--diff",
-                "pcloud_sdk",
-                "tests",
-                "examples",
-                "tools",
-            ],
-            "Black code formatting",
-        ),
+        (["python", "-m", "black", "--check", "--diff", "pcloud_sdk", "tests", "examples", "tools"],
+         "Black code formatting"),
+
         # isort import sorting check
-        (
-            [
-                "python",
-                "-m",
-                "isort",
-                "--check-only",
-                "--diff",
-                "pcloud_sdk",
-                "tests",
-                "examples",
-                "tools",
-            ],
-            "isort import sorting",
-        ),
+        (["python", "-m", "isort", "--check-only", "--diff", "pcloud_sdk", "tests", "examples", "tools"],
+         "isort import sorting"),
+
         # Flake8 linting
-        (
-            ["python", "-m", "flake8", "pcloud_sdk", "tests", "examples", "tools"],
-            "Flake8 linting",
-        ),
+        (["python", "-m", "flake8", "pcloud_sdk", "tests", "examples", "tools"],
+         "Flake8 linting"),
+
         # MyPy type checking
-        (["python", "-m", "mypy", "pcloud_sdk"], "MyPy type checking"),
+        (["python", "-m", "mypy", "pcloud_sdk"],
+         "MyPy type checking"),
     ]
 
     for cmd, description in checks:

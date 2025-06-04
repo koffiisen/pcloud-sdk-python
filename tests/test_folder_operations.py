@@ -13,15 +13,11 @@ from requests.exceptions import ConnectionError, Timeout
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
-from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.folder_operations import Folder
-
+from pcloud_sdk.exceptions import PCloudException
 from .test_config import (
-    get_test_credentials,
-    requires_real_credentials,
-    safe_cleanup_temp_dir,
-    safe_remove_file,
-    skip_if_no_integration_tests,
+    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
 )
 
 
@@ -49,10 +45,10 @@ class TestFolderCreation:
                     "folderid": 12345,
                     "name": folder_name,
                     "isfolder": True,
-                    "parentfolderid": 0,
-                },
+                    "parentfolderid": 0
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.create(folder_name, parent=0)
@@ -78,10 +74,10 @@ class TestFolderCreation:
                     "folderid": 54321,
                     "name": folder_name,
                     "isfolder": True,
-                    "parentfolderid": parent_id,
-                },
+                    "parentfolderid": parent_id
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.create(folder_name, parent=parent_id)
@@ -111,8 +107,11 @@ class TestFolderCreation:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
-            json={"result": 2004, "error": "Folder already exists"},
-            status=200,
+            json={
+                "result": 2004,
+                "error": "Folder already exists"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException):
@@ -128,9 +127,13 @@ class TestFolderCreation:
             "https://eapi.pcloud.com/createfolder",
             json={
                 "result": 0,
-                "metadata": {"folderid": 12345, "name": folder_name, "isfolder": True},
+                "metadata": {
+                    "folderid": 12345,
+                    "name": folder_name,
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.create(folder_name)
@@ -156,7 +159,7 @@ class TestFolderListing:
                 "name": "Documents",
                 "isfolder": True,
                 "created": "2023-01-01T00:00:00Z",
-                "modified": "2023-01-01T00:00:00Z",
+                "modified": "2023-01-01T00:00:00Z"
             },
             {
                 "fileid": 54321,
@@ -164,8 +167,8 @@ class TestFolderListing:
                 "isfolder": False,
                 "size": 1024,
                 "created": "2023-01-01T00:00:00Z",
-                "modified": "2023-01-01T00:00:00Z",
-            },
+                "modified": "2023-01-01T00:00:00Z"
+            }
         ]
 
         responses.add(
@@ -173,9 +176,13 @@ class TestFolderListing:
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {"folderid": 0, "name": "/", "contents": mock_contents},
+                "metadata": {
+                    "folderid": 0,
+                    "name": "/",
+                    "contents": mock_contents
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.list_root()
@@ -191,7 +198,12 @@ class TestFolderListing:
         """Test getting folder content by folder ID"""
         folder_id = 12345
         mock_contents = [
-            {"fileid": 98765, "name": "document.pdf", "isfolder": False, "size": 2048}
+            {
+                "fileid": 98765,
+                "name": "document.pdf",
+                "isfolder": False,
+                "size": 2048
+            }
         ]
 
         responses.add(
@@ -202,10 +214,10 @@ class TestFolderListing:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "Documents",
-                    "contents": mock_contents,
-                },
+                    "contents": mock_contents
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
@@ -222,8 +234,16 @@ class TestFolderListing:
         """Test getting folder content by path"""
         folder_path = "/Documents/Projects"
         mock_contents = [
-            {"folderid": 11111, "name": "ProjectA", "isfolder": True},
-            {"folderid": 22222, "name": "ProjectB", "isfolder": True},
+            {
+                "folderid": 11111,
+                "name": "ProjectA",
+                "isfolder": True
+            },
+            {
+                "folderid": 22222,
+                "name": "ProjectB",
+                "isfolder": True
+            }
         ]
 
         responses.add(
@@ -231,9 +251,12 @@ class TestFolderListing:
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {"name": "Projects", "contents": mock_contents},
+                "metadata": {
+                    "name": "Projects",
+                    "contents": mock_contents
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(path=folder_path)
@@ -258,10 +281,10 @@ class TestFolderListing:
                     "folderid": 0,
                     "name": "/",
                     "isfolder": True,
-                    "contents": [],
-                },
+                    "contents": []
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_metadata(folder_id=0)
@@ -290,10 +313,10 @@ class TestFolderListing:
                     "parentfolderid": 0,
                     "created": "2023-01-01T00:00:00Z",
                     "modified": "2023-01-01T00:00:00Z",
-                    "contents": [],
-                },
+                    "contents": []
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_metadata(folder_id=folder_id)
@@ -315,11 +338,15 @@ class TestFolderListing:
                     "folderid": 0,
                     "name": "/",
                     "contents": [
-                        {"folderid": 12345, "name": "Documents", "isfolder": True}
-                    ],
-                },
+                        {
+                            "folderid": 12345,
+                            "name": "Documents",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         responses.add(
@@ -331,11 +358,15 @@ class TestFolderListing:
                     "folderid": 12345,
                     "name": "Documents",
                     "contents": [
-                        {"folderid": 54321, "name": "Projects", "isfolder": True}
-                    ],
-                },
+                        {
+                            "folderid": 54321,
+                            "name": "Projects",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.list_folder("Documents/Projects")
@@ -357,11 +388,15 @@ class TestFolderListing:
                 "metadata": {
                     "name": "Documents",
                     "contents": [
-                        {"folderid": 99999, "name": "Important", "isfolder": True}
-                    ],
-                },
+                        {
+                            "folderid": 99999,
+                            "name": "Important",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.search(search_path)
@@ -395,9 +430,13 @@ class TestFolderManipulation:
             "https://eapi.pcloud.com/renamefolder",
             json={
                 "result": 0,
-                "metadata": {"folderid": folder_id, "name": new_name, "isfolder": True},
+                "metadata": {
+                    "folderid": folder_id,
+                    "name": new_name,
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.rename(folder_id, new_name)
@@ -437,10 +476,10 @@ class TestFolderManipulation:
                 "metadata": {
                     "folderid": folder_id,
                     "parentfolderid": new_parent_id,
-                    "isfolder": True,
-                },
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.move(folder_id, new_parent_id)
@@ -465,10 +504,10 @@ class TestFolderManipulation:
                 "metadata": {
                     "folderid": folder_id,
                     "parentfolderid": 0,
-                    "isfolder": True,
-                },
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.move(folder_id, 0)
@@ -483,8 +522,13 @@ class TestFolderManipulation:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={"result": 0, "metadata": {"isdeleted": True}},
-            status=200,
+            json={
+                "result": 0,
+                "metadata": {
+                    "isdeleted": True
+                }
+            },
+            status=200
         )
 
         result = self.folder_ops.delete(folder_id)
@@ -505,9 +549,13 @@ class TestFolderManipulation:
             "https://eapi.pcloud.com/deletefolderrecursive",
             json={
                 "result": 0,
-                "metadata": {"isdeleted": True, "deletedfiles": 5, "deletedfolders": 2},
+                "metadata": {
+                    "isdeleted": True,
+                    "deletedfiles": 5,
+                    "deletedfolders": 2
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.delete_recursive(folder_id)
@@ -545,10 +593,10 @@ class TestFolderHierarchy:
                     "folderid": 12345,
                     "name": "Parent",
                     "isfolder": True,
-                    "parentfolderid": 0,
-                },
+                    "parentfolderid": 0
+                }
             },
-            status=200,
+            status=200
         )
 
         # Then create child folder
@@ -561,10 +609,10 @@ class TestFolderHierarchy:
                     "folderid": 54321,
                     "name": "Child",
                     "isfolder": True,
-                    "parentfolderid": 12345,
-                },
+                    "parentfolderid": 12345
+                }
             },
-            status=200,
+            status=200
         )
 
         parent_id = self.folder_ops.create("Parent", parent=0)
@@ -584,10 +632,16 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 0,
-                    "contents": [{"folderid": 100, "name": "Level1", "isfolder": True}],
-                },
+                    "contents": [
+                        {
+                            "folderid": 100,
+                            "name": "Level1",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock level 1 folder listing
@@ -598,10 +652,16 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 100,
-                    "contents": [{"folderid": 200, "name": "Level2", "isfolder": True}],
-                },
+                    "contents": [
+                        {
+                            "folderid": 200,
+                            "name": "Level2",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock level 2 folder listing
@@ -612,10 +672,16 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 200,
-                    "contents": [{"folderid": 300, "name": "Level3", "isfolder": True}],
-                },
+                    "contents": [
+                        {
+                            "folderid": 300,
+                            "name": "Level3",
+                            "isfolder": True
+                        }
+                    ]
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.list_folder("Level1/Level2/Level3")
@@ -633,28 +699,28 @@ class TestFolderHierarchy:
                 "folderid": 111,
                 "name": "Subfolder1",
                 "isfolder": True,
-                "created": "2023-01-01T00:00:00Z",
+                "created": "2023-01-01T00:00:00Z"
             },
             {
                 "fileid": 222,
                 "name": "file1.txt",
                 "isfolder": False,
                 "size": 1024,
-                "created": "2023-01-01T00:00:00Z",
+                "created": "2023-01-01T00:00:00Z"
             },
             {
                 "folderid": 333,
                 "name": "Subfolder2",
                 "isfolder": True,
-                "created": "2023-01-01T00:00:00Z",
+                "created": "2023-01-01T00:00:00Z"
             },
             {
                 "fileid": 444,
                 "name": "file2.pdf",
                 "isfolder": False,
                 "size": 2048,
-                "created": "2023-01-01T00:00:00Z",
-            },
+                "created": "2023-01-01T00:00:00Z"
+            }
         ]
 
         responses.add(
@@ -665,10 +731,10 @@ class TestFolderHierarchy:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "MixedFolder",
-                    "contents": mixed_contents,
-                },
+                    "contents": mixed_contents
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
@@ -706,8 +772,11 @@ class TestFolderErrorScenarios:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            json={"result": 2005, "error": "Directory does not exist"},
-            status=200,
+            json={
+                "result": 2005,
+                "error": "Directory does not exist"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException):
@@ -721,8 +790,11 @@ class TestFolderErrorScenarios:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={"result": 2003, "error": "Access denied"},
-            status=200,
+            json={
+                "result": 2003,
+                "error": "Access denied"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException):
@@ -736,8 +808,11 @@ class TestFolderErrorScenarios:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={"result": 2007, "error": "Directory not empty"},
-            status=200,
+            json={
+                "result": 2007,
+                "error": "Directory not empty"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException):
@@ -746,18 +821,17 @@ class TestFolderErrorScenarios:
     @responses.activate
     def test_invalid_folder_name_characters(self):
         """Test creating folder with invalid characters"""
-        invalid_names = [
-            "folder/with/slash",
-            "folder\\with\\backslash",
-            "folder:with:colon",
-        ]
+        invalid_names = ["folder/with/slash", "folder\\with\\backslash", "folder:with:colon"]
 
         for invalid_name in invalid_names:
             responses.add(
                 responses.GET,
                 "https://eapi.pcloud.com/createfolder",
-                json={"result": 2008, "error": "Invalid name"},
-                status=200,
+                json={
+                    "result": 2008,
+                    "error": "Invalid name"
+                },
+                status=200
             )
 
         for invalid_name in invalid_names:
@@ -775,7 +849,7 @@ class TestFolderErrorScenarios:
         responses.add_callback(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            callback=timeout_callback,
+            callback=timeout_callback
         )
 
         with pytest.raises(Exception):  # Should propagate timeout error
@@ -792,7 +866,7 @@ class TestFolderErrorScenarios:
         responses.add_callback(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            callback=connection_error_callback,
+            callback=connection_error_callback
         )
 
         with pytest.raises(Exception):  # Should propagate connection error
@@ -819,7 +893,7 @@ class TestFolderErrorScenarios:
                 "result": 0
                 # Missing metadata field
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
@@ -853,9 +927,9 @@ class TestFolderOperationsIntegration:
                 "userid": 12345,
                 "email": "test@example.com",
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Mock user info for credential saving
@@ -867,9 +941,9 @@ class TestFolderOperationsIntegration:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Initialize SDK
@@ -878,12 +952,12 @@ class TestFolderOperationsIntegration:
 
         # Test that folder operations are accessible through SDK
         assert sdk.folder is not None
-        assert hasattr(sdk.folder, "create")
-        assert hasattr(sdk.folder, "delete")
-        assert hasattr(sdk.folder, "rename")
-        assert hasattr(sdk.folder, "move")
-        assert hasattr(sdk.folder, "list_folder")
-        assert hasattr(sdk.folder, "get_content")
+        assert hasattr(sdk.folder, 'create')
+        assert hasattr(sdk.folder, 'delete')
+        assert hasattr(sdk.folder, 'rename')
+        assert hasattr(sdk.folder, 'move')
+        assert hasattr(sdk.folder, 'list_folder')
+        assert hasattr(sdk.folder, 'get_content')
 
     @responses.activate
     def test_complete_folder_lifecycle(self):
@@ -901,10 +975,10 @@ class TestFolderOperationsIntegration:
                     "folderid": 12345,
                     "name": "TestFolder",
                     "isfolder": True,
-                    "parentfolderid": 0,
-                },
+                    "parentfolderid": 0
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder listing after creation
@@ -913,9 +987,13 @@ class TestFolderOperationsIntegration:
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {"folderid": 12345, "name": "TestFolder", "contents": []},
+                "metadata": {
+                    "folderid": 12345,
+                    "name": "TestFolder",
+                    "contents": []
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder rename
@@ -927,18 +1005,23 @@ class TestFolderOperationsIntegration:
                 "metadata": {
                     "folderid": 12345,
                     "name": "RenamedFolder",
-                    "isfolder": True,
-                },
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder delete
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={"result": 0, "metadata": {"isdeleted": True}},
-            status=200,
+            json={
+                "result": 0,
+                "metadata": {
+                    "isdeleted": True
+                }
+            },
+            status=200
         )
 
         # Execute complete lifecycle
@@ -973,8 +1056,11 @@ class TestFolderOperationsEdgeCases:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
-            json={"result": 2008, "error": "Folder name too long"},
-            status=200,
+            json={
+                "result": 2008,
+                "error": "Folder name too long"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException):
@@ -991,7 +1077,7 @@ class TestFolderOperationsEdgeCases:
             "folder (with parentheses)",
             "folder [with brackets]",
             "folder {with braces}",
-            "🚀 emoji folder 📁",
+            "🚀 emoji folder 📁"
         ]
 
         for i, name in enumerate(special_names):
@@ -1000,9 +1086,13 @@ class TestFolderOperationsEdgeCases:
                 "https://eapi.pcloud.com/createfolder",
                 json={
                     "result": 0,
-                    "metadata": {"folderid": 10000 + i, "name": name, "isfolder": True},
+                    "metadata": {
+                        "folderid": 10000 + i,
+                        "name": name,
+                        "isfolder": True
+                    }
                 },
-                status=200,
+                status=200
             )
 
         for i, name in enumerate(special_names):
@@ -1022,10 +1112,10 @@ class TestFolderOperationsEdgeCases:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "EmptyFolder",
-                    "contents": [],
-                },
+                    "contents": []
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
@@ -1041,14 +1131,12 @@ class TestFolderOperationsEdgeCases:
         # Generate 1000 mock items
         large_contents = []
         for i in range(1000):
-            large_contents.append(
-                {
-                    "fileid": 20000 + i,
-                    "name": f"file_{i:04d}.txt",
-                    "isfolder": False,
-                    "size": 1024,
-                }
-            )
+            large_contents.append({
+                "fileid": 20000 + i,
+                "name": f"file_{i:04d}.txt",
+                "isfolder": False,
+                "size": 1024
+            })
 
         responses.add(
             responses.GET,
@@ -1058,10 +1146,10 @@ class TestFolderOperationsEdgeCases:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "LargeFolder",
-                    "contents": large_contents,
-                },
+                    "contents": large_contents
+                }
             },
-            status=200,
+            status=200
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
@@ -1096,10 +1184,10 @@ class TestFolderOperationsEdgeCases:
                     "metadata": {
                         "folderid": 30000 + i,
                         "name": f"Folder_{i}",
-                        "isfolder": True,
-                    },
+                        "isfolder": True
+                    }
                 },
-                status=200,
+                status=200
             )
 
         results = []
@@ -1130,11 +1218,7 @@ class TestFolderOperationsIntegrationReal:
 
             # List root to verify creation
             root_content = sdk.folder.list_root()
-            folder_names = [
-                item["name"]
-                for item in root_content["contents"]
-                if item.get("isfolder")
-            ]
+            folder_names = [item["name"] for item in root_content["contents"] if item.get("isfolder")]
             assert "SDK_Test_Folder" in folder_names
 
             # Rename folder

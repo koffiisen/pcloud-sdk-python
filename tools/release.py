@@ -5,10 +5,10 @@ Release tool for pCloud SDK Python
 Automates version bumping, building, and publishing to PyPI
 """
 
-import json
 import re
 import subprocess
 import sys
+import json
 from pathlib import Path
 from typing import Optional
 
@@ -17,9 +17,7 @@ def run_command(cmd: str, description: str) -> bool:
     """Run a shell command"""
     print(f"⚡ {description}...")
     try:
-        result = subprocess.run(
-            cmd, shell=True, check=True, capture_output=True, text=True
-        )
+        result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
         print(f"✓ {description} completed")
         return True
     except subprocess.CalledProcessError as e:
@@ -39,7 +37,7 @@ def get_current_version() -> str:
 
 def bump_version(current: str, bump_type: str) -> str:
     """Bump version number"""
-    major, minor, patch = map(int, current.split("."))
+    major, minor, patch = map(int, current.split('.'))
 
     if bump_type == "major":
         return f"{major + 1}.0.0"
@@ -55,11 +53,7 @@ def update_version_files(new_version: str) -> bool:
     """Update version in all relevant files"""
     files_to_update = [
         ("pyproject.toml", r'version = "[^"]+"', f'version = "{new_version}"'),
-        (
-            "pcloud_sdk/__init__.py",
-            r'__version__ = "[^"]+"',
-            f'__version__ = "{new_version}"',
-        ),
+        ("pcloud_sdk/__init__.py", r'__version__ = "[^"]+"', f'__version__ = "{new_version}"'),
     ]
 
     for file_path, pattern, replacement in files_to_update:
@@ -75,9 +69,7 @@ def update_version_files(new_version: str) -> bool:
 
 def check_working_directory() -> bool:
     """Check if working directory is clean"""
-    result = subprocess.run(
-        ["git", "status", "--porcelain"], capture_output=True, text=True
-    )
+    result = subprocess.run(["git", "status", "--porcelain"], capture_output=True, text=True)
     if result.stdout.strip():
         print("✗ Working directory is not clean. Please commit or stash changes first.")
         return False
@@ -87,9 +79,7 @@ def check_working_directory() -> bool:
 def run_tests() -> bool:
     """Run test suite"""
     print("🧪 Running tests...")
-    result = subprocess.run(
-        ["python", "-m", "pytest", "tests/", "-x"], capture_output=True
-    )
+    result = subprocess.run(["python", "-m", "pytest", "tests/", "-x"], capture_output=True)
     if result.returncode != 0:
         print("✗ Tests failed!")
         return False
@@ -125,9 +115,8 @@ def publish_to_pypi(test: bool = True) -> bool:
 
 def create_git_tag(version: str) -> bool:
     """Create git tag for release"""
-    return run_command(
-        f"git tag -a v{version} -m 'Release v{version}'", f"Creating git tag v{version}"
-    )
+    return run_command(f"git tag -a v{version} -m 'Release v{version}'",
+                      f"Creating git tag v{version}")
 
 
 def main():
@@ -188,9 +177,7 @@ def main():
     # Commit version change
     print("\n📝 Committing version change...")
     run_command(f"git add .", "Staging changes")
-    run_command(
-        f"git commit -m 'Bump version to {new_version}'", "Committing version bump"
-    )
+    run_command(f"git commit -m 'Bump version to {new_version}'", "Committing version bump")
 
     # Create tag
     if not create_git_tag(new_version):

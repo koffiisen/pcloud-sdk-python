@@ -7,7 +7,7 @@ import json
 import os
 import tempfile
 import time
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch, mock_open
 
 import pytest
 import requests
@@ -16,23 +16,13 @@ import responses
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException
-
 from .test_config import (
-    PCLOUD_ACCESS_TOKEN,
-    PCLOUD_CLIENT_ID,
-    PCLOUD_CLIENT_SECRET,
-    PCLOUD_EMAIL,
-    PCLOUD_LOCATION_ID,
-    PCLOUD_PASSWORD,
-    get_oauth2_credentials,
-    get_test_credentials,
-    has_oauth2_credentials,
-    has_real_credentials,
-    requires_oauth2_credentials,
-    requires_real_credentials,
-    safe_cleanup_temp_dir,
-    safe_remove_file,
-    skip_if_no_integration_tests,
+    PCLOUD_EMAIL, PCLOUD_PASSWORD, PCLOUD_ACCESS_TOKEN,
+    PCLOUD_CLIENT_ID, PCLOUD_CLIENT_SECRET, PCLOUD_LOCATION_ID,
+    has_real_credentials, has_oauth2_credentials,
+    requires_real_credentials, requires_oauth2_credentials,
+    skip_if_no_integration_tests, get_test_credentials, get_oauth2_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
 )
 
 
@@ -60,9 +50,9 @@ class TestDirectAuthentication:
                 "userid": 12345,
                 "email": self.test_email,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         login_info = self.app.login_with_credentials(
@@ -82,8 +72,11 @@ class TestDirectAuthentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 2000, "error": "Invalid username or password."},
-            status=200,
+            json={
+                "result": 2000,
+                "error": "Invalid username or password."
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException, match="Invalid email or password"):
@@ -97,8 +90,11 @@ class TestDirectAuthentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 4000, "error": "Too many login attempts. Rate limited."},
-            status=200,
+            json={
+                "result": 4000,
+                "error": "Too many login attempts. Rate limited."
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException, match="Too many login attempts"):
@@ -121,7 +117,7 @@ class TestDirectAuthentication:
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             body=requests.exceptions.Timeout("Connection timeout"),
-            headers={"content-length": "0"},
+            headers={'content-length': '0'}
         )
 
         with pytest.raises(PCloudException, match="Connection timeout"):
@@ -142,9 +138,9 @@ class TestDirectAuthentication:
                 "userid": 12345,
                 "email": self.test_email,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Test US server (location_id=1)
@@ -157,9 +153,9 @@ class TestDirectAuthentication:
                 "userid": 12345,
                 "email": self.test_email,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Test EU login
@@ -220,8 +216,12 @@ class TestOAuth2Authentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/oauth2_token",
-            json={"result": 0, "access_token": "oauth2_token_123", "locationid": 2},
-            status=200,
+            json={
+                "result": 0,
+                "access_token": "oauth2_token_123",
+                "locationid": 2
+            },
+            status=200
         )
 
         token_info = self.app.get_token_from_code("auth_code_123", location_id=2)
@@ -236,8 +236,11 @@ class TestOAuth2Authentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/oauth2_token",
-            json={"result": 1000, "error": "Invalid authorization code"},
-            status=200,
+            json={
+                "result": 1000,
+                "error": "Invalid authorization code"
+            },
+            status=200
         )
 
         with pytest.raises(PCloudException, match="Invalid authorization code"):
@@ -292,20 +295,20 @@ class TestTokenManagement:
             "user_info": {
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
-            },
+                "usedquota": 1073741824
+            }
         }
 
         sdk._save_credentials(
             email=test_credentials["email"],
             token=test_credentials["access_token"],
             location_id=test_credentials["location_id"],
-            user_info=test_credentials["user_info"],
+            user_info=test_credentials["user_info"]
         )
 
         assert os.path.exists(self.token_file)
 
-        with open(self.token_file, "r") as f:
+        with open(self.token_file, 'r') as f:
             saved_data = json.load(f)
 
         assert saved_data["email"] == test_credentials["email"]
@@ -325,12 +328,12 @@ class TestTokenManagement:
             "user_info": {
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            "saved_at": time.time(),  # Recent save
+            "saved_at": time.time()  # Recent save
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(test_credentials, f)
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -351,10 +354,10 @@ class TestTokenManagement:
             "location_id": 2,
             "auth_type": "direct",
             "user_info": {},
-            "saved_at": old_time,
+            "saved_at": old_time
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(test_credentials, f)
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -368,73 +371,49 @@ class TestTokenManagement:
         # Scenario 1: token_staleness_days = 0 (always stale unless saved_at is future/now)
         very_recent_time = time.time() - 1  # 1 second ago
         credentials_almost_now = {
-            "email": "stale@example.com",
-            "access_token": "stale_token_1",
-            "location_id": 1,
-            "auth_type": "direct",
-            "user_info": {},
-            "saved_at": very_recent_time,
+            "email": "stale@example.com", "access_token": "stale_token_1",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": very_recent_time
         }
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(credentials_almost_now, f)
 
-        sdk_staleness_zero = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=0
-        )
+        sdk_staleness_zero = PCloudSDK(token_file=self.token_file, token_staleness_days=0)
         loaded = sdk_staleness_zero._load_saved_credentials()
-        assert (
-            loaded is False
-        ), "Token saved 1s ago should be stale with token_staleness_days=0"
+        assert loaded is False, "Token saved 1s ago should be stale with token_staleness_days=0"
         assert sdk_staleness_zero.app.get_access_token() == ""
-        safe_remove_file(self.token_file)  # Clean up for next scenario
+        safe_remove_file(self.token_file) # Clean up for next scenario
 
         # Scenario 2: token_staleness_days = 1, token saved 2 days ago (should be stale)
         two_days_ago = time.time() - (2 * 24 * 3600)
         credentials_two_days_old = {
-            "email": "stale@example.com",
-            "access_token": "stale_token_2",
-            "location_id": 1,
-            "auth_type": "direct",
-            "user_info": {},
-            "saved_at": two_days_ago,
+            "email": "stale@example.com", "access_token": "stale_token_2",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": two_days_ago
         }
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(credentials_two_days_old, f)
 
-        sdk_staleness_one_day = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=1
-        )
+        sdk_staleness_one_day = PCloudSDK(token_file=self.token_file, token_staleness_days=1)
         loaded = sdk_staleness_one_day._load_saved_credentials()
-        assert (
-            loaded is False
-        ), "Token saved 2 days ago should be stale with token_staleness_days=1"
+        assert loaded is False, "Token saved 2 days ago should be stale with token_staleness_days=1"
         assert sdk_staleness_one_day.app.get_access_token() == ""
         safe_remove_file(self.token_file)
 
         # Scenario 3: token_staleness_days = 60, token saved 31 days ago (should be valid)
         thirty_one_days_ago = time.time() - (31 * 24 * 3600)
         credentials_thirty_one_days_old = {
-            "email": "valid@example.com",
-            "access_token": "valid_token_long_staleness",
-            "location_id": 1,
-            "auth_type": "direct",
-            "user_info": {},
-            "saved_at": thirty_one_days_ago,
+            "email": "valid@example.com", "access_token": "valid_token_long_staleness",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": thirty_one_days_ago
         }
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(credentials_thirty_one_days_old, f)
 
-        sdk_staleness_sixty_days = PCloudSDK(
-            token_file=self.token_file, token_staleness_days=60
-        )
+        sdk_staleness_sixty_days = PCloudSDK(token_file=self.token_file, token_staleness_days=60)
         loaded = sdk_staleness_sixty_days._load_saved_credentials()
-        assert (
-            loaded is True
-        ), "Token saved 31 days ago should be valid with token_staleness_days=60"
-        assert (
-            sdk_staleness_sixty_days.app.get_access_token()
-            == "valid_token_long_staleness"
-        )
+        assert loaded is True, "Token saved 31 days ago should be valid with token_staleness_days=60"
+        assert sdk_staleness_sixty_days.app.get_access_token() == "valid_token_long_staleness"
         safe_remove_file(self.token_file)
 
     def test_clear_saved_credentials(self):
@@ -443,10 +422,10 @@ class TestTokenManagement:
         test_credentials = {
             "email": "test@example.com",
             "access_token": "test_token_123",
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(test_credentials, f)
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -465,8 +444,12 @@ class TestTokenManagement:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            json={
+                "result": 0,
+                "email": "test@example.com",
+                "userid": 12345
+            },
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -482,8 +465,11 @@ class TestTokenManagement:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 2000, "error": "Invalid auth token"},
-            status=200,
+            json={
+                "result": 2000,
+                "error": "Invalid auth token"
+            },
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -519,9 +505,9 @@ class TestSDKAuthentication:
                 "userid": 12345,
                 "email": "test@example.com",
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Mock user info request for saving credentials
@@ -533,9 +519,9 @@ class TestSDKAuthentication:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -553,8 +539,12 @@ class TestSDKAuthentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/oauth2_token",
-            json={"result": 0, "access_token": "oauth2_token_123", "locationid": 2},
-            status=200,
+            json={
+                "result": 0,
+                "access_token": "oauth2_token_123",
+                "locationid": 2
+            },
+            status=200
         )
 
         # Mock user info request for saving credentials
@@ -566,16 +556,16 @@ class TestSDKAuthentication:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(
             app_key="test_client_id",
             app_secret="test_client_secret",
             auth_type="oauth2",
-            token_file=self.token_file,
+            token_file=self.token_file
         )
 
         # Test getting authorization URL
@@ -629,7 +619,7 @@ class TestSDKAuthentication:
             "email": "test@example.com",
             "location_id": 2,
             "auth_type": "direct",
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
         info = sdk.get_credentials_info()
@@ -646,40 +636,31 @@ class TestSDKAuthentication:
             responses.GET,
             "https://eapi.pcloud.com/userinfo",  # This is the endpoint for login
             json={
-                "result": 0,
-                "auth": "test_token_123",
-                "userid": 12345,
-                "email": "test@example.com",
-                "quota": 10737418240,
-                "usedquota": 1073741824,
+                "result": 0, "auth": "test_token_123", "userid": 12345,
+                "email": "test@example.com", "quota": 10737418240, "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
         # Mock userinfo again for the _save_credentials part
         responses.add(
             responses.GET,
-            "https://eapi.pcloud.com/userinfo",  # This is the endpoint for get_user_info
+            "https://eapi.pcloud.com/userinfo", # This is the endpoint for get_user_info
             json={
-                "result": 0,
-                "email": "test@example.com",
-                "userid": 12345,
-                "quota": 10737418240,
-                "usedquota": 1073741824,
+                "result": 0, "email": "test@example.com", "userid": 12345,
+                "quota": 10737418240, "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
 
-        with pytest.warns(
-            DeprecationWarning, match="The 'login_or_load' method is deprecated"
-        ):
+        with pytest.warns(DeprecationWarning, match="The 'login_or_load' method is deprecated"):
             sdk.login_or_load("test@example.com", "test_password", location_id=2)
 
         assert sdk.app.get_access_token() == "test_token_123"
         assert sdk.get_saved_email() == "test@example.com"
         assert sdk.is_authenticated() is True
-        assert os.path.exists(self.token_file)  # Check if credentials were saved
+        assert os.path.exists(self.token_file) # Check if credentials were saved
 
 
 class TestErrorHandling:
@@ -689,10 +670,10 @@ class TestErrorHandling:
         """Test handling of invalid JSON responses"""
         app = App()
 
-        with patch("requests.get") as mock_get:
+        with patch('requests.get') as mock_get:
             mock_response = Mock()
             mock_response.status_code = 200
-            mock_response.headers = {"content-type": "application/json"}
+            mock_response.headers = {'content-type': 'application/json'}
             mock_response.json.side_effect = json.JSONDecodeError("Invalid JSON", "", 0)
             mock_get.return_value = mock_response
 
@@ -703,7 +684,7 @@ class TestErrorHandling:
         """Test handling of HTTP error responses"""
         app = App()
 
-        with patch("requests.get") as mock_get:
+        with patch('requests.get') as mock_get:
             mock_response = Mock()
             mock_response.status_code = 500
             mock_get.return_value = mock_response
@@ -715,7 +696,7 @@ class TestErrorHandling:
         """Test handling of network errors"""
         app = App()
 
-        with patch("requests.get") as mock_get:
+        with patch('requests.get') as mock_get:
             mock_get.side_effect = requests.exceptions.RequestException("Network error")
 
             with pytest.raises(PCloudException):
@@ -733,9 +714,7 @@ class TestAuthenticationIntegration:
         creds = get_test_credentials()
 
         sdk = PCloudSDK()
-        login_info = sdk.login(
-            creds["email"], creds["password"], location_id=creds["location_id"]
-        )
+        login_info = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
 
         assert "access_token" in login_info
         assert sdk.is_authenticated() is True
@@ -749,7 +728,7 @@ class TestAuthenticationIntegration:
         sdk = PCloudSDK(
             app_key=oauth_creds["client_id"],
             app_secret=oauth_creds["client_secret"],
-            auth_type="oauth2",
+            auth_type="oauth2"
         )
         auth_url = sdk.get_auth_url("http://localhost:8080/callback")
 

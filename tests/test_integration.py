@@ -4,12 +4,12 @@ End-to-end workflow tests, real API interactions, performance benchmarks, and CL
 """
 
 import os
-import subprocess
-import sys
 import tempfile
 import time
-from pathlib import Path
+import subprocess
+import sys
 from unittest.mock import Mock, patch
+from pathlib import Path
 
 import pytest
 import responses
@@ -17,25 +17,13 @@ from responses import matchers
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
-
 from .test_config import (
-    PCLOUD_ACCESS_TOKEN,
-    PCLOUD_CLIENT_ID,
-    PCLOUD_CLIENT_SECRET,
-    PCLOUD_EMAIL,
-    PCLOUD_LOCATION_ID,
-    PCLOUD_PASSWORD,
-    PCLOUD_TEST_FOLDER_NAME,
-    get_oauth2_credentials,
-    get_test_credentials,
-    has_oauth2_credentials,
-    has_real_credentials,
-    requires_oauth2_credentials,
-    requires_real_credentials,
-    safe_cleanup_temp_dir,
-    safe_remove_directory,
-    safe_remove_file,
-    skip_if_no_integration_tests,
+    PCLOUD_EMAIL, PCLOUD_PASSWORD, PCLOUD_ACCESS_TOKEN,
+    PCLOUD_CLIENT_ID, PCLOUD_CLIENT_SECRET, PCLOUD_LOCATION_ID,
+    PCLOUD_TEST_FOLDER_NAME, has_real_credentials, has_oauth2_credentials,
+    requires_real_credentials, requires_oauth2_credentials,
+    skip_if_no_integration_tests, get_test_credentials, get_oauth2_credentials,
+    safe_remove_file, safe_remove_directory, safe_cleanup_temp_dir
 )
 
 
@@ -64,9 +52,9 @@ class TestEndToEndWorkflows:
                 "userid": 12345,
                 "email": "test@example.com",
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Mock user info for credential saving
@@ -78,9 +66,9 @@ class TestEndToEndWorkflows:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824,
+                "usedquota": 1073741824
             },
-            status=200,
+            status=200
         )
 
         # Mock file upload
@@ -88,29 +76,27 @@ class TestEndToEndWorkflows:
             responses.GET,
             "https://eapi.pcloud.com/upload_create",
             json={"result": 0, "uploadid": 12345},
-            status=200,
+            status=200
         )
         responses.add(
             responses.PUT,
             "https://eapi.pcloud.com/upload_write",
             json={"result": 0},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_save",
             json={
                 "result": 0,
-                "metadata": [
-                    {
-                        "fileid": 54321,
-                        "name": "test_file.txt",
-                        "size": 1024,
-                        "isfolder": False,
-                    }
-                ],
+                "metadata": [{
+                    "fileid": 54321,
+                    "name": "test_file.txt",
+                    "size": 1024,
+                    "isfolder": False
+                }]
             },
-            status=200,
+            status=200
         )
 
         # Mock file download
@@ -120,24 +106,27 @@ class TestEndToEndWorkflows:
             json={
                 "result": 0,
                 "hosts": ["c123.pcloud.com"],
-                "path": "/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/test_file.txt",
+                "path": "/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/test_file.txt"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/test_file.txt",
             body=b"Test file content for download",
-            headers={"content-length": str(len(b"Test file content for download"))},
-            status=200,
+            headers={'content-length': str(len(b"Test file content for download"))},
+            status=200
         )
 
         # Mock file delete
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefile",
-            json={"result": 0, "metadata": {"isdeleted": True}},
-            status=200,
+            json={
+                "result": 0,
+                "metadata": {"isdeleted": True}
+            },
+            status=200
         )
 
         # Initialize SDK and login
@@ -150,7 +139,7 @@ class TestEndToEndWorkflows:
         # Create test file for upload
         test_file = os.path.join(self.temp_dir, "test_file.txt")
         test_content = b"Test file content for upload"
-        with open(test_file, "wb") as f:
+        with open(test_file, 'wb') as f:
             f.write(test_content)
 
         # Upload file
@@ -171,7 +160,7 @@ class TestEndToEndWorkflows:
         downloaded_file = os.path.join(download_dir, "test_file.txt")
         assert os.path.exists(downloaded_file)
 
-        with open(downloaded_file, "rb") as f:
+        with open(downloaded_file, 'rb') as f:
             downloaded_content = f.read()
         assert downloaded_content == b"Test file content for download"
 
@@ -194,15 +183,19 @@ class TestEndToEndWorkflows:
                 "result": 0,
                 "auth": "test_token_123",
                 "userid": 12345,
-                "email": "test@example.com",
+                "email": "test@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            json={
+                "result": 0,
+                "email": "test@example.com",
+                "userid": 12345
+            },
+            status=200
         )
 
         # Mock folder creation
@@ -215,10 +208,10 @@ class TestEndToEndWorkflows:
                     "folderid": 11111,
                     "name": "TestFolder",
                     "isfolder": True,
-                    "parentfolderid": 0,
-                },
+                    "parentfolderid": 0
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock subfolder creation
@@ -231,10 +224,10 @@ class TestEndToEndWorkflows:
                     "folderid": 22222,
                     "name": "SubFolder",
                     "isfolder": True,
-                    "parentfolderid": 11111,
-                },
+                    "parentfolderid": 11111
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder listing
@@ -246,12 +239,14 @@ class TestEndToEndWorkflows:
                 "metadata": {
                     "folderid": 11111,
                     "name": "TestFolder",
-                    "contents": [
-                        {"folderid": 22222, "name": "SubFolder", "isfolder": True}
-                    ],
-                },
+                    "contents": [{
+                        "folderid": 22222,
+                        "name": "SubFolder",
+                        "isfolder": True
+                    }]
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder rename
@@ -263,10 +258,10 @@ class TestEndToEndWorkflows:
                 "metadata": {
                     "folderid": 22222,
                     "name": "RenamedSubFolder",
-                    "isfolder": True,
-                },
+                    "isfolder": True
+                }
             },
-            status=200,
+            status=200
         )
 
         # Mock folder delete
@@ -275,9 +270,13 @@ class TestEndToEndWorkflows:
             "https://eapi.pcloud.com/deletefolderrecursive",
             json={
                 "result": 0,
-                "metadata": {"isdeleted": True, "deletedfiles": 0, "deletedfolders": 2},
+                "metadata": {
+                    "isdeleted": True,
+                    "deletedfiles": 0,
+                    "deletedfolders": 2
+                }
             },
-            status=200,
+            status=200
         )
 
         # Initialize SDK
@@ -313,8 +312,12 @@ class TestEndToEndWorkflows:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/oauth2_token",
-            json={"result": 0, "access_token": "oauth2_token_456", "locationid": 2},
-            status=200,
+            json={
+                "result": 0,
+                "access_token": "oauth2_token_456",
+                "locationid": 2
+            },
+            status=200
         )
 
         # Mock user info
@@ -326,9 +329,9 @@ class TestEndToEndWorkflows:
                 "email": "oauth@example.com",
                 "userid": 67890,
                 "quota": 10737418240,
-                "usedquota": 2147483648,
+                "usedquota": 2147483648
             },
-            status=200,
+            status=200
         )
 
         # Mock file operations
@@ -336,22 +339,26 @@ class TestEndToEndWorkflows:
             responses.GET,
             "https://eapi.pcloud.com/upload_create",
             json={"result": 0, "uploadid": 99999},
-            status=200,
+            status=200
         )
         responses.add(
             responses.PUT,
             "https://eapi.pcloud.com/upload_write",
             json={"result": 0},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_save",
             json={
                 "result": 0,
-                "metadata": [{"fileid": 88888, "name": "oauth_file.txt", "size": 512}],
+                "metadata": [{
+                    "fileid": 88888,
+                    "name": "oauth_file.txt",
+                    "size": 512
+                }]
             },
-            status=200,
+            status=200
         )
 
         # Initialize SDK with OAuth2
@@ -359,7 +366,7 @@ class TestEndToEndWorkflows:
             app_key="test_client_id",
             app_secret="test_client_secret",
             auth_type="oauth2",
-            token_file=self.token_file,
+            token_file=self.token_file
         )
 
         # Get authorization URL
@@ -377,7 +384,7 @@ class TestEndToEndWorkflows:
 
         # Perform file operation
         test_file = os.path.join(self.temp_dir, "oauth_file.txt")
-        with open(test_file, "wb") as f:
+        with open(test_file, 'wb') as f:
             f.write(b"OAuth2 file content")
 
         upload_result = sdk.file.upload(test_file, folder_id=0)
@@ -397,15 +404,19 @@ class TestEndToEndWorkflows:
                 "result": 0,
                 "auth": "token1_123",
                 "userid": 11111,
-                "email": "user1@example.com",
+                "email": "user1@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "user1@example.com", "userid": 11111},
-            status=200,
+            json={
+                "result": 0,
+                "email": "user1@example.com",
+                "userid": 11111
+            },
+            status=200
         )
 
         # Mock responses for account 2
@@ -416,15 +427,19 @@ class TestEndToEndWorkflows:
                 "result": 0,
                 "auth": "token2_456",
                 "userid": 22222,
-                "email": "user2@example.com",
+                "email": "user2@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
-            "https://api.pcloud.com/userinfo",  # Changed for US server
-            json={"result": 0, "email": "user2@example.com", "userid": 22222},
-            status=200,
+            "https://api.pcloud.com/userinfo", # Changed for US server
+            json={
+                "result": 0,
+                "email": "user2@example.com",
+                "userid": 22222
+            },
+            status=200
         )
 
         # Initialize SDK for account 1 (EU server)
@@ -460,8 +475,11 @@ class TestEndToEndWorkflows:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 2000, "error": "Invalid username or password"},
-            status=200,
+            json={
+                "result": 2000,
+                "error": "Invalid username or password"
+            },
+            status=200
         )
 
         # Login should fail
@@ -476,15 +494,19 @@ class TestEndToEndWorkflows:
                 "result": 0,
                 "auth": "recovery_token_123",
                 "userid": 99999,
-                "email": "correct@example.com",
+                "email": "correct@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={"result": 0, "email": "correct@example.com", "userid": 99999},
-            status=200,
+            json={
+                "result": 0,
+                "email": "correct@example.com",
+                "userid": 99999
+            },
+            status=200
         )
 
         # Successful login after failed attempt
@@ -495,18 +517,19 @@ class TestEndToEndWorkflows:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_create",
-            json={"result": 5000, "error": "Upload session creation failed"},
-            status=200,
+            json={
+                "result": 5000,
+                "error": "Upload session creation failed"
+            },
+            status=200
         )
 
         test_file = os.path.join(self.temp_dir, "test_recovery.txt")
-        with open(test_file, "wb") as f:
+        with open(test_file, 'wb') as f:
             f.write(b"Recovery test content")
 
         # Upload should fail initially
-        with pytest.raises(
-            PCloudException, match="Erreur lors de la création de la session d'upload"
-        ):
+        with pytest.raises(PCloudException, match="Erreur lors de la création de la session d'upload"):
             sdk.file.upload(test_file, folder_id=0)
 
         # Mock successful upload after recovery
@@ -514,24 +537,26 @@ class TestEndToEndWorkflows:
             responses.GET,
             "https://eapi.pcloud.com/upload_create",
             json={"result": 0, "uploadid": 77777},
-            status=200,
+            status=200
         )
         responses.add(
             responses.PUT,
             "https://eapi.pcloud.com/upload_write",
             json={"result": 0},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_save",
             json={
                 "result": 0,
-                "metadata": [
-                    {"fileid": 66666, "name": "test_recovery.txt", "size": 20}
-                ],
+                "metadata": [{
+                    "fileid": 66666,
+                    "name": "test_recovery.txt",
+                    "size": 20
+                }]
             },
-            status=200,
+            status=200
         )
 
         # Upload should succeed after retry
@@ -562,77 +587,73 @@ class TestProgressTrackingIntegration:
                 "result": 0,
                 "auth": "test_token",
                 "userid": 12345,
-                "email": "test@example.com",
+                "email": "test@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_create",
             json={"result": 0, "uploadid": 12345},
-            status=200,
+            status=200
         )
         responses.add(
             responses.PUT,
             "https://eapi.pcloud.com/upload_write",
             json={"result": 0},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/upload_save",
             json={
                 "result": 0,
-                "metadata": [{"fileid": 54321, "name": "progress_test.txt"}],
+                "metadata": [{"fileid": 54321, "name": "progress_test.txt"}]
             },
-            status=200,
+            status=200
         )
 
         # Track progress calls
         progress_calls = []
 
         def track_progress(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-            progress_calls.append(
-                {
-                    "bytes": bytes_transferred,
-                    "total": total_bytes,
-                    "percent": percentage,
-                    "speed": speed,
-                    "operation": kwargs.get("operation"),
-                    "filename": kwargs.get("filename"),
-                    "status": kwargs.get("status"),
-                }
-            )
+            progress_calls.append({
+                'bytes': bytes_transferred,
+                'total': total_bytes,
+                'percent': percentage,
+                'speed': speed,
+                'operation': kwargs.get('operation'),
+                'filename': kwargs.get('filename'),
+                'status': kwargs.get('status')
+            })
 
         # Create test file
         test_file = os.path.join(self.temp_dir, "progress_test.txt")
         test_content = b"Progress tracking test content"
-        with open(test_file, "wb") as f:
+        with open(test_file, 'wb') as f:
             f.write(test_content)
 
         # Upload with progress tracking
         sdk = PCloudSDK(token_file=self.token_file)
         sdk.login("test@example.com", "password", location_id=2)
 
-        upload_result = sdk.file.upload(
-            test_file, folder_id=0, progress_callback=track_progress
-        )
+        upload_result = sdk.file.upload(test_file, folder_id=0, progress_callback=track_progress)
 
         # Verify upload succeeded
         assert upload_result["metadata"][0]["fileid"] == 54321
 
         # Verify progress was tracked
         assert len(progress_calls) >= 3  # At least starting, progress, completed
-        assert progress_calls[0]["status"] == "starting"
-        assert progress_calls[-1]["status"] == "completed"
-        assert all(call["operation"] == "upload" for call in progress_calls)
-        assert all(call["filename"] == "progress_test.txt" for call in progress_calls)
+        assert progress_calls[0]['status'] == 'starting'
+        assert progress_calls[-1]['status'] == 'completed'
+        assert all(call['operation'] == 'upload' for call in progress_calls)
+        assert all(call['filename'] == 'progress_test.txt' for call in progress_calls)
 
     @responses.activate
     def test_download_with_progress_tracking(self):
@@ -645,15 +666,15 @@ class TestProgressTrackingIntegration:
                 "result": 0,
                 "auth": "test_token",
                 "userid": 12345,
-                "email": "test@example.com",
+                "email": "test@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
@@ -661,31 +682,29 @@ class TestProgressTrackingIntegration:
             json={
                 "result": 0,
                 "hosts": ["c123.pcloud.com"],
-                "path": "/path/to/download_test.txt",
+                "path": "/path/to/download_test.txt"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/path/to/download_test.txt",
             body=b"Downloaded content with progress tracking",
             status=200,
-            stream=True,
+            stream=True
         )
 
         # Track progress calls
         progress_calls = []
 
         def track_progress(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-            progress_calls.append(
-                {
-                    "bytes": bytes_transferred,
-                    "total": total_bytes,
-                    "percent": percentage,
-                    "operation": kwargs.get("operation"),
-                    "status": kwargs.get("status"),
-                }
-            )
+            progress_calls.append({
+                'bytes': bytes_transferred,
+                'total': total_bytes,
+                'percent': percentage,
+                'operation': kwargs.get('operation'),
+                'status': kwargs.get('status')
+            })
 
         # Download with progress tracking
         sdk = PCloudSDK(token_file=self.token_file)
@@ -694,18 +713,16 @@ class TestProgressTrackingIntegration:
         download_dir = os.path.join(self.temp_dir, "downloads")
         os.makedirs(download_dir)
 
-        success = sdk.file.download(
-            12345, download_dir, progress_callback=track_progress
-        )
+        success = sdk.file.download(12345, download_dir, progress_callback=track_progress)
 
         # Verify download succeeded
         assert success is True
 
         # Verify progress was tracked
         assert len(progress_calls) >= 2  # At least starting and completed
-        assert progress_calls[0]["status"] == "starting"
-        assert progress_calls[-1]["status"] == "completed"
-        assert all(call["operation"] == "download" for call in progress_calls)
+        assert progress_calls[0]['status'] == 'starting'
+        assert progress_calls[-1]['status'] == 'completed'
+        assert all(call['operation'] == 'download' for call in progress_calls)
 
     @responses.activate
     def test_multiple_operations_with_shared_progress(self):
@@ -723,7 +740,7 @@ class TestProgressTrackingIntegration:
         files = []
         for i in range(3):
             test_file = os.path.join(self.temp_dir, f"multi_test_{i}.txt")
-            with open(test_file, "wb") as f:
+            with open(test_file, 'wb') as f:
                 f.write(f"Content for file {i}".encode())
             files.append(test_file)
 
@@ -733,9 +750,7 @@ class TestProgressTrackingIntegration:
 
         upload_results = []
         for test_file in files:
-            result = sdk.file.upload(
-                test_file, folder_id=0, progress_callback=shared_progress
-            )
+            result = sdk.file.upload(test_file, folder_id=0, progress_callback=shared_progress)
             upload_results.append(result)
 
         # Verify all uploads succeeded
@@ -753,15 +768,15 @@ class TestProgressTrackingIntegration:
                 "result": 0,
                 "auth": "test_token",
                 "userid": 12345,
-                "email": "test@example.com",
+                "email": "test@example.com"
             },
-            status=200,
+            status=200
         )
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             json={"result": 0, "email": "test@example.com", "userid": 12345},
-            status=200,
+            status=200
         )
 
     def _mock_file_operations(self):
@@ -772,22 +787,22 @@ class TestProgressTrackingIntegration:
                 responses.GET,
                 "https://eapi.pcloud.com/upload_create",
                 json={"result": 0, "uploadid": 10000 + i},
-                status=200,
+                status=200
             )
             responses.add(
                 responses.PUT,
                 "https://eapi.pcloud.com/upload_write",
                 json={"result": 0},
-                status=200,
+                status=200
             )
             responses.add(
                 responses.GET,
                 "https://eapi.pcloud.com/upload_save",
                 json={
                     "result": 0,
-                    "metadata": [{"fileid": 20000 + i, "name": f"multi_test_{i}.txt"}],
+                    "metadata": [{"fileid": 20000 + i, "name": f"multi_test_{i}.txt"}]
                 },
-                status=200,
+                status=200
             )
 
 
@@ -811,13 +826,8 @@ class TestPerformanceBenchmarks:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            json={
-                "result": 0,
-                "auth": "test_token",
-                "userid": 12345,
-                "email": "test@example.com",
-            },
-            status=200,
+            json={"result": 0, "auth": "test_token", "userid": 12345, "email": "test@example.com"},
+            status=200
         )
 
         start_time = time.time()
@@ -831,42 +841,34 @@ class TestPerformanceBenchmarks:
 
         # Should be fast (under 1 second for 100 initializations)
         assert elapsed < 1.0
-        print(
-            f"SDK initialization: {elapsed:.3f}s for 100 instances ({elapsed*10:.1f}ms per instance)"
-        )
+        print(f"SDK initialization: {elapsed:.3f}s for 100 instances ({elapsed*10:.1f}ms per instance)")
 
     @pytest.mark.performance
     def test_progress_callback_performance(self):
         """Benchmark progress callback performance"""
-        from pcloud_sdk.progress_utils import SilentProgress, SimpleProgressBar
+        from pcloud_sdk.progress_utils import SimpleProgressBar, SilentProgress
 
         temp_log = os.path.join(self.temp_dir, "perf_test.log")
 
         # Test different progress trackers
-        trackers = {"simple": SimpleProgressBar(), "silent": SilentProgress(temp_log)}
+        trackers = {
+            'simple': SimpleProgressBar(),
+            'silent': SilentProgress(temp_log)
+        }
 
         for name, tracker in trackers.items():
             start_time = time.time()
 
             # Simulate 1000 progress updates
             for i in range(1000):
-                tracker(
-                    i,
-                    1000,
-                    i / 10.0,
-                    1024.0,
-                    filename="perf_test.txt",
-                    operation="upload",
-                )
+                tracker(i, 1000, i/10.0, 1024.0, filename="perf_test.txt", operation="upload")
 
             end_time = time.time()
             elapsed = end_time - start_time
 
             # Should complete quickly
             assert elapsed < 2.0
-            print(
-                f"{name} progress tracker: {elapsed:.3f}s for 1000 calls ({elapsed*1000:.1f}¼s per call)"
-            )
+            print(f"{name} progress tracker: {elapsed:.3f}s for 1000 calls ({elapsed*1000:.1f}¼s per call)")
 
     @pytest.mark.performance
     @responses.activate
@@ -879,12 +881,11 @@ class TestPerformanceBenchmarks:
             "location_id": 2,
             "auth_type": "direct",
             "user_info": {"userid": 12345},
-            "saved_at": time.time(),
+            "saved_at": time.time()
         }
 
         import json
-
-        with open(self.token_file, "w") as f:
+        with open(self.token_file, 'w') as f:
             json.dump(test_credentials, f)
 
         start_time = time.time()
@@ -899,9 +900,7 @@ class TestPerformanceBenchmarks:
 
         # Should be fast
         assert elapsed < 1.0
-        print(
-            f"Token loading: {elapsed:.3f}s for 100 loads ({elapsed*10:.1f}ms per load)"
-        )
+        print(f"Token loading: {elapsed:.3f}s for 100 loads ({elapsed*10:.1f}ms per load)")
 
     @pytest.mark.performance
     def test_memory_usage_pattern(self):
@@ -931,9 +930,7 @@ class TestPerformanceBenchmarks:
         # Check memory after cleanup
         final_objects = len(gc.get_objects())
 
-        print(
-            f"Memory usage: Initial={initial_objects}, Peak={mid_objects}, Final={final_objects}"
-        )
+        print(f"Memory usage: Initial={initial_objects}, Peak={mid_objects}, Final={final_objects}")
 
         # Memory should not grow excessively
         growth = mid_objects - initial_objects
@@ -958,8 +955,7 @@ class TestCLIIntegration:
         """Test that CLI module can be imported"""
         try:
             from pcloud_sdk import cli
-
-            assert hasattr(cli, "main") or hasattr(cli, "app") or callable(cli)
+            assert hasattr(cli, 'main') or hasattr(cli, 'app') or callable(cli)
         except ImportError:
             # CLI might not be implemented yet
             pytest.skip("CLI module not implemented")
@@ -968,16 +964,13 @@ class TestCLIIntegration:
         """Test CLI help functionality"""
         try:
             # Try to run CLI help command
-            result = subprocess.run(
-                [sys.executable, "-m", "pcloud_sdk.cli", "--help"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
+            result = subprocess.run([
+                sys.executable, '-m', 'pcloud_sdk.cli', '--help'
+            ], capture_output=True, text=True, timeout=10)
 
             # Should not crash and should show help
             assert result.returncode in [0, 2]  # 0 for success, 2 for argparse help
-            assert "usage" in result.stdout.lower() or "usage" in result.stderr.lower()
+            assert 'usage' in result.stdout.lower() or 'usage' in result.stderr.lower()
 
         except (subprocess.TimeoutExpired, FileNotFoundError):
             pytest.skip("CLI not available or not responding")
@@ -986,15 +979,12 @@ class TestCLIIntegration:
         """Test basic CLI commands"""
         try:
             # Test version command
-            result = subprocess.run(
-                [sys.executable, "-m", "pcloud_sdk.cli", "--version"],
-                capture_output=True,
-                text=True,
-                timeout=10,
-            )
+            result = subprocess.run([
+                sys.executable, '-m', 'pcloud_sdk.cli', '--version'
+            ], capture_output=True, text=True, timeout=10)
 
             if result.returncode == 0:
-                assert "2.0" in result.stdout or "2.0" in result.stderr
+                assert '2.0' in result.stdout or '2.0' in result.stderr
             else:
                 pytest.skip("Version command not implemented")
 
@@ -1030,7 +1020,7 @@ class TestRobustnessAndReliability:
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
             body=Exception("Network timeout"),
-            headers={"content-length": "0"},
+            headers={'content-length': '0'}
         )
         responses.add(
             responses.GET,
@@ -1039,9 +1029,9 @@ class TestRobustnessAndReliability:
                 "result": 0,
                 "auth": "recovered_token",
                 "userid": 12345,
-                "email": "test@example.com",
+                "email": "test@example.com"
             },
-            status=200,
+            status=200
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -1060,9 +1050,7 @@ class TestRobustnessAndReliability:
             pass
 
     # @responses.activate # Removed decorator, will use RequestsMock context manager in thread
-    @pytest.mark.skip(
-        reason="Complex interaction with responses in threads; network calls not consistently mocked. Needs further investigation."
-    )
+    @pytest.mark.skip(reason="Complex interaction with responses in threads; network calls not consistently mocked. Needs further investigation.")
     def test_concurrent_operations(self):
         """Test concurrent operations from multiple threads"""
         import threading
@@ -1076,38 +1064,30 @@ class TestRobustnessAndReliability:
                 # Mock for the login userinfo call (getauth=1)
                 rsps.add(
                     responses.GET,
-                    "https://eapi.pcloud.com/userinfo",  # Assuming EU server for location_id=2
+                    "https://eapi.pcloud.com/userinfo", # Assuming EU server for location_id=2
                     match=[
-                        matchers.query_param_matcher(
-                            {
-                                "getauth": "1",
-                                "username": f"user{worker_id}@example.com",
-                                "logout": "1",
-                            }
-                        )
+                        matchers.query_param_matcher({
+                            "getauth": "1",
+                            "username": f"user{worker_id}@example.com",
+                            "logout": "1"
+                        })
                     ],
                     json={
                         "result": 0,
                         "auth": f"token_{worker_id}",
                         "userid": 10000 + worker_id,
-                        "email": f"user{worker_id}@example.com",
+                        "email": f"user{worker_id}@example.com"
                     },
-                    status=200,
+                    status=200
                 )
                 # Note: The second userinfo call for _save_credentials is not mocked
                 # because token_manager=False is used in the SDK instance.
 
                 try:
-                    token_file = os.path.join(
-                        self.temp_dir, f"concurrent_{worker_id}.json"
-                    )
+                    token_file = os.path.join(self.temp_dir, f"concurrent_{worker_id}.json")
                     # Disable token manager to simplify
-                    sdk = PCloudSDK(
-                        token_file=token_file, token_manager=False, location_id=2
-                    )
-                    login_info = sdk.login(
-                        f"user{worker_id}@example.com", "password", location_id=2
-                    )
+                    sdk = PCloudSDK(token_file=token_file, token_manager=False, location_id=2)
+                    login_info = sdk.login(f"user{worker_id}@example.com", "password", location_id=2)
                     results.append(login_info["access_token"])
                 except Exception as e:
                     errors.append(e)
@@ -1125,12 +1105,8 @@ class TestRobustnessAndReliability:
             print(f"DEBUG: Errors encountered in worker threads: {errors}")
 
         assert len(errors) == 0, f"Errors occurred in worker threads: {errors}"
-        assert (
-            len(results) == num_workers
-        ), f"Expected {num_workers} results, got {len(results)}"
-        assert (
-            len(set(results)) == num_workers
-        ), f"Expected {num_workers} unique tokens, got {len(set(results))}"
+        assert len(results) == num_workers, f"Expected {num_workers} results, got {len(results)}"
+        assert len(set(results)) == num_workers, f"Expected {num_workers} unique tokens, got {len(set(results))}"
 
     def test_resource_cleanup(self):
         """Test proper resource cleanup"""
@@ -1144,7 +1120,6 @@ class TestRobustnessAndReliability:
         # Clear references and force garbage collection
         del sdks
         import gc
-
         gc.collect()
 
         # Verify no credential files were created (token_manager=False)
@@ -1165,7 +1140,7 @@ class TestRobustnessAndReliability:
             # Empty response
             "",
             # Null response
-            None,
+            None
         ]
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -1178,31 +1153,31 @@ class TestRobustnessAndReliability:
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     body=malformed_response,
-                    headers={"content-length": str(len(malformed_response))},
-                    status=200,
+                    headers={'content-length': str(len(malformed_response))},
+                    status=200
                 )
             elif malformed_response == "":
                 responses.add(
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     body="",
-                    headers={"content-length": "0"},
-                    status=200,
+                    headers={'content-length': '0'},
+                    status=200
                 )
             elif malformed_response is None:
                 responses.add(
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     body="",
-                    headers={"content-length": "0"},
-                    status=200,
+                    headers={'content-length': '0'},
+                    status=200
                 )
             else:
                 responses.add(
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     json=malformed_response,
-                    status=200,
+                    status=200
                 )
 
             # Should handle gracefully without crashing
@@ -1232,9 +1207,7 @@ class TestRealAPIIntegration:
             sdk = PCloudSDK(token_file=token_file)
 
             # Login
-            login_info = sdk.login(
-                creds["email"], creds["password"], location_id=creds["location_id"]
-            )
+            login_info = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
             assert "access_token" in login_info
             assert sdk.is_authenticated()
 
@@ -1249,7 +1222,7 @@ class TestRealAPIIntegration:
             # Create test file
             test_file = os.path.join(temp_dir, "integration_test.txt")
             test_content = b"Real integration test content"
-            with open(test_file, "wb") as f:
+            with open(test_file, 'wb') as f:
                 f.write(test_content)
 
             # Upload file to test folder
@@ -1265,7 +1238,7 @@ class TestRealAPIIntegration:
 
             # Verify downloaded content
             downloaded_file = os.path.join(download_dir, "integration_test.txt")
-            with open(downloaded_file, "rb") as f:
+            with open(downloaded_file, 'rb') as f:
                 downloaded_content = f.read()
             assert downloaded_content == test_content
 
@@ -1293,7 +1266,7 @@ class TestRealAPIIntegration:
                 app_key=oauth_creds["client_id"],
                 app_secret=oauth_creds["client_secret"],
                 auth_type="oauth2",
-                token_file=token_file,
+                token_file=token_file
             )
 
             # Get authorization URL
@@ -1318,31 +1291,28 @@ class TestRealAPIIntegration:
         try:
             # Create large test file (100MB)
             large_file = os.path.join(temp_dir, "large_test_file.dat")
-            with open(large_file, "wb") as f:
-                chunk = b"A" * (1024 * 1024)  # 1MB chunk
+            with open(large_file, 'wb') as f:
+                chunk = b'A' * (1024 * 1024)  # 1MB chunk
                 for _ in range(100):  # 100MB total
                     f.write(chunk)
 
             # Initialize SDK
             sdk = PCloudSDK()
-            sdk.login(
-                creds["email"], creds["password"], location_id=creds["location_id"]
-            )
+            sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
 
             # Upload with progress tracking
             progress_calls = []
-
             def track_progress(*args, **kwargs):
                 # percentage is the 3rd positional argument (index 2)
                 if args and len(args) > 2:
                     progress_calls.append(args[2])
                 else:
-                    progress_calls.append(
-                        0
-                    )  # Should not happen if callback is called correctly
+                    progress_calls.append(0) # Should not happen if callback is called correctly
 
             upload_result = sdk.file.upload(
-                large_file, folder_id=0, progress_callback=track_progress
+                large_file,
+                folder_id=0,
+                progress_callback=track_progress
             )
             # Real API returns metadata as object, not array
             file_id = upload_result["metadata"]["fileid"]
@@ -1356,7 +1326,9 @@ class TestRealAPIIntegration:
             os.makedirs(download_dir)
 
             download_success = sdk.file.download(
-                file_id, download_dir, progress_callback=track_progress
+                file_id,
+                download_dir,
+                progress_callback=track_progress
             )
             assert download_success is True
 
