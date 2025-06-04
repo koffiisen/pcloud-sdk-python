@@ -1,8 +1,0 @@
-# Production dependencies for pCloud SDK Python
-# These are the minimum required packages for the SDK to function
-
-# HTTP client library
-requests>=2.25.0
-
-# No additional dependencies required for basic functionality
-# The SDK is designed to be lightweight with minimal external dependencies
