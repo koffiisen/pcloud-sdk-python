@@ -7,7 +7,7 @@ name = "pcloud-sdk"
 version = "1.0.0"
 description = "Modern Python SDK for pCloud API with automatic token management and progress tracking"
 authors = [
-    {name = "pCloud SDK Contributors", email = "noreply@pcloud.com"},
+    {name = "pCloud SDK Contributors (Koffi joel)", email = "jolli644@gmail.com"},
 ]
 readme = "README.md"
 requires-python = ">=3.7"
@@ -31,7 +31,7 @@ keywords = ["pcloud", "cloud", "storage", "api", "sdk", "file", "upload", "downl
 dependencies = [
     "requests>=2.25.0",
 ]
-dynamic = ["license"]
+license = {text = "MIT"}
 
 [project.optional-dependencies]
 dev = [

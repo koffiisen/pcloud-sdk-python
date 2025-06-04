@@ -127,7 +127,7 @@ class TestSimpleProgressBar:
                 progress(1048576, 1048576, 100.0, 209715.2, filename="test.txt", operation="upload")
         
         # Check completion message
-        completion_calls = [str(call) for call in mock_print.call_args_list if "Terminé" in str(call)]
+        completion_calls = [str(call) for call in mock_print.call_args_list if "TerminÃ©" in str(call)]
         assert len(completion_calls) > 0
 
 
@@ -186,9 +186,9 @@ class TestDetailedProgress:
         
         # Verify different status messages were printed
         all_output = " ".join([str(call) for call in mock_print.call_args_list])
-        assert "Début upload" in all_output
+        assert "DÃ©but upload" in all_output
         assert "Sauvegarde en cours" in all_output
-        assert "Transfert terminé" in all_output
+        assert "Transfert terminÃ©" in all_output
         assert "Erreur: Network timeout" in all_output
 
     def test_detailed_progress_periodic_updates(self):
@@ -283,7 +283,7 @@ class TestMinimalProgress:
                 progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
         
         # Check completion message
-        completion_calls = [str(call) for call in mock_print.call_args_list if "Terminé" in str(call)]
+        completion_calls = [str(call) for call in mock_print.call_args_list if "TerminÃ©" in str(call)]
         assert len(completion_calls) > 0
 
     def test_minimal_progress_error_handling(self):

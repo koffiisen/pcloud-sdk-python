@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Setup script for pCloud SDK Python v2.0
+Setup script for pCloud SDK Python v1.0
 """
 
 from setuptools import setup, find_packages
@@ -21,9 +21,9 @@ def read_requirements(filename):
 
 setup(
     name="pcloud-sdk-python",
-    version="2.0.0",
-    author="pCloud SDK Python Contributors",
-    author_email="",
+    version="1.0.0",
+    author="pCloud SDK Python Contributors (Koffi joel)",
+    author_email="jolli644@gmail.com",
     description="Modern Python SDK for pCloud API with automatic token management and progress tracking",
     long_description=read_file("README.md"),
     long_description_content_type="text/markdown",
@@ -55,8 +55,8 @@ setup(
     python_requires=">=3.7",
     install_requires=read_requirements("requirements.txt"),
     extras_require={
-        "dev": read_requirements("requirements/dev.txt"),
-        "test": read_requirements("requirements/test.txt"),
+        "dev": ["flake8", "black", "isort", "mypy", "pre-commit", "twine", "build"],
+        "test": ["pytest", "pytest-cov", "pytest-mock", "responses"],
         "docs": ["sphinx", "sphinx-rtd-theme", "myst-parser"],
     },
     entry_points={

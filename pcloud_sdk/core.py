@@ -40,6 +40,7 @@ class PCloudSDK:
         self.app.set_app_key(app_key)
         self.app.set_app_secret(app_secret)
         self.app.set_location_id(location_id)
+        self.app.auth_type = auth_type
 
         # Token management
         self.token_manager_enabled = token_manager

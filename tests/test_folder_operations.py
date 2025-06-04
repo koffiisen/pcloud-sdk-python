@@ -15,6 +15,10 @@ from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
 from pcloud_sdk.folder_operations import Folder
 from pcloud_sdk.exceptions import PCloudException
+from .test_config import (
+    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
+)
 
 
 class TestFolderCreation:
@@ -23,6 +27,7 @@ class TestFolderCreation:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -116,7 +121,7 @@ class TestFolderCreation:
     @responses.activate
     def test_create_folder_unicode_name(self):
         """Test creating folder with unicode characters"""
-        folder_name = "KՇ�9_"5AB_=�"
+        folder_name = "TestFolder_ÉÀÇ_测试_Тест"
         
         responses.add(
             responses.GET,
@@ -142,6 +147,7 @@ class TestFolderListing:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -410,6 +416,7 @@ class TestFolderManipulation:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -570,6 +577,7 @@ class TestFolderHierarchy:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -753,6 +761,7 @@ class TestFolderErrorScenarios:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -904,9 +913,7 @@ class TestFolderOperationsIntegration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            os.remove(os.path.join(self.temp_dir, file))
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_sdk_folder_operations_workflow(self):
@@ -1038,6 +1045,7 @@ class TestFolderOperationsEdgeCases:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.folder_ops = Folder(self.app)
 
@@ -1070,7 +1078,7 @@ class TestFolderOperationsEdgeCases:
             "folder (with parentheses)",
             "folder [with brackets]",
             "folder {with braces}",
-            "=� emoji folder =�"
+            "🚀 emoji folder 📁"
         ]
         
         for i, name in enumerate(special_names):
@@ -1195,17 +1203,14 @@ class TestFolderOperationsEdgeCases:
 class TestFolderOperationsIntegrationReal:
     """Integration tests with real pCloud API (require credentials)"""
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_folder_operations_lifecycle(self):
         """Test real folder operations lifecycle"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         sdk = PCloudSDK()
-        sdk.login(email, password, location_id=2)
+        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
         
         try:
             # Create test folder
@@ -1246,17 +1251,14 @@ class TestFolderOperationsIntegrationReal:
                 pass
             raise e
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_deep_folder_structure(self):
         """Test creating and navigating deep folder structure"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         sdk = PCloudSDK()
-        sdk.login(email, password, location_id=2)
+        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
         
         folder_ids = []
         try:

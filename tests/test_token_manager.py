@@ -14,6 +14,10 @@ import responses
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
+from .test_config import (
+    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
+)
 
 
 class TestTokenSavingAndLoading:
@@ -26,9 +30,8 @@ class TestTokenSavingAndLoading:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_save_credentials_basic(self):
         """Test basic credential saving functionality"""
@@ -204,9 +207,8 @@ class TestTokenValidationAndExpiration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_load_expired_credentials(self):
         """Test loading credentials that are too old"""
@@ -323,7 +325,8 @@ class TestTokenValidationAndExpiration:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            body=Exception("Network error")
+            body=Exception("Network error"),
+            headers={'content-length': '0'}
         )
 
         sdk = PCloudSDK(token_file=self.token_file)
@@ -377,9 +380,7 @@ class TestMultiAccountTokenManagement:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            os.remove(os.path.join(self.temp_dir, file))
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_multiple_token_files(self):
         """Test managing separate token files for different accounts"""
@@ -539,9 +540,8 @@ class TestTokenFileEncryptionAndSecurity:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_token_file_permissions(self):
         """Test that token files have appropriate permissions"""
@@ -656,9 +656,8 @@ class TestTokenCleanupOperations:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_clear_saved_credentials(self):
         """Test clearing saved credentials"""
@@ -834,9 +833,8 @@ class TestTokenManagerEdgeCases:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_very_long_token_values(self):
         """Test handling of very long token values"""
@@ -862,14 +860,14 @@ class TestTokenManagerEdgeCases:
         """Test handling of unicode characters in credentials"""
         sdk = PCloudSDK(token_file=self.token_file)
         
-        unicode_email = "(7@KÕ.com"
-        unicode_token = "B>:5=_A_unicode_A8<2>;0<8_=€"
+        unicode_email = "(7@KÃ•.com"
+        unicode_token = "B>:5=_A_unicode_A8<2>;0<8_=Â€"
         
         sdk._save_credentials(
             email=unicode_email,
             token=unicode_token,
             location_id=2,
-            user_info={"name": "(7"}
+            user_info={"name": "Test User"}
         )
         
         # Should handle unicode correctly
@@ -1004,9 +1002,8 @@ class TestTokenManagerIntegration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_token_manager_with_login_flow(self):
@@ -1188,14 +1185,11 @@ class TestTokenManagerIntegration:
 class TestTokenManagerIntegrationReal:
     """Integration tests with real pCloud API (require credentials)"""
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_token_persistence_cycle(self):
         """Test complete token persistence cycle with real API"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         temp_dir = tempfile.mkdtemp()
         token_file = os.path.join(temp_dir, "real_test_credentials.json")
@@ -1203,27 +1197,26 @@ class TestTokenManagerIntegrationReal:
         try:
             # First login - should save credentials
             sdk1 = PCloudSDK(token_file=token_file)
-            login_info1 = sdk1.login(email, password, location_id=2)
+            login_info1 = sdk1.login(creds["email"], creds["password"], location_id=creds["location_id"])
             
             assert "access_token" in login_info1
             assert os.path.exists(token_file)
             
             # Second instance - should load saved credentials
             sdk2 = PCloudSDK(token_file=token_file)
-            login_info2 = sdk2.login(email, password, location_id=2, force_login=False)
+            login_info2 = sdk2.login(creds["email"], creds["password"], location_id=creds["location_id"], force_login=False)
             
             # Should reuse existing token
             assert login_info2["access_token"] == login_info1["access_token"]
             
             # Test token validation works
             user_email = sdk2.user.get_user_email()
-            assert user_email == email
+            assert user_email == creds["email"]
             
             # Clean up
             sdk2.clear_saved_credentials()
             assert not os.path.exists(token_file)
             
         finally:
-            if os.path.exists(token_file):
-                os.remove(token_file)
-            os.rmdir(temp_dir)
+            safe_remove_file(token_file)
+            safe_cleanup_temp_dir(temp_dir)

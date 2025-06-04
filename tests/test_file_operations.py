@@ -17,6 +17,10 @@ from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
 from pcloud_sdk.file_operations import File
 from pcloud_sdk.exceptions import PCloudException
+from .test_config import (
+    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
+    safe_remove_file, safe_remove_directory, safe_cleanup_temp_dir
+)
 
 
 class TestFileUpload:
@@ -25,6 +29,7 @@ class TestFileUpload:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
         
@@ -38,9 +43,8 @@ class TestFileUpload:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.test_file):
-            os.remove(self.test_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.test_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_successful_file_upload(self):
@@ -211,7 +215,7 @@ class TestFileUpload:
             status=200
         )
 
-        with pytest.raises(PCloudException, match="Erreur lors de la création de la session d'upload"):
+        with pytest.raises(PCloudException, match="Erreur lors de la crÃ©ation de la session d'upload"):
             self.file_ops.upload(self.test_file)
 
     @responses.activate
@@ -343,7 +347,7 @@ class TestFileUpload:
                 status=500
             )
 
-        with pytest.raises(PCloudException, match="Upload échoué après .* tentatives"):
+        with pytest.raises(PCloudException, match="Upload Ã©chouÃ© aprÃ¨s .* tentatives"):
             self.file_ops.upload(self.test_file)
 
 
@@ -353,16 +357,14 @@ class TestFileDownload:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
         self.temp_dir = tempfile.mkdtemp()
 
     def teardown_method(self):
         """Cleanup after each test"""
-        # Clean up any downloaded files
-        for file in os.listdir(self.temp_dir):
-            os.remove(os.path.join(self.temp_dir, file))
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_successful_file_download(self):
@@ -537,6 +539,7 @@ class TestFileManipulation:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
 
@@ -684,6 +687,7 @@ class TestLargeFileHandling:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
         
@@ -700,9 +704,8 @@ class TestLargeFileHandling:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.large_file):
-            os.remove(self.large_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.large_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_large_file_upload_chunked(self):
@@ -788,13 +791,16 @@ class TestLargeFileHandling:
 
         # Mock file download with streaming
         def stream_response(request):
-            return (200, {}, BytesIO(large_content))
+            headers = {
+                'content-length': str(len(large_content)),
+                'content-type': 'application/octet-stream'
+            }
+            return (200, headers, BytesIO(large_content))
 
         responses.add_callback(
             responses.GET,
             "https://c123.pcloud.com/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/large_file.dat",
-            callback=stream_response,
-            content_type="application/octet-stream"
+            callback=stream_response
         )
 
         progress_calls = []
@@ -821,6 +827,7 @@ class TestErrorScenarios:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
 
@@ -903,6 +910,7 @@ class TestProgressCallbacks:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
 
@@ -960,9 +968,7 @@ class TestFileOperationsIntegration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            os.remove(os.path.join(self.temp_dir, file))
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_sdk_file_operations_workflow(self):
@@ -1017,6 +1023,7 @@ class TestFileOperationsPerformance:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        self.app.set_location_id(2)  # Use EU server to match test mocks
         self.app.set_access_token("test_token", "direct")
         self.file_ops = File(self.app)
 
@@ -1047,17 +1054,14 @@ class TestFileOperationsPerformance:
 class TestFileOperationsIntegrationReal:
     """Integration tests with real pCloud API (require credentials)"""
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_file_upload_download(self):
         """Test real file upload and download cycle"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         sdk = PCloudSDK()
-        sdk.login(email, password, location_id=2)
+        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
         
         # Create test file
         test_content = b"Real integration test content"
@@ -1070,7 +1074,8 @@ class TestFileOperationsIntegrationReal:
             
             # Upload file
             upload_result = sdk.file.upload(test_file, folder_id=0)
-            file_id = upload_result["metadata"][0]["fileid"]
+            # Real API returns metadata as object, not array
+            file_id = upload_result["metadata"]["fileid"]
             
             # Download file
             download_dir = os.path.join(temp_dir, "download")
@@ -1091,11 +1096,4 @@ class TestFileOperationsIntegrationReal:
             
         finally:
             # Clean up local files
-            for file in os.listdir(temp_dir):
-                if os.path.isfile(os.path.join(temp_dir, file)):
-                    os.remove(os.path.join(temp_dir, file))
-                else:
-                    for subfile in os.listdir(os.path.join(temp_dir, file)):
-                        os.remove(os.path.join(temp_dir, file, subfile))
-                    os.rmdir(os.path.join(temp_dir, file))
-            os.rmdir(temp_dir)
+            safe_cleanup_temp_dir(temp_dir)

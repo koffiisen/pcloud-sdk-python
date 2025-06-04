@@ -13,9 +13,12 @@ pytest-mock>=3.10.0
 # Test utilities
 responses>=0.23.0
 requests-mock>=1.10.0
+python-dotenv>=1.0.0
 
 # Coverage reporting
 coverage>=7.0.0
 
 # Performance testing
 pytest-benchmark>=4.0.0
+
+tox

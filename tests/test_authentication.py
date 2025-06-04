@@ -10,11 +10,20 @@ import time
 from unittest.mock import Mock, patch, mock_open
 
 import pytest
+import requests
 import responses
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException
+from .test_config import (
+    PCLOUD_EMAIL, PCLOUD_PASSWORD, PCLOUD_ACCESS_TOKEN,
+    PCLOUD_CLIENT_ID, PCLOUD_CLIENT_SECRET, PCLOUD_LOCATION_ID,
+    has_real_credentials, has_oauth2_credentials,
+    requires_real_credentials, requires_oauth2_credentials,
+    skip_if_no_integration_tests, get_test_credentials, get_oauth2_credentials,
+    safe_remove_file, safe_cleanup_temp_dir
+)
 
 
 class TestDirectAuthentication:
@@ -23,9 +32,10 @@ class TestDirectAuthentication:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
+        # Use mock data for unit tests with @responses.activate
         self.test_email = "test@example.com"
         self.test_password = "test_password"
-        self.test_token = "test_auth_token_123"
+        self.test_token = "test_token_123"
 
     @responses.activate
     def test_successful_direct_login(self):
@@ -106,7 +116,8 @@ class TestDirectAuthentication:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            body=Exception("Connection timeout")
+            body=requests.exceptions.Timeout("Connection timeout"),
+            headers={'content-length': '0'}
         )
 
         with pytest.raises(PCloudException, match="Connection timeout"):
@@ -135,7 +146,7 @@ class TestDirectAuthentication:
         # Test US server (location_id=1)
         responses.add(
             responses.GET,
-            "https://api.pcloud.com/userinfo",
+            "https://eapi.pcloud.com/userinfo",
             json={
                 "result": 0,
                 "auth": "us_token_123",
@@ -169,8 +180,8 @@ class TestOAuth2Authentication:
     def setup_method(self):
         """Setup for each test"""
         self.app = App()
-        self.app.set_app_key("test_client_id")
-        self.app.set_app_secret("test_client_secret")
+        self.app.set_app_key(PCLOUD_CLIENT_ID)
+        self.app.set_app_secret(PCLOUD_CLIENT_SECRET)
         self.app.set_redirect_uri("http://localhost:8080/callback")
 
     def test_get_authorize_url(self):
@@ -178,9 +189,9 @@ class TestOAuth2Authentication:
         auth_url = self.app.get_authorize_code_url()
         
         assert "https://my.pcloud.com/oauth2/authorize" in auth_url
-        assert "client_id=test_client_id" in auth_url
+        assert f"client_id={PCLOUD_CLIENT_ID}" in auth_url
         assert "response_type=code" in auth_url
-        assert "redirect_uri=http%3A//localhost%3A8080/callback" in auth_url
+        assert "redirect_uri=http%3A%2F%2Flocalhost%3A8080%2Fcallback" in auth_url
 
     def test_get_authorize_url_without_redirect(self):
         """Test OAuth2 URL generation without redirect URI"""
@@ -188,7 +199,7 @@ class TestOAuth2Authentication:
         auth_url = self.app.get_authorize_code_url()
         
         assert "https://my.pcloud.com/oauth2/authorize" in auth_url
-        assert "client_id=test_client_id" in auth_url
+        assert f"client_id={PCLOUD_CLIENT_ID}" in auth_url
         assert "response_type=code" in auth_url
         assert "redirect_uri" not in auth_url
 
@@ -259,9 +270,8 @@ class TestTokenManagement:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_token_manager_enabled_by_default(self):
         """Test that token manager is enabled by default"""
@@ -275,7 +285,7 @@ class TestTokenManagement:
 
     def test_save_credentials(self):
         """Test saving credentials to file"""
-        sdk = PCloudSDK(token_file=self.token_file)
+        sdk = PCloudSDK(token_file=self.token_file, auth_type="direct")
         
         test_credentials = {
             "email": "test@example.com",
@@ -429,9 +439,8 @@ class TestSDKAuthentication:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        if os.path.exists(self.token_file):
-            os.remove(self.token_file)
-        os.rmdir(self.temp_dir)
+        safe_remove_file(self.token_file)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_sdk_login_success(self):
@@ -604,7 +613,7 @@ class TestErrorHandling:
         app = App()
         
         with patch('requests.get') as mock_get:
-            mock_get.side_effect = Exception("Network error")
+            mock_get.side_effect = requests.exceptions.RequestException("Network error")
             
             with pytest.raises(PCloudException):
                 app.login_with_credentials("test@example.com", "password", 2)
@@ -614,33 +623,30 @@ class TestErrorHandling:
 class TestAuthenticationIntegration:
     """Integration tests for authentication (require real credentials)"""
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_login(self):
         """Test real login - only run with actual credentials"""
-        # This test would be run with real credentials in CI/CD
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         sdk = PCloudSDK()
-        login_info = sdk.login(email, password, location_id=2)
+        login_info = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
         
         assert "access_token" in login_info
         assert sdk.is_authenticated() is True
 
-    @pytest.mark.skip(reason="Requires real OAuth2 setup")
+    @requires_oauth2_credentials
+    @skip_if_no_integration_tests
     def test_real_oauth2_flow(self):
         """Test real OAuth2 flow - only run with actual app credentials"""
-        app_key = os.getenv("PCLOUD_APP_KEY")
-        app_secret = os.getenv("PCLOUD_APP_SECRET")
+        oauth_creds = get_oauth2_credentials()
         
-        if not app_key or not app_secret:
-            pytest.skip("Real OAuth2 credentials not provided")
-        
-        sdk = PCloudSDK(app_key=app_key, app_secret=app_secret, auth_type="oauth2")
+        sdk = PCloudSDK(
+            app_key=oauth_creds["client_id"], 
+            app_secret=oauth_creds["client_secret"], 
+            auth_type="oauth2"
+        )
         auth_url = sdk.get_auth_url("http://localhost:8080/callback")
         
         assert "https://my.pcloud.com/oauth2/authorize" in auth_url
-        assert app_key in auth_url
+        assert oauth_creds["client_id"] in auth_url

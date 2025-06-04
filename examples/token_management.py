@@ -285,7 +285,7 @@ def demonstrate_automatic_token_management():
         
         user_info = sdk1.user.get_user_info()
         print(f"✅ First login successful: {user_info.get('email')}")
-        print(f"💾 Token automatically saved to: {sdk1.app.token_manager.token_file}")
+        print(f"💾 Token automatically saved to: {sdk1.token_file}")
         
         # Simulate app restart - create new SDK instance
         print("\n🔄 Simulating app restart (new SDK instance)...")

@@ -107,10 +107,11 @@ class Folder:
 
         params = {"name": name}
 
-        if parent > 0:
+        if parent >= 0:
+            # Use folderid for both root (0) and other folders
             params["folderid"] = parent
         else:
-            # Pour créer dans le dossier racine, utiliser path="/"
+            # Only use path if parent is not specified or negative
             params["path"] = "/"
 
         response = self.request.get("createfolder", params)

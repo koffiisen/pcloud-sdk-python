@@ -16,6 +16,14 @@ import responses
 
 from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
+from .test_config import (
+    PCLOUD_EMAIL, PCLOUD_PASSWORD, PCLOUD_ACCESS_TOKEN,
+    PCLOUD_CLIENT_ID, PCLOUD_CLIENT_SECRET, PCLOUD_LOCATION_ID,
+    PCLOUD_TEST_FOLDER_NAME, has_real_credentials, has_oauth2_credentials,
+    requires_real_credentials, requires_oauth2_credentials,
+    skip_if_no_integration_tests, get_test_credentials, get_oauth2_credentials,
+    safe_remove_file, safe_remove_directory, safe_cleanup_temp_dir
+)
 
 
 class TestEndToEndWorkflows:
@@ -28,15 +36,7 @@ class TestEndToEndWorkflows:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            file_path = os.path.join(self.temp_dir, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-            elif os.path.isdir(file_path):
-                for subfile in os.listdir(file_path):
-                    os.remove(os.path.join(file_path, subfile))
-                os.rmdir(file_path)
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_complete_file_management_workflow(self):
@@ -421,7 +421,7 @@ class TestEndToEndWorkflows:
         # Mock responses for account 2
         responses.add(
             responses.GET,
-            "https://api.pcloud.com/userinfo",  # US server
+            "https://eapi.pcloud.com/userinfo",  # Was US server, now using eapi for consistency
             json={
                 "result": 0,
                 "auth": "token2_456",
@@ -432,7 +432,7 @@ class TestEndToEndWorkflows:
         )
         responses.add(
             responses.GET,
-            "https://api.pcloud.com/userinfo",
+            "https://eapi.pcloud.com/userinfo",
             json={
                 "result": 0,
                 "email": "user2@example.com",
@@ -528,7 +528,7 @@ class TestEndToEndWorkflows:
             f.write(b"Recovery test content")
 
         # Upload should fail initially
-        with pytest.raises(PCloudException, match="Erreur lors de la création de la session d'upload"):
+        with pytest.raises(PCloudException, match="Erreur lors de la crÃ©ation de la session d'upload"):
             sdk.file.upload(test_file, folder_id=0)
 
         # Mock successful upload after recovery
@@ -573,11 +573,7 @@ class TestProgressTrackingIntegration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            file_path = os.path.join(self.temp_dir, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_upload_with_progress_tracking(self):
@@ -819,11 +815,7 @@ class TestPerformanceBenchmarks:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            file_path = os.path.join(self.temp_dir, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @pytest.mark.performance
     @responses.activate
@@ -875,7 +867,7 @@ class TestPerformanceBenchmarks:
             
             # Should complete quickly
             assert elapsed < 2.0
-            print(f"{name} progress tracker: {elapsed:.3f}s for 1000 calls ({elapsed*1000:.1f}¼s per call)")
+            print(f"{name} progress tracker: {elapsed:.3f}s for 1000 calls ({elapsed*1000:.1f}Â¼s per call)")
 
     @pytest.mark.performance
     @responses.activate
@@ -956,8 +948,7 @@ class TestCLIIntegration:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        import shutil
-        shutil.rmtree(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     def test_cli_module_import(self):
         """Test that CLI module can be imported"""
@@ -1018,11 +1009,7 @@ class TestRobustnessAndReliability:
 
     def teardown_method(self):
         """Cleanup after each test"""
-        for file in os.listdir(self.temp_dir):
-            file_path = os.path.join(self.temp_dir, file)
-            if os.path.isfile(file_path):
-                os.remove(file_path)
-        os.rmdir(self.temp_dir)
+        safe_cleanup_temp_dir(self.temp_dir)
 
     @responses.activate
     def test_network_interruption_handling(self):
@@ -1031,7 +1018,8 @@ class TestRobustnessAndReliability:
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/userinfo",
-            body=Exception("Network timeout")
+            body=Exception("Network timeout"),
+            headers={'content-length': '0'}
         )
         responses.add(
             responses.GET,
@@ -1162,6 +1150,7 @@ class TestRobustnessAndReliability:
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     body=malformed_response,
+                    headers={'content-length': str(len(malformed_response))},
                     status=200
                 )
             elif malformed_response == "":
@@ -1169,13 +1158,15 @@ class TestRobustnessAndReliability:
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
                     body="",
+                    headers={'content-length': '0'},
                     status=200
                 )
             elif malformed_response is None:
                 responses.add(
                     responses.GET,
                     "https://eapi.pcloud.com/userinfo",
-                    body=None,
+                    body="",
+                    headers={'content-length': '0'},
                     status=200
                 )
             else:
@@ -1199,14 +1190,11 @@ class TestRobustnessAndReliability:
 class TestRealAPIIntegration:
     """Integration tests with real pCloud API - require credentials"""
 
-    @pytest.mark.skip(reason="Requires real pCloud credentials")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_complete_workflow(self):
         """Test complete workflow with real pCloud API"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         temp_dir = tempfile.mkdtemp()
         token_file = os.path.join(temp_dir, "real_integration_test.json")
@@ -1216,13 +1204,13 @@ class TestRealAPIIntegration:
             sdk = PCloudSDK(token_file=token_file)
             
             # Login
-            login_info = sdk.login(email, password, location_id=2)
+            login_info = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
             assert "access_token" in login_info
             assert sdk.is_authenticated()
             
             # Get user info
             user_email = sdk.user.get_user_email()
-            assert user_email == email
+            assert user_email == creds["email"]
             
             # Create test folder
             test_folder_id = sdk.folder.create("SDK_Integration_Test", parent=0)
@@ -1236,7 +1224,8 @@ class TestRealAPIIntegration:
             
             # Upload file to test folder
             upload_result = sdk.file.upload(test_file, folder_id=test_folder_id)
-            file_id = upload_result["metadata"][0]["fileid"]
+            # Real API returns metadata as object, not array
+            file_id = upload_result["metadata"]["fileid"]
             
             # Download file
             download_dir = os.path.join(temp_dir, "downloads")
@@ -1257,17 +1246,13 @@ class TestRealAPIIntegration:
             
         finally:
             # Clean up local files
-            import shutil
-            shutil.rmtree(temp_dir)
+            safe_cleanup_temp_dir(temp_dir)
 
-    @pytest.mark.skip(reason="Requires real OAuth2 credentials")
+    @requires_oauth2_credentials
+    @skip_if_no_integration_tests
     def test_real_oauth2_workflow(self):
         """Test OAuth2 workflow with real pCloud API"""
-        app_key = os.getenv("PCLOUD_APP_KEY")
-        app_secret = os.getenv("PCLOUD_APP_SECRET")
-        
-        if not app_key or not app_secret:
-            pytest.skip("Real OAuth2 credentials not provided")
+        oauth_creds = get_oauth2_credentials()
         
         temp_dir = tempfile.mkdtemp()
         token_file = os.path.join(temp_dir, "oauth2_integration_test.json")
@@ -1275,8 +1260,8 @@ class TestRealAPIIntegration:
         try:
             # Initialize SDK with OAuth2
             sdk = PCloudSDK(
-                app_key=app_key,
-                app_secret=app_secret,
+                app_key=oauth_creds["client_id"],
+                app_secret=oauth_creds["client_secret"],
                 auth_type="oauth2",
                 token_file=token_file
             )
@@ -1290,17 +1275,13 @@ class TestRealAPIIntegration:
             pytest.skip("OAuth2 test requires manual authorization step")
             
         finally:
-            import shutil
-            shutil.rmtree(temp_dir)
+            safe_cleanup_temp_dir(temp_dir)
 
-    @pytest.mark.skip(reason="Requires real credentials and large file")
+    @requires_real_credentials
+    @skip_if_no_integration_tests
     def test_real_large_file_operations(self):
         """Test large file operations with real API"""
-        email = os.getenv("PCLOUD_EMAIL")
-        password = os.getenv("PCLOUD_PASSWORD")
-        
-        if not email or not password:
-            pytest.skip("Real credentials not provided")
+        creds = get_test_credentials()
         
         temp_dir = tempfile.mkdtemp()
         
@@ -1314,7 +1295,7 @@ class TestRealAPIIntegration:
             
             # Initialize SDK
             sdk = PCloudSDK()
-            sdk.login(email, password, location_id=2)
+            sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
             
             # Upload with progress tracking
             progress_calls = []
@@ -1326,7 +1307,8 @@ class TestRealAPIIntegration:
                 folder_id=0, 
                 progress_callback=track_progress
             )
-            file_id = upload_result["metadata"][0]["fileid"]
+            # Real API returns metadata as object, not array
+            file_id = upload_result["metadata"]["fileid"]
             
             # Verify progress was tracked
             assert len(progress_calls) > 10  # Should have many progress updates
@@ -1351,5 +1333,4 @@ class TestRealAPIIntegration:
             sdk.file.delete(file_id)
             
         finally:
-            import shutil
-            shutil.rmtree(temp_dir)
+            safe_cleanup_temp_dir(temp_dir)
