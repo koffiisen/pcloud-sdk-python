@@ -1,5 +1,5 @@
 """
-pCloud SDK for Python v2.0
+pCloud SDK for Python v1.0
 Modern Python SDK for pCloud API with automatic token management and progress tracking
 """
 from .app import App
@@ -18,7 +18,7 @@ from .request import Request, HttpClient
 from .response import Response
 from .user_operations import User
 
-__version__ = "2.0.0"
+__version__ = "1.0.0"
 __author__ = "Converted from pCloud PHP SDK"
 __license__ = "MIT"
 

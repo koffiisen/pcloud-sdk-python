@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Command Line Interface for pCloud SDK Python v2.0
+Command Line Interface for pCloud SDK Python v1.0
 Usage: pcloud-sdk [command] [options]
 """
 
@@ -293,7 +293,7 @@ class PCloudCLI:
 def main():
     """Point d'entrée principal du CLI"""
     parser = argparse.ArgumentParser(
-        description="pCloud SDK Python CLI v2.0",
+        description="pCloud SDK Python CLI v1.0",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples d'utilisation:

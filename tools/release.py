@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+
 """
 Release tool for pCloud SDK Python
 Automates version bumping, building, and publishing to PyPI
@@ -77,7 +78,7 @@ def check_working_directory() -> bool:
 
 def run_tests() -> bool:
     """Run test suite"""
-    print(">ê Running tests...")
+    print(">ï¿½ Running tests...")
     result = subprocess.run(["python", "-m", "pytest", "tests/", "-x"], capture_output=True)
     if result.returncode != 0:
         print("L Tests failed!")
@@ -120,7 +121,7 @@ def create_git_tag(version: str) -> bool:
 
 def main():
     """Main release process"""
-    print("=€ pCloud SDK Python Release Tool")
+    print("=ï¿½ pCloud SDK Python Release Tool")
     print("=" * 40)
     
     # Parse arguments
@@ -144,37 +145,38 @@ def main():
     try:
         current_version = get_current_version()
         new_version = bump_version(current_version, bump_type)
-        print(f"=Ê Version: {current_version} ’ {new_version}")
+        print(f"=ï¿½ Version: {current_version} ï¿½ {new_version}")
     except Exception as e:
         print(f"L Error getting/bumping version: {e}")
         return 1
     
     # Pre-release checks
-    print("\n= Pre-release checks...")
+    print("\n=
+ Pre-release checks...")
     
     if not check_working_directory():
         return 1
     
     if not run_tests():
-        print("=¡ Fix tests before releasing")
+        print("=ï¿½ Fix tests before releasing")
         return 1
     
     if not run_lint():
-        print("=¡ Fix linting issues before releasing")
+        print("=ï¿½ Fix linting issues before releasing")
         return 1
     
     # Update version
-    print(f"\n=Ý Updating version to {new_version}...")
+    print(f"\n=ï¿½ Updating version to {new_version}...")
     if not update_version_files(new_version):
         return 1
     
     # Build package
-    print("\n=æ Building package...")
+    print("\n=ï¿½ Building package...")
     if not build_package():
         return 1
     
     # Commit version change
-    print("\n=ä Committing version change...")
+    print("\n=ï¿½ Committing version change...")
     run_command(f"git add .", "Staging changes")
     run_command(f"git commit -m 'Bump version to {new_version}'", "Committing version bump")
     
@@ -188,13 +190,13 @@ def main():
         print("L Publishing failed")
         return 1
     
-    print(f"\n<‰ Release {new_version} completed successfully!")
+    print(f"\n<ï¿½ Release {new_version} completed successfully!")
     
     if test_only:
-        print(f"\n=¡ Test release published. To publish to production PyPI:")
+        print(f"\n=ï¿½ Test release published. To publish to production PyPI:")
         print(f"   python tools/release.py {bump_type}")
     else:
-        print(f"\n=¡ Don't forget to:")
+        print(f"\n=ï¿½ Don't forget to:")
         print(f"   git push origin main")
         print(f"   git push origin v{new_version}")
     

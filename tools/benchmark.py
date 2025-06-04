@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Performance benchmark for pCloud SDK Python v2.0
+Performance benchmark for pCloud SDK Python v1.0
 Tests upload/download speeds and SDK efficiency
 """
 

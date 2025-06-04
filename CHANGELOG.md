@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [2.0.0] - 2024-01-XX
+## [1.0.0] - 2024-01-XX
 
 ### Added
 
@@ -18,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Multi-account support with separate credential files
 - Encrypted token storage for security
 
-#### =Ê Progress Tracking
+#### =ï¿½ Progress Tracking
 - **Real-time progress callbacks** for file uploads and downloads
 - **4 ready-to-use progress trackers**:
   - `SimpleProgressBar`: Interactive progress bar with speed and ETA
@@ -39,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - OAuth2 flow still supported for third-party applications
 - Automatic credential validation and refresh
 
-#### =à Developer Tools
+#### =ï¿½ Developer Tools
 - **Professional CLI interface** (`pcloud-sdk` command)
 - Comprehensive development tools:
   - `tools/lint.py`: Code quality checks (black, flake8, isort, mypy)
@@ -50,7 +50,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - GitHub Actions workflows for CI/CD
 - Comprehensive test suite with pytest
 
-#### =Ú Documentation
+#### =ï¿½ Documentation
 - Complete English documentation
 - API reference with type hints
 - Authentication guide with examples
@@ -61,7 +61,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-#### ¡ Performance & Reliability
+#### ï¿½ Performance & Reliability
 - Optimized file upload/download with chunked transfers
 - Enhanced error handling and retry logic
 - Improved connection stability
@@ -75,7 +75,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enhanced documentation strings
 - Improved class structure and inheritance
 
-#### =æ Project Structure
+#### =ï¿½ Project Structure
 - Modern `pyproject.toml` configuration
 - Separated requirements files (base, dev, test)
 - Professional packaging with proper metadata
@@ -136,11 +136,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Migration Guide
 
-### From v1.0 to v2.0
+### Getting Started
 
-The v2.0 release is backwards compatible but offers significant improvements. Here's how to migrate:
+Here's how to use the pCloud SDK for Python:
 
-#### Old way (v1.0):
+#### Basic usage:
 ```python
 from pcloud_sdk import PCloudSDK
 
@@ -149,7 +149,7 @@ sdk.login("email@example.com", "password", location_id=2)
 # Manual reconnection required
 ```
 
-#### New way (v2.0):
+#### Recommended way:
 ```python
 from pcloud_sdk import PCloudSDK
 
@@ -176,14 +176,14 @@ sdk.login()  # Uses saved token automatically
 ```
 
 ### Breaking Changes
-- None! v2.0 is fully backwards compatible
+- None! This is the initial release
 
 ### Deprecated Features
-- Manual token management (still works but not recommended)
+- None for initial release
 - US servers as default (EU is now default, but US still supported)
 
 ### Recommended Updates
-1. Remove empty strings from `PCloudSDK("", "")` ’ `PCloudSDK()`
+1. Remove empty strings from `PCloudSDK("", "")` ï¿½ `PCloudSDK()`
 2. Remove manual `location_id=2` parameter (now default)
 3. Add progress callbacks for better user experience
 4. Remove manual reconnection logic (now automatic)

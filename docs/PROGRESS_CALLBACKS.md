@@ -1,6 +1,6 @@
 # Progress Callbacks Documentation
 
-Comprehensive guide to the progress tracking system in pCloud SDK Python v2.0, including built-in progress trackers, custom callbacks, and performance considerations.
+Comprehensive guide to the progress tracking system in pCloud SDK Python, including built-in progress trackers, custom callbacks, and performance considerations.
 
 ## Table of Contents
 
@@ -85,7 +85,7 @@ def simple_progress(bytes_transferred, total_bytes, percentage, speed, **kwargs)
     status = kwargs.get('status', 'progress')
     
     if status == "starting":
-        print(f"=€ Starting {operation} of {filename}")
+        print(f"=ï¿½ Starting {operation} of {filename}")
     elif status == "completed":
         print(f" {operation.title()} completed: {filename}")
     elif status == "error":
@@ -94,7 +94,7 @@ def simple_progress(bytes_transferred, total_bytes, percentage, speed, **kwargs)
     else:
         # Regular progress update
         speed_mb = speed / (1024 * 1024)
-        print(f"=Ê {operation.title()}: {percentage:.1f}% at {speed_mb:.1f} MB/s")
+        print(f"=ï¿½ {operation.title()}: {percentage:.1f}% at {speed_mb:.1f} MB/s")
 
 # Usage
 from pcloud_sdk import PCloudSDK
@@ -133,7 +133,7 @@ result = sdk.file.upload("document.pdf", progress_callback=progress_bar)
 **Output example:**
 ```
 Upload Progress: document.pdf
-[ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ] 100.0% (15.2/15.2MB) 2.1MB/s ETA:0s
+[ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½] 100.0% (15.2/15.2MB) 2.1MB/s ETA:0s
  Completed in 7.2s (average speed: 2.1MB/s)
 ```
 
@@ -162,10 +162,10 @@ result = sdk.file.upload("data.csv", progress_callback=detailed_with_log)
 
 **Output example:**
 ```
-=€ Starting upload: large_file.zip (52,428,800 bytes)
-=Ê Progress: 20.0% (10,485,760/52,428,800 bytes) - 1.8MB/s - 5.2s elapsed
-=Ê Progress: 40.0% (20,971,520/52,428,800 bytes) - 2.1MB/s - 10.1s elapsed
-=¾ Saving in progress...
+=ï¿½ Starting upload: large_file.zip (52,428,800 bytes)
+=ï¿½ Progress: 20.0% (10,485,760/52,428,800 bytes) - 1.8MB/s - 5.2s elapsed
+=ï¿½ Progress: 40.0% (20,971,520/52,428,800 bytes) - 2.1MB/s - 10.1s elapsed
+=ï¿½ Saving in progress...
  Transfer completed!
    Duration: 25.4s
    Average speed: 2.0MB/s
@@ -192,10 +192,10 @@ result = sdk.file.upload("image.jpg", progress_callback=minimal)
 
 **Output example:**
 ```
-=€ Upload: image.jpg
-=Ê 25%...
-=Ê 50%...
-=Ê 75%...
+=ï¿½ Upload: image.jpg
+=ï¿½ 25%...
+=ï¿½ 50%...
+=ï¿½ 75%...
  Completed in 3.2s
 ```
 
@@ -278,18 +278,18 @@ def my_custom_progress(bytes_transferred, total_bytes, percentage, speed, **kwar
     
     # Custom logic based on status
     if status == "starting":
-        print(f"<¬ {operation.upper()} STARTED: {filename}")
+        print(f"<ï¿½ {operation.upper()} STARTED: {filename}")
         
     elif status == "completed":
-        print(f"<Á {operation.upper()} FINISHED: {filename}")
+        print(f"<ï¿½ {operation.upper()} FINISHED: {filename}")
         
     elif status == "error":
         error_msg = kwargs.get('error', 'Unknown error')
-        print(f"=¥ {operation.upper()} FAILED: {error_msg}")
+        print(f"=ï¿½ {operation.upper()} FAILED: {error_msg}")
         
     elif int(percentage) % 10 == 0:  # Every 10%
         speed_mb = speed / (1024 * 1024)
-        print(f"¡ {percentage:.0f}% complete at {speed_mb:.1f} MB/s")
+        print(f"ï¿½ {percentage:.0f}% complete at {speed_mb:.1f} MB/s")
 
 # Usage
 result = sdk.file.upload("my_file.txt", progress_callback=my_custom_progress)
@@ -318,8 +318,8 @@ class AdvancedProgressTracker:
             self.start_time = current_time
             operation = kwargs.get('operation', 'transfer')
             filename = kwargs.get('filename', 'file')
-            print(f"=€ Starting {operation}: {filename}")
-            print(f"=Ï Size: {total_bytes:,} bytes ({total_bytes/(1024**2):.1f} MB)")
+            print(f"=ï¿½ Starting {operation}: {filename}")
+            print(f"=ï¿½ Size: {total_bytes:,} bytes ({total_bytes/(1024**2):.1f} MB)")
         
         # Record checkpoint
         checkpoint = {
@@ -337,16 +337,16 @@ class AdvancedProgressTracker:
             pass  # Already handled above
             
         elif status == "saving":
-            print("=¾ Upload complete, saving to pCloud...")
+            print("=ï¿½ Upload complete, saving to pCloud...")
             
         elif status == "completed":
             elapsed = current_time - self.start_time
             avg_speed = bytes_transferred / elapsed / (1024**2)
             
             print(f" Transfer completed!")
-            print(f"   =Ê Total time: {elapsed:.1f}s")
-            print(f"   =È Average speed: {avg_speed:.1f} MB/s")
-            print(f"   =Ë Checkpoints recorded: {len(self.checkpoints)}")
+            print(f"   =ï¿½ Total time: {elapsed:.1f}s")
+            print(f"   =ï¿½ Average speed: {avg_speed:.1f} MB/s")
+            print(f"   =ï¿½ Checkpoints recorded: {len(self.checkpoints)}")
             
         elif status == "error":
             error_msg = kwargs.get('error', 'Unknown error')
@@ -360,13 +360,13 @@ class AdvancedProgressTracker:
                 elapsed = current_time - self.start_time
                 speed_mb = speed / (1024 * 1024)
                 
-                print(f"=Ê {percentage:.1f}% | {speed_mb:.1f} MB/s | {elapsed:.0f}s elapsed")
+                print(f"=ï¿½ {percentage:.1f}% | {speed_mb:.1f} MB/s | {elapsed:.0f}s elapsed")
                 
                 # Estimate remaining time
                 if speed > 0:
                     remaining_bytes = total_bytes - bytes_transferred
                     eta_seconds = remaining_bytes / speed
-                    print(f"ð ETA: {eta_seconds:.0f}s remaining")
+                    print(f"ï¿½ ETA: {eta_seconds:.0f}s remaining")
         
     def get_statistics(self):
         """Get transfer statistics"""
@@ -460,7 +460,7 @@ class DatabaseProgressLogger:
                 ''', (filename, operation, datetime.now(), total_bytes, 'in_progress'))
                 
                 self.transfer_id = cursor.lastrowid
-                print(f"=Ý Started logging transfer ID {self.transfer_id}: {filename}")
+                print(f"=ï¿½ Started logging transfer ID {self.transfer_id}: {filename}")
                 
             elif status in ["completed", "error"]:
                 # Update transfer record
@@ -471,7 +471,7 @@ class DatabaseProgressLogger:
                     WHERE id = ?
                 ''', (datetime.now(), status, error_msg, self.transfer_id))
                 
-                print(f"=Ý Transfer {self.transfer_id} {status}")
+                print(f"=ï¿½ Transfer {self.transfer_id} {status}")
                 
             # Log progress data
             if self.transfer_id:
@@ -901,7 +901,7 @@ def robust_progress(bytes_transferred, total_bytes, percentage, speed, **kwargs)
             # Regular progress display
             if int(percentage) % 20 == 0:
                 speed_mb = speed / (1024 * 1024)
-                print(f"=Ê {percentage:.0f}% at {speed_mb:.1f} MB/s")
+                print(f"=ï¿½ {percentage:.0f}% at {speed_mb:.1f} MB/s")
                 
     except Exception as e:
         # Never let callback errors break the transfer
@@ -954,10 +954,10 @@ def user_friendly_progress(bytes_transferred, total_bytes, percentage, speed, **
         else:
             size_str = f"{size_mb / 1024:.1f} GB"
             
-        print(f"=€ Starting {operation} of {filename} ({size_str})")
+        print(f"=ï¿½ Starting {operation} of {filename} ({size_str})")
         
     elif status == "saving":
-        print("=¾ Upload complete, saving to pCloud...")
+        print("=ï¿½ Upload complete, saving to pCloud...")
         
     elif status == "completed":
         print(f" {operation.title()} completed successfully!")
@@ -972,11 +972,11 @@ def user_friendly_progress(bytes_transferred, total_bytes, percentage, speed, **
             speed_mb = speed / (1024 * 1024)
             
             if speed_mb > 10:
-                speed_emoji = "=€"
+                speed_emoji = "=ï¿½"
             elif speed_mb > 5:
-                speed_emoji = "¡"
+                speed_emoji = "ï¿½"
             elif speed_mb > 1:
-                speed_emoji = "=¶"
+                speed_emoji = "=ï¿½"
             else:
                 speed_emoji = "="
                 

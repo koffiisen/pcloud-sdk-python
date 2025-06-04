@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pcloud-sdk"
-version = "2.0.0"
+version = "1.0.0"
 description = "Modern Python SDK for pCloud API with automatic token management and progress tracking"
 authors = [
     {name = "pCloud SDK Contributors", email = "noreply@pcloud.com"},

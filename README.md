@@ -31,7 +31,7 @@ sdk.file.upload("/path/to/file.txt", progress_callback=progress)
 
 ## 📊 Real-time Progress Tracking
 
-The SDK v2.0 includes a comprehensive callback system for tracking upload and download progress:
+The SDK includes a comprehensive callback system for tracking upload and download progress:
 
 ```python
 from pcloud_sdk.progress_utils import create_progress_bar, create_detailed_progress
@@ -61,7 +61,7 @@ pip install pcloud-sdk
 
 The SDK only requires the `requests` library as an external dependency.
 
-## ✨ What's New in v2.0
+## ✨ Key Features
 
 🔑 **Integrated Token Manager** - No more manual reconnection!  
 🇪🇺 **EU Server by Default** - Optimized for European users  
@@ -412,9 +412,9 @@ python -m build
 
 ## 📋 Migration from v1.0
 
-The v2.0 SDK is backwards compatible, but offers improved defaults:
+The SDK offers optimized defaults:
 
-| Parameter | v1.0 Default | v2.0 Default | Reason |
+| Parameter | Previous Default | v1.0 Default | Reason |
 |-----------|-------------|--------------|---------|
 | `location_id` | 1 (US) | **2 (EU)** | Better latency for Europe |
 | `auth_type` | "oauth2" | **"direct"** | Simpler to use |
@@ -427,7 +427,7 @@ The v2.0 SDK is backwards compatible, but offers improved defaults:
 sdk = PCloudSDK("", "")
 sdk.login("email", "password", location_id=2)
 
-# v2.0 (new) - Equivalent but simpler
+# v1.0 - Simple and optimized
 sdk = PCloudSDK()  # All optimal defaults
 sdk.login("email", "password")
 ```
@@ -471,7 +471,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - **Automatic reconnection** 🆕
 - **Persistent session storage** 🆕
 
-### 🆕 New in v2.0
+### 🆕 Key Features
 - **Integrated Token Manager**: No more manual reconnection!
 - **Progress Callbacks**: Real-time transfer tracking
 - **Progress Utilities**: Progress bars, logs, detailed displays
