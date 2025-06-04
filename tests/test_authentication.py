@@ -146,7 +146,7 @@ class TestDirectAuthentication:
         # Test US server (location_id=1)
         responses.add(
             responses.GET,
-            "https://eapi.pcloud.com/userinfo",
+            "https://api.pcloud.com/userinfo",
             json={
                 "result": 0,
                 "auth": "us_token_123",
@@ -655,10 +655,10 @@ class TestSDKAuthentication:
         sdk = PCloudSDK(token_file=self.token_file)
 
         with pytest.warns(DeprecationWarning, match="The 'login_or_load' method is deprecated"):
-            login_info = sdk.login_or_load("test@example.com", "test_password", location_id=2)
+            sdk.login_or_load("test@example.com", "test_password", location_id=2)
 
-        assert login_info["access_token"] == "test_token_123"
-        assert login_info["email"] == "test@example.com"
+        assert sdk.app.get_access_token() == "test_token_123"
+        assert sdk.get_saved_email() == "test@example.com"
         assert sdk.is_authenticated() is True
         assert os.path.exists(self.token_file) # Check if credentials were saved
 

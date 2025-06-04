@@ -20,11 +20,17 @@ class File:
     def get_link(self, file_id: int) -> str:
         """Get download link for file"""
         params = {"fileid": file_id}
-        response = self.request.get("getfilelink", params)
-
-        if 'hosts' in response:
-            return f"https://{response['hosts'][0]}{response['path']}"
-        else:
+        try:
+            response = self.request.get("getfilelink", params)
+            # Assuming self.request.get raises PCloudException if response['result'] != 0
+            if 'hosts' in response:
+                return f"https://{response['hosts'][0]}{response['path']}"
+            else:
+                # Handles cases where the API call might 'succeed' (result=0) but not return 'hosts'
+                raise PCloudException("Failed to get file link!")
+        except PCloudException:
+            # Catches PCloudException from self.request.get (e.g. API error like "File not found")
+            # or from the 'else' block above. Re-raises with the consistent message.
             raise PCloudException("Failed to get file link!")
 
     def download(self, file_id: int, destination: str = "", progress_callback: Optional[callable] = None) -> bool:
@@ -153,8 +159,8 @@ class File:
                             if progress_callback:
                                 progress_callback(uploaded_bytes, file_size, percentage, speed,
                                                 operation="upload", filename=filename, 
-                                                status="error", error=f"Upload failed after {num_failures} attempts: {e}")
-                            raise PCloudException(f"Upload failed after {num_failures} attempts: {e}")
+                                                status="error", error=f"Upload échoué après {num_failures} tentatives: {e}")
+                            raise PCloudException(f"Upload échoué après {num_failures} tentatives: {e}")
 
         # Update progress for saving phase
         if progress_callback:

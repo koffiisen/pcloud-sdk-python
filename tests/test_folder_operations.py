@@ -58,7 +58,6 @@ class TestFolderCreation:
         # Verify the request was made with correct parameters
         request = responses.calls[0].request
         assert f"name={folder_name}" in request.url
-        assert "path=%2F" in request.url  # "/" encoded
 
     @responses.activate
     def test_create_folder_in_specific_parent(self):

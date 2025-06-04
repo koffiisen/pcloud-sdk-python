@@ -795,7 +795,7 @@ class TestLargeFileHandling:
                 'content-length': str(len(large_content)),
                 'content-type': 'application/octet-stream'
             }
-            return (200, headers, BytesIO(large_content))
+            return (200, headers, large_content)
 
         responses.add_callback(
             responses.GET,

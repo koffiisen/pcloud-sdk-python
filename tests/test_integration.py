@@ -112,7 +112,7 @@ class TestEndToEndWorkflows:
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/test_file.txt",
-            body=b"Test file content for download",
+            content=b"Test file content for download",
             headers={'content-length': '26'},
             status=200
         )
@@ -421,7 +421,7 @@ class TestEndToEndWorkflows:
         # Mock responses for account 2
         responses.add(
             responses.GET,
-            "https://eapi.pcloud.com/userinfo",  # Was US server, now using eapi for consistency
+            "https://api.pcloud.com/userinfo",  # Changed for US server
             json={
                 "result": 0,
                 "auth": "token2_456",
@@ -432,7 +432,7 @@ class TestEndToEndWorkflows:
         )
         responses.add(
             responses.GET,
-            "https://eapi.pcloud.com/userinfo",
+            "https://api.pcloud.com/userinfo", # Changed for US server
             json={
                 "result": 0,
                 "email": "user2@example.com",
@@ -688,7 +688,7 @@ class TestProgressTrackingIntegration:
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/path/to/download_test.txt",
-            body=b"Downloaded content with progress tracking",
+            content=b"Downloaded content with progress tracking",
             headers={'content-length': '39'},
             status=200
         )
@@ -1300,7 +1300,11 @@ class TestRealAPIIntegration:
             # Upload with progress tracking
             progress_calls = []
             def track_progress(*args, **kwargs):
-                progress_calls.append(kwargs.get('percentage', 0))
+                # percentage is the 3rd positional argument (index 2)
+                if args and len(args) > 2:
+                    progress_calls.append(args[2])
+                else:
+                    progress_calls.append(0) # Should not happen if callback is called correctly
             
             upload_result = sdk.file.upload(
                 large_file, 
