@@ -16,8 +16,11 @@ from pcloud_sdk.app import App
 from pcloud_sdk.folder_operations import Folder
 from pcloud_sdk.exceptions import PCloudException
 from .test_config import (
-    requires_real_credentials, skip_if_no_integration_tests, get_test_credentials,
-    safe_remove_file, safe_cleanup_temp_dir
+    requires_real_credentials,
+    skip_if_no_integration_tests,
+    get_test_credentials,
+    safe_remove_file,
+    safe_cleanup_temp_dir,
 )
 
 
@@ -35,7 +38,7 @@ class TestFolderCreation:
     def test_create_folder_in_root(self):
         """Test creating a folder in root directory"""
         folder_name = "TestFolder"
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
@@ -45,16 +48,16 @@ class TestFolderCreation:
                     "folderid": 12345,
                     "name": folder_name,
                     "isfolder": True,
-                    "parentfolderid": 0
-                }
+                    "parentfolderid": 0,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.create(folder_name, parent=0)
-        
+
         assert result == 12345
-        
+
         # Verify the request was made with correct parameters
         request = responses.calls[0].request
         assert f"name={folder_name}" in request.url
@@ -64,7 +67,7 @@ class TestFolderCreation:
         """Test creating a folder in a specific parent folder"""
         folder_name = "SubFolder"
         parent_id = 9876
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
@@ -74,16 +77,16 @@ class TestFolderCreation:
                     "folderid": 54321,
                     "name": folder_name,
                     "isfolder": True,
-                    "parentfolderid": parent_id
-                }
+                    "parentfolderid": parent_id,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.create(folder_name, parent=parent_id)
-        
+
         assert result == 54321
-        
+
         # Verify the request was made with correct parent folder ID
         request = responses.calls[0].request
         assert f"name={folder_name}" in request.url
@@ -103,15 +106,12 @@ class TestFolderCreation:
     def test_create_folder_name_conflict(self):
         """Test creating folder with existing name"""
         folder_name = "ExistingFolder"
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
-            json={
-                "result": 2004,
-                "error": "Folder already exists"
-            },
-            status=200
+            json={"result": 2004, "error": "Folder already exists"},
+            status=200,
         )
 
         with pytest.raises(PCloudException):
@@ -121,19 +121,15 @@ class TestFolderCreation:
     def test_create_folder_unicode_name(self):
         """Test creating folder with unicode characters"""
         folder_name = "TestFolder_ÉÀÇ_测试_Тест"
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
             json={
                 "result": 0,
-                "metadata": {
-                    "folderid": 12345,
-                    "name": folder_name,
-                    "isfolder": True
-                }
+                "metadata": {"folderid": 12345, "name": folder_name, "isfolder": True},
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.create(folder_name)
@@ -159,7 +155,7 @@ class TestFolderListing:
                 "name": "Documents",
                 "isfolder": True,
                 "created": "2023-01-01T00:00:00Z",
-                "modified": "2023-01-01T00:00:00Z"
+                "modified": "2023-01-01T00:00:00Z",
             },
             {
                 "fileid": 54321,
@@ -167,26 +163,22 @@ class TestFolderListing:
                 "isfolder": False,
                 "size": 1024,
                 "created": "2023-01-01T00:00:00Z",
-                "modified": "2023-01-01T00:00:00Z"
-            }
+                "modified": "2023-01-01T00:00:00Z",
+            },
         ]
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {
-                    "folderid": 0,
-                    "name": "/",
-                    "contents": mock_contents
-                }
+                "metadata": {"folderid": 0, "name": "/", "contents": mock_contents},
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.list_root()
-        
+
         assert "contents" in result
         assert "metadata" in result
         assert len(result["contents"]) == 2
@@ -198,14 +190,9 @@ class TestFolderListing:
         """Test getting folder content by folder ID"""
         folder_id = 12345
         mock_contents = [
-            {
-                "fileid": 98765,
-                "name": "document.pdf",
-                "isfolder": False,
-                "size": 2048
-            }
+            {"fileid": 98765, "name": "document.pdf", "isfolder": False, "size": 2048}
         ]
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -214,17 +201,17 @@ class TestFolderListing:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "Documents",
-                    "contents": mock_contents
-                }
+                    "contents": mock_contents,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
-        
+
         assert len(result) == 1
         assert result[0]["name"] == "document.pdf"
-        
+
         # Verify correct API call
         request = responses.calls[0].request
         assert f"folderid={folder_id}" in request.url
@@ -234,37 +221,26 @@ class TestFolderListing:
         """Test getting folder content by path"""
         folder_path = "/Documents/Projects"
         mock_contents = [
-            {
-                "folderid": 11111,
-                "name": "ProjectA",
-                "isfolder": True
-            },
-            {
-                "folderid": 22222,
-                "name": "ProjectB",
-                "isfolder": True
-            }
+            {"folderid": 11111, "name": "ProjectA", "isfolder": True},
+            {"folderid": 22222, "name": "ProjectB", "isfolder": True},
         ]
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {
-                    "name": "Projects",
-                    "contents": mock_contents
-                }
+                "metadata": {"name": "Projects", "contents": mock_contents},
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(path=folder_path)
-        
+
         assert len(result) == 2
         assert result[0]["name"] == "ProjectA"
         assert result[1]["name"] == "ProjectB"
-        
+
         # Verify correct API call
         request = responses.calls[0].request
         assert f"path={folder_path.replace('/', '%2F')}" in request.url
@@ -281,17 +257,17 @@ class TestFolderListing:
                     "folderid": 0,
                     "name": "/",
                     "isfolder": True,
-                    "contents": []
-                }
+                    "contents": [],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_metadata(folder_id=0)
-        
+
         assert result["metadata"]["name"] == "/"
         assert result["metadata"]["isfolder"] is True
-        
+
         # Verify it uses path="/" for root folder
         request = responses.calls[0].request
         assert "path=%2F" in request.url
@@ -300,7 +276,7 @@ class TestFolderListing:
     def test_get_metadata_specific_folder(self):
         """Test getting metadata for specific folder"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -313,14 +289,14 @@ class TestFolderListing:
                     "parentfolderid": 0,
                     "created": "2023-01-01T00:00:00Z",
                     "modified": "2023-01-01T00:00:00Z",
-                    "contents": []
-                }
+                    "contents": [],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_metadata(folder_id=folder_id)
-        
+
         assert result["metadata"]["folderid"] == folder_id
         assert result["metadata"]["name"] == "TestFolder"
         assert result["metadata"]["parentfolderid"] == 0
@@ -338,17 +314,13 @@ class TestFolderListing:
                     "folderid": 0,
                     "name": "/",
                     "contents": [
-                        {
-                            "folderid": 12345,
-                            "name": "Documents",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                        {"folderid": 12345, "name": "Documents", "isfolder": True}
+                    ],
+                },
             },
-            status=200
+            status=200,
         )
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -358,19 +330,15 @@ class TestFolderListing:
                     "folderid": 12345,
                     "name": "Documents",
                     "contents": [
-                        {
-                            "folderid": 54321,
-                            "name": "Projects",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                        {"folderid": 54321, "name": "Projects", "isfolder": True}
+                    ],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.list_folder("Documents/Projects")
-        
+
         assert result is not None
         assert result["folderid"] == 54321
         assert result["name"] == "Projects"
@@ -379,7 +347,7 @@ class TestFolderListing:
     def test_search_folder(self):
         """Test folder search functionality"""
         search_path = "/Documents/Important"
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -388,22 +356,18 @@ class TestFolderListing:
                 "metadata": {
                     "name": "Documents",
                     "contents": [
-                        {
-                            "folderid": 99999,
-                            "name": "Important",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                        {"folderid": 99999, "name": "Important", "isfolder": True}
+                    ],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.search(search_path)
-        
+
         assert "metadata" in result
         assert result["metadata"]["name"] == "Documents"
-        
+
         # Verify nofiles parameter is set
         request = responses.calls[0].request
         assert "nofiles=1" in request.url
@@ -424,25 +388,21 @@ class TestFolderManipulation:
         """Test folder rename operation"""
         folder_id = 12345
         new_name = "RenamedFolder"
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/renamefolder",
             json={
                 "result": 0,
-                "metadata": {
-                    "folderid": folder_id,
-                    "name": new_name,
-                    "isfolder": True
-                }
+                "metadata": {"folderid": folder_id, "name": new_name, "isfolder": True},
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.rename(folder_id, new_name)
-        
+
         assert result == folder_id
-        
+
         # Verify request parameters
         request = responses.calls[0].request
         assert f"folderid={folder_id}" in request.url
@@ -451,14 +411,14 @@ class TestFolderManipulation:
     def test_rename_folder_empty_name(self):
         """Test folder rename with empty name"""
         folder_id = 12345
-        
+
         with pytest.raises(PCloudException, match="Please provide folder name"):
             self.folder_ops.rename(folder_id, "")
 
     def test_rename_folder_none_name(self):
         """Test folder rename with None name"""
         folder_id = 12345
-        
+
         with pytest.raises(PCloudException, match="Please provide folder name"):
             self.folder_ops.rename(folder_id, None)
 
@@ -467,7 +427,7 @@ class TestFolderManipulation:
         """Test folder move operation"""
         folder_id = 12345
         new_parent_id = 9876
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/renamefolder",
@@ -476,16 +436,16 @@ class TestFolderManipulation:
                 "metadata": {
                     "folderid": folder_id,
                     "parentfolderid": new_parent_id,
-                    "isfolder": True
-                }
+                    "isfolder": True,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.move(folder_id, new_parent_id)
-        
+
         assert result == folder_id
-        
+
         # Verify request parameters
         request = responses.calls[0].request
         assert f"folderid={folder_id}" in request.url
@@ -495,7 +455,7 @@ class TestFolderManipulation:
     def test_move_folder_to_root(self):
         """Test moving folder to root directory"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/renamefolder",
@@ -504,37 +464,32 @@ class TestFolderManipulation:
                 "metadata": {
                     "folderid": folder_id,
                     "parentfolderid": 0,
-                    "isfolder": True
-                }
+                    "isfolder": True,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.move(folder_id, 0)
-        
+
         assert result == folder_id
 
     @responses.activate
     def test_delete_folder(self):
         """Test folder delete operation"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={
-                "result": 0,
-                "metadata": {
-                    "isdeleted": True
-                }
-            },
-            status=200
+            json={"result": 0, "metadata": {"isdeleted": True}},
+            status=200,
         )
 
         result = self.folder_ops.delete(folder_id)
-        
+
         assert result is True
-        
+
         # Verify request parameters
         request = responses.calls[0].request
         assert f"folderid={folder_id}" in request.url
@@ -543,27 +498,23 @@ class TestFolderManipulation:
     def test_delete_folder_recursive(self):
         """Test recursive folder delete operation"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolderrecursive",
             json={
                 "result": 0,
-                "metadata": {
-                    "isdeleted": True,
-                    "deletedfiles": 5,
-                    "deletedfolders": 2
-                }
+                "metadata": {"isdeleted": True, "deletedfiles": 5, "deletedfolders": 2},
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.delete_recursive(folder_id)
-        
+
         assert result["metadata"]["isdeleted"] is True
         assert result["metadata"]["deletedfiles"] == 5
         assert result["metadata"]["deletedfolders"] == 2
-        
+
         # Verify correct API endpoint
         request = responses.calls[0].request
         assert "deletefolderrecursive" in request.url
@@ -593,10 +544,10 @@ class TestFolderHierarchy:
                     "folderid": 12345,
                     "name": "Parent",
                     "isfolder": True,
-                    "parentfolderid": 0
-                }
+                    "parentfolderid": 0,
+                },
             },
-            status=200
+            status=200,
         )
 
         # Then create child folder
@@ -609,15 +560,15 @@ class TestFolderHierarchy:
                     "folderid": 54321,
                     "name": "Child",
                     "isfolder": True,
-                    "parentfolderid": 12345
-                }
+                    "parentfolderid": 12345,
+                },
             },
-            status=200
+            status=200,
         )
 
         parent_id = self.folder_ops.create("Parent", parent=0)
         child_id = self.folder_ops.create("Child", parent=parent_id)
-        
+
         assert parent_id == 12345
         assert child_id == 54321
 
@@ -632,16 +583,10 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 0,
-                    "contents": [
-                        {
-                            "folderid": 100,
-                            "name": "Level1",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                    "contents": [{"folderid": 100, "name": "Level1", "isfolder": True}],
+                },
             },
-            status=200
+            status=200,
         )
 
         # Mock level 1 folder listing
@@ -652,19 +597,13 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 100,
-                    "contents": [
-                        {
-                            "folderid": 200,
-                            "name": "Level2",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                    "contents": [{"folderid": 200, "name": "Level2", "isfolder": True}],
+                },
             },
-            status=200
+            status=200,
         )
 
-        # Mock level 2 folder listing  
+        # Mock level 2 folder listing
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -672,20 +611,14 @@ class TestFolderHierarchy:
                 "result": 0,
                 "metadata": {
                     "folderid": 200,
-                    "contents": [
-                        {
-                            "folderid": 300,
-                            "name": "Level3",
-                            "isfolder": True
-                        }
-                    ]
-                }
+                    "contents": [{"folderid": 300, "name": "Level3", "isfolder": True}],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.list_folder("Level1/Level2/Level3")
-        
+
         assert result is not None
         assert result["folderid"] == 300
         assert result["name"] == "Level3"
@@ -699,30 +632,30 @@ class TestFolderHierarchy:
                 "folderid": 111,
                 "name": "Subfolder1",
                 "isfolder": True,
-                "created": "2023-01-01T00:00:00Z"
+                "created": "2023-01-01T00:00:00Z",
             },
             {
                 "fileid": 222,
                 "name": "file1.txt",
                 "isfolder": False,
                 "size": 1024,
-                "created": "2023-01-01T00:00:00Z"
+                "created": "2023-01-01T00:00:00Z",
             },
             {
                 "folderid": 333,
-                "name": "Subfolder2", 
+                "name": "Subfolder2",
                 "isfolder": True,
-                "created": "2023-01-01T00:00:00Z"
+                "created": "2023-01-01T00:00:00Z",
             },
             {
                 "fileid": 444,
                 "name": "file2.pdf",
                 "isfolder": False,
                 "size": 2048,
-                "created": "2023-01-01T00:00:00Z"
-            }
+                "created": "2023-01-01T00:00:00Z",
+            },
         ]
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -731,23 +664,23 @@ class TestFolderHierarchy:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "MixedFolder",
-                    "contents": mixed_contents
-                }
+                    "contents": mixed_contents,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
-        
+
         assert len(result) == 4
-        
+
         # Verify we have both folders and files
         folders = [item for item in result if item.get("isfolder")]
         files = [item for item in result if not item.get("isfolder")]
-        
+
         assert len(folders) == 2
         assert len(files) == 2
-        
+
         assert folders[0]["name"] == "Subfolder1"
         assert folders[1]["name"] == "Subfolder2"
         assert files[0]["name"] == "file1.txt"
@@ -768,15 +701,12 @@ class TestFolderErrorScenarios:
     def test_folder_not_found(self):
         """Test operations on non-existent folder"""
         folder_id = 99999
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            json={
-                "result": 2005,
-                "error": "Directory does not exist"
-            },
-            status=200
+            json={"result": 2005, "error": "Directory does not exist"},
+            status=200,
         )
 
         with pytest.raises(PCloudException):
@@ -786,15 +716,12 @@ class TestFolderErrorScenarios:
     def test_access_denied(self):
         """Test folder operations with insufficient permissions"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={
-                "result": 2003,
-                "error": "Access denied"
-            },
-            status=200
+            json={"result": 2003, "error": "Access denied"},
+            status=200,
         )
 
         with pytest.raises(PCloudException):
@@ -804,15 +731,12 @@ class TestFolderErrorScenarios:
     def test_folder_not_empty(self):
         """Test deleting non-empty folder (non-recursive)"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={
-                "result": 2007,
-                "error": "Directory not empty"
-            },
-            status=200
+            json={"result": 2007, "error": "Directory not empty"},
+            status=200,
         )
 
         with pytest.raises(PCloudException):
@@ -821,17 +745,18 @@ class TestFolderErrorScenarios:
     @responses.activate
     def test_invalid_folder_name_characters(self):
         """Test creating folder with invalid characters"""
-        invalid_names = ["folder/with/slash", "folder\\with\\backslash", "folder:with:colon"]
-        
+        invalid_names = [
+            "folder/with/slash",
+            "folder\\with\\backslash",
+            "folder:with:colon",
+        ]
+
         for invalid_name in invalid_names:
             responses.add(
                 responses.GET,
                 "https://eapi.pcloud.com/createfolder",
-                json={
-                    "result": 2008,
-                    "error": "Invalid name"
-                },
-                status=200
+                json={"result": 2008, "error": "Invalid name"},
+                status=200,
             )
 
         for invalid_name in invalid_names:
@@ -842,16 +767,16 @@ class TestFolderErrorScenarios:
     def test_network_timeout_folder_operations(self):
         """Test folder operations with network timeout"""
         folder_id = 12345
-        
+
         def timeout_callback(request):
             raise Timeout("Request timed out")
-        
+
         responses.add_callback(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            callback=timeout_callback
+            callback=timeout_callback,
         )
-        
+
         with pytest.raises(Exception):  # Should propagate timeout error
             self.folder_ops.get_metadata(folder_id=folder_id)
 
@@ -859,23 +784,23 @@ class TestFolderErrorScenarios:
     def test_connection_error_folder_operations(self):
         """Test folder operations with connection error"""
         folder_id = 12345
-        
+
         def connection_error_callback(request):
             raise ConnectionError("Failed to connect")
-        
+
         responses.add_callback(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
-            callback=connection_error_callback
+            callback=connection_error_callback,
         )
-        
+
         with pytest.raises(Exception):  # Should propagate connection error
             self.folder_ops.get_metadata(folder_id=folder_id)
 
     def test_invalid_folder_ids(self):
         """Test operations with invalid folder IDs"""
         invalid_ids = [-1, "invalid", None]
-        
+
         for invalid_id in invalid_ids:
             with pytest.raises((TypeError, ValueError, PCloudException)):
                 self.folder_ops.get_content(folder_id=invalid_id)
@@ -884,7 +809,7 @@ class TestFolderErrorScenarios:
     def test_malformed_api_response(self):
         """Test handling of malformed API responses"""
         folder_id = 12345
-        
+
         # Response missing required fields
         responses.add(
             responses.GET,
@@ -893,11 +818,11 @@ class TestFolderErrorScenarios:
                 "result": 0
                 # Missing metadata field
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
-        
+
         # Should handle gracefully and return empty list
         assert result == []
 
@@ -927,9 +852,9 @@ class TestFolderOperationsIntegration:
                 "userid": 12345,
                 "email": "test@example.com",
                 "quota": 10737418240,
-                "usedquota": 1073741824
+                "usedquota": 1073741824,
             },
-            status=200
+            status=200,
         )
 
         # Mock user info for credential saving
@@ -941,30 +866,30 @@ class TestFolderOperationsIntegration:
                 "email": "test@example.com",
                 "userid": 12345,
                 "quota": 10737418240,
-                "usedquota": 1073741824
+                "usedquota": 1073741824,
             },
-            status=200
+            status=200,
         )
 
         # Initialize SDK
         sdk = PCloudSDK(token_file=self.token_file)
         sdk.login("test@example.com", "password", location_id=2)
-        
+
         # Test that folder operations are accessible through SDK
         assert sdk.folder is not None
-        assert hasattr(sdk.folder, 'create')
-        assert hasattr(sdk.folder, 'delete')
-        assert hasattr(sdk.folder, 'rename')
-        assert hasattr(sdk.folder, 'move')
-        assert hasattr(sdk.folder, 'list_folder')
-        assert hasattr(sdk.folder, 'get_content')
+        assert hasattr(sdk.folder, "create")
+        assert hasattr(sdk.folder, "delete")
+        assert hasattr(sdk.folder, "rename")
+        assert hasattr(sdk.folder, "move")
+        assert hasattr(sdk.folder, "list_folder")
+        assert hasattr(sdk.folder, "get_content")
 
     @responses.activate
     def test_complete_folder_lifecycle(self):
         """Test complete folder lifecycle: create, list, rename, move, delete"""
         sdk = PCloudSDK(token_file=self.token_file, token_manager=False)
         sdk.set_access_token("test_token", "direct")
-        
+
         # Mock folder creation
         responses.add(
             responses.GET,
@@ -975,10 +900,10 @@ class TestFolderOperationsIntegration:
                     "folderid": 12345,
                     "name": "TestFolder",
                     "isfolder": True,
-                    "parentfolderid": 0
-                }
+                    "parentfolderid": 0,
+                },
             },
-            status=200
+            status=200,
         )
 
         # Mock folder listing after creation
@@ -987,13 +912,9 @@ class TestFolderOperationsIntegration:
             "https://eapi.pcloud.com/listfolder",
             json={
                 "result": 0,
-                "metadata": {
-                    "folderid": 12345,
-                    "name": "TestFolder",
-                    "contents": []
-                }
+                "metadata": {"folderid": 12345, "name": "TestFolder", "contents": []},
             },
-            status=200
+            status=200,
         )
 
         # Mock folder rename
@@ -1005,35 +926,30 @@ class TestFolderOperationsIntegration:
                 "metadata": {
                     "folderid": 12345,
                     "name": "RenamedFolder",
-                    "isfolder": True
-                }
+                    "isfolder": True,
+                },
             },
-            status=200
+            status=200,
         )
 
         # Mock folder delete
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/deletefolder",
-            json={
-                "result": 0,
-                "metadata": {
-                    "isdeleted": True
-                }
-            },
-            status=200
+            json={"result": 0, "metadata": {"isdeleted": True}},
+            status=200,
         )
 
         # Execute complete lifecycle
         folder_id = sdk.folder.create("TestFolder", parent=0)
         assert folder_id == 12345
-        
+
         content = sdk.folder.get_content(folder_id=folder_id)
         assert content == []
-        
+
         renamed_id = sdk.folder.rename(folder_id, "RenamedFolder")
         assert renamed_id == folder_id
-        
+
         deleted = sdk.folder.delete(folder_id)
         assert deleted is True
 
@@ -1052,15 +968,12 @@ class TestFolderOperationsEdgeCases:
     def test_very_long_folder_name(self):
         """Test creating folder with very long name"""
         long_name = "A" * 1000  # 1000 character folder name
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/createfolder",
-            json={
-                "result": 2008,
-                "error": "Folder name too long"
-            },
-            status=200
+            json={"result": 2008, "error": "Folder name too long"},
+            status=200,
         )
 
         with pytest.raises(PCloudException):
@@ -1077,22 +990,18 @@ class TestFolderOperationsEdgeCases:
             "folder (with parentheses)",
             "folder [with brackets]",
             "folder {with braces}",
-            "🚀 emoji folder 📁"
+            "🚀 emoji folder 📁",
         ]
-        
+
         for i, name in enumerate(special_names):
             responses.add(
                 responses.GET,
                 "https://eapi.pcloud.com/createfolder",
                 json={
                     "result": 0,
-                    "metadata": {
-                        "folderid": 10000 + i,
-                        "name": name,
-                        "isfolder": True
-                    }
+                    "metadata": {"folderid": 10000 + i, "name": name, "isfolder": True},
                 },
-                status=200
+                status=200,
             )
 
         for i, name in enumerate(special_names):
@@ -1103,7 +1012,7 @@ class TestFolderOperationsEdgeCases:
     def test_empty_folder_listing(self):
         """Test listing completely empty folder"""
         folder_id = 12345
-        
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -1112,14 +1021,14 @@ class TestFolderOperationsEdgeCases:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "EmptyFolder",
-                    "contents": []
-                }
+                    "contents": [],
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
-        
+
         assert result == []
         assert isinstance(result, list)
 
@@ -1127,17 +1036,19 @@ class TestFolderOperationsEdgeCases:
     def test_folder_with_thousands_of_items(self):
         """Test folder with large number of items"""
         folder_id = 12345
-        
+
         # Generate 1000 mock items
         large_contents = []
         for i in range(1000):
-            large_contents.append({
-                "fileid": 20000 + i,
-                "name": f"file_{i:04d}.txt",
-                "isfolder": False,
-                "size": 1024
-            })
-        
+            large_contents.append(
+                {
+                    "fileid": 20000 + i,
+                    "name": f"file_{i:04d}.txt",
+                    "isfolder": False,
+                    "size": 1024,
+                }
+            )
+
         responses.add(
             responses.GET,
             "https://eapi.pcloud.com/listfolder",
@@ -1146,14 +1057,14 @@ class TestFolderOperationsEdgeCases:
                 "metadata": {
                     "folderid": folder_id,
                     "name": "LargeFolder",
-                    "contents": large_contents
-                }
+                    "contents": large_contents,
+                },
             },
-            status=200
+            status=200,
         )
 
         result = self.folder_ops.get_content(folder_id=folder_id)
-        
+
         assert len(result) == 1000
         assert result[0]["name"] == "file_0000.txt"
         assert result[999]["name"] == "file_0999.txt"
@@ -1162,7 +1073,7 @@ class TestFolderOperationsEdgeCases:
         """Test folder operations without setting authentication token"""
         unauthenticated_app = App()
         folder_ops = Folder(unauthenticated_app)
-        
+
         # This should fail during the actual API call
         # The behavior depends on the Request class implementation
         # For now, just verify the folder_ops instance is created
@@ -1173,7 +1084,7 @@ class TestFolderOperationsEdgeCases:
         """Test that multiple folder operations can be performed in sequence"""
         # This tests that the Folder class maintains proper state
         # between multiple operations
-        
+
         # Mock multiple folder creations
         for i in range(5):
             responses.add(
@@ -1184,17 +1095,17 @@ class TestFolderOperationsEdgeCases:
                     "metadata": {
                         "folderid": 30000 + i,
                         "name": f"Folder_{i}",
-                        "isfolder": True
-                    }
+                        "isfolder": True,
+                    },
                 },
-                status=200
+                status=200,
             )
 
         results = []
         for i in range(5):
             result = self.folder_ops.create(f"Folder_{i}")
             results.append(result)
-        
+
         assert results == [30000, 30001, 30002, 30003, 30004]
 
 
@@ -1207,41 +1118,45 @@ class TestFolderOperationsIntegrationReal:
     def test_real_folder_operations_lifecycle(self):
         """Test real folder operations lifecycle"""
         creds = get_test_credentials()
-        
+
         sdk = PCloudSDK()
         sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
-        
+
         try:
             # Create test folder
             folder_id = sdk.folder.create("SDK_Test_Folder", parent=0)
             assert isinstance(folder_id, int)
-            
+
             # List root to verify creation
             root_content = sdk.folder.list_root()
-            folder_names = [item["name"] for item in root_content["contents"] if item.get("isfolder")]
+            folder_names = [
+                item["name"]
+                for item in root_content["contents"]
+                if item.get("isfolder")
+            ]
             assert "SDK_Test_Folder" in folder_names
-            
+
             # Rename folder
             renamed_id = sdk.folder.rename(folder_id, "SDK_Test_Folder_Renamed")
             assert renamed_id == folder_id
-            
+
             # Create subfolder
             subfolder_id = sdk.folder.create("SubFolder", parent=folder_id)
             assert isinstance(subfolder_id, int)
-            
+
             # List folder content
             folder_content = sdk.folder.get_content(folder_id=folder_id)
             assert len(folder_content) == 1
             assert folder_content[0]["name"] == "SubFolder"
-            
+
             # Delete subfolder
             deleted_sub = sdk.folder.delete(subfolder_id)
             assert deleted_sub is True
-            
+
             # Delete main folder
             deleted_main = sdk.folder.delete(folder_id)
             assert deleted_main is True
-            
+
         except Exception as e:
             # Cleanup on error
             try:
@@ -1255,27 +1170,27 @@ class TestFolderOperationsIntegrationReal:
     def test_real_deep_folder_structure(self):
         """Test creating and navigating deep folder structure"""
         creds = get_test_credentials()
-        
+
         sdk = PCloudSDK()
         sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
-        
+
         folder_ids = []
         try:
             # Create nested folder structure: Level1/Level2/Level3
             level1_id = sdk.folder.create("Level1", parent=0)
             folder_ids.append(level1_id)
-            
+
             level2_id = sdk.folder.create("Level2", parent=level1_id)
             folder_ids.append(level2_id)
-            
+
             level3_id = sdk.folder.create("Level3", parent=level2_id)
             folder_ids.append(level3_id)
-            
+
             # Verify navigation
             result = sdk.folder.list_folder("Level1/Level2/Level3")
             assert result is not None
             assert result["folderid"] == level3_id
-            
+
         finally:
             # Cleanup - delete in reverse order
             for folder_id in reversed(folder_ids):

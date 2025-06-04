@@ -12,7 +12,7 @@ from pathlib import Path
 def run_command(cmd: list, description: str) -> bool:
     """Run a command and return True if successful"""
     print(f"🔍 {description}...")
-    
+
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         print(f"✅ {description} passed")
@@ -33,36 +33,58 @@ def main():
     """Run all linting tools"""
     print("🧹 Running code quality checks for pCloud SDK")
     print("=" * 50)
-    
+
     # Change to project root
     project_root = Path(__file__).parent.parent
     subprocess.run(["cd", str(project_root)], shell=True)
-    
+
     success = True
-    
+
     # List of checks to run
     checks = [
         # Black formatting check
-        (["python", "-m", "black", "--check", "--diff", "pcloud_sdk", "tests", "examples", "tools"], 
-         "Black code formatting"),
-        
+        (
+            [
+                "python",
+                "-m",
+                "black",
+                "--check",
+                "--diff",
+                "pcloud_sdk",
+                "tests",
+                "examples",
+                "tools",
+            ],
+            "Black code formatting",
+        ),
         # isort import sorting check
-        (["python", "-m", "isort", "--check-only", "--diff", "pcloud_sdk", "tests", "examples", "tools"], 
-         "isort import sorting"),
-        
+        (
+            [
+                "python",
+                "-m",
+                "isort",
+                "--check-only",
+                "--diff",
+                "pcloud_sdk",
+                "tests",
+                "examples",
+                "tools",
+            ],
+            "isort import sorting",
+        ),
         # Flake8 linting
-        (["python", "-m", "flake8", "pcloud_sdk", "tests", "examples", "tools"], 
-         "Flake8 linting"),
-        
+        (
+            ["python", "-m", "flake8", "pcloud_sdk", "tests", "examples", "tools"],
+            "Flake8 linting",
+        ),
         # MyPy type checking
-        (["python", "-m", "mypy", "pcloud_sdk"], 
-         "MyPy type checking"),
+        (["python", "-m", "mypy", "pcloud_sdk"], "MyPy type checking"),
     ]
-    
+
     for cmd, description in checks:
         if not run_command(cmd, description):
             success = False
-    
+
     print("\n" + "=" * 50)
     if success:
         print("🎉 All checks passed!")

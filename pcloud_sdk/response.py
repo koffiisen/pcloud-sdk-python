@@ -15,7 +15,10 @@ class Response:
 
     def _parse_json(self):
         """Parse JSON response if content type is JSON"""
-        if isinstance(self.response_data, str) and "application/json" in self.content_type:
+        if (
+            isinstance(self.response_data, str)
+            and "application/json" in self.content_type
+        ):
             try:
                 self.response_data = json.loads(self.response_data)
             except json.JSONDecodeError:
@@ -27,10 +30,10 @@ class Response:
             raise PCloudException(f"HTTP Code = {self.status_code}")
 
         if isinstance(self.response_data, dict):
-            if self.response_data.get('result') == 0:
+            if self.response_data.get("result") == 0:
                 return self._parse_response()
             else:
-                raise PCloudException(self.response_data.get('error', 'Unknown error'))
+                raise PCloudException(self.response_data.get("error", "Unknown error"))
 
         return self.response_data
 
