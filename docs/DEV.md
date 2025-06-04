@@ -386,6 +386,20 @@ pcloud-sdk-python/
 
 ## 📦 Release Process
 
+### Automated Release via GitHub Actions
+
+Pushing a git tag prefixed with 'v' (e.g., `v1.0.0`, `v1.2.3`) to the repository triggers an automated release workflow. This workflow performs the following steps:
+
+- **Runs tests**: Ensures code quality and functionality.
+- **Builds the package**: Creates the distributable package files.
+- **Publishes to TestPyPI**: Uploads the package to the Test Python Package Index for pre-production testing.
+- **Publishes to PyPI**: Uploads the package to the official Python Package Index, making it available to users.
+- **Creates a GitHub Release**: Generates a release entry on GitHub, based on the tag, including release notes and assets.
+
+This automated process relies on the following secrets being configured in the GitHub repository settings:
+- `PYPI_API_TOKEN`: For publishing to the official PyPI.
+- `TEST_PYPI_API_TOKEN`: For publishing to TestPyPI.
+
 ### Development Release (Test PyPI)
 
 ```bash
@@ -399,16 +413,16 @@ python tools/release.py major --test-only
 
 ### Production Release
 
+The `tools/release.py` script can assist with version bumping and tagging locally. For example:
 ```bash
-# Create production release
+# Bump patch version and create tag
 python tools/release.py patch
-
-# Push changes and tags
-git push origin main
-git push origin v1.x.x
 ```
+Once a `v*` tag (e.g., `v1.0.1`) is pushed to the repository (e.g., `git push origin v1.0.1`), the automated GitHub Actions workflow handles the PyPI publication and GitHub Release creation.
 
 ### Manual Release Steps
+
+The following manual steps can be used as a fallback or for special release scenarios if the automated GitHub Actions workflow is not used:
 
 1. **Update Version**:
    ```bash
