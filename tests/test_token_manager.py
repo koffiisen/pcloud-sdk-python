@@ -225,32 +225,71 @@ class TestTokenValidationAndExpiration:
         with open(self.token_file, 'w') as f:
             json.dump(old_credentials, f)
 
-        sdk = PCloudSDK(token_file=self.token_file)
+        sdk = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
         loaded = sdk._load_saved_credentials()
-
-        assert loaded is False
+        assert loaded is False, "Token saved 31 days ago should be stale with default staleness (30 days)"
         assert sdk.app.get_access_token() == ""
+        safe_remove_file(self.token_file)
+
+        # Scenario 2: token_staleness_days = 40, token saved 31 days ago (should be valid)
+        with open(self.token_file, 'w') as f:
+            json.dump(old_credentials, f)
+        sdk_long_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=40)
+        loaded_long = sdk_long_staleness._load_saved_credentials()
+        assert loaded_long is True, "Token saved 31 days ago should be valid with token_staleness_days=40"
+        assert sdk_long_staleness.app.get_access_token() == "old_token_123"
+        safe_remove_file(self.token_file)
+
+        # Scenario 3: token_staleness_days = 0, token saved 1 second ago (should be stale)
+        very_recent_time = time.time() - 1 # 1 second ago
+        very_recent_credentials = {
+            "email": "test@example.com", "access_token": "recent_token_stale_immediately",
+            "location_id": 2, "auth_type": "direct", "saved_at": very_recent_time
+        }
+        with open(self.token_file, 'w') as f:
+            json.dump(very_recent_credentials, f)
+        sdk_zero_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=0)
+        loaded_zero = sdk_zero_staleness._load_saved_credentials()
+        assert loaded_zero is False, "Token saved 1s ago should be stale with token_staleness_days=0"
+        assert sdk_zero_staleness.app.get_access_token() == ""
 
     def test_load_recent_credentials(self):
-        """Test loading recent credentials (within 30 days)"""
+        """Test loading recent credentials with various staleness settings"""
         # Create credentials from 15 days ago
-        recent_time = time.time() - (15 * 24 * 3600)  # 15 days ago
+        fifteen_days_ago = time.time() - (15 * 24 * 3600)  # 15 days ago
         recent_credentials = {
             "email": "test@example.com",
             "access_token": "recent_token_123",
             "location_id": 2,
             "auth_type": "direct",
-            "saved_at": recent_time
+            "saved_at": fifteen_days_ago
         }
 
+        # Scenario 1: Default staleness (30 days), 15-day old token (should be valid)
         with open(self.token_file, 'w') as f:
             json.dump(recent_credentials, f)
+        sdk_default = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
+        loaded_default = sdk_default._load_saved_credentials()
+        assert loaded_default is True, "15-day old token should be valid with default staleness (30 days)"
+        assert sdk_default.app.get_access_token() == "recent_token_123"
+        safe_remove_file(self.token_file)
 
-        sdk = PCloudSDK(token_file=self.token_file)
-        loaded = sdk._load_saved_credentials()
+        # Scenario 2: staleness = 10 days, 15-day old token (should be stale)
+        with open(self.token_file, 'w') as f:
+            json.dump(recent_credentials, f)
+        sdk_short_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=10)
+        loaded_short = sdk_short_staleness._load_saved_credentials()
+        assert loaded_short is False, "15-day old token should be stale with token_staleness_days=10"
+        assert sdk_short_staleness.app.get_access_token() == ""
+        safe_remove_file(self.token_file)
 
-        assert loaded is True
-        assert sdk.app.get_access_token() == "recent_token_123"
+        # Scenario 3: staleness = 20 days, 15-day old token (should be valid)
+        with open(self.token_file, 'w') as f:
+            json.dump(recent_credentials, f)
+        sdk_custom_valid_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=20)
+        loaded_custom_valid = sdk_custom_valid_staleness._load_saved_credentials()
+        assert loaded_custom_valid is True, "15-day old token should be valid with token_staleness_days=20"
+        assert sdk_custom_valid_staleness.app.get_access_token() == "recent_token_123"
 
     def test_load_credentials_no_timestamp(self):
         """Test loading credentials without saved_at timestamp"""
@@ -265,11 +304,17 @@ class TestTokenValidationAndExpiration:
         with open(self.token_file, 'w') as f:
             json.dump(credentials_no_time, f)
 
-        sdk = PCloudSDK(token_file=self.token_file)
-        loaded = sdk._load_saved_credentials()
+        sdk_default = PCloudSDK(token_file=self.token_file) # Default staleness = 30 days
+        loaded_default = sdk_default._load_saved_credentials()
+        assert loaded_default is False, "Credentials with no timestamp should be stale with default staleness"
+        safe_remove_file(self.token_file)
 
-        # Should treat as old (default to 0) and reject
-        assert loaded is False
+        # Test with a very long staleness period, should still be stale
+        with open(self.token_file, 'w') as f:
+            json.dump(credentials_no_time, f)
+        sdk_long_staleness = PCloudSDK(token_file=self.token_file, token_staleness_days=1000)
+        loaded_long_staleness = sdk_long_staleness._load_saved_credentials()
+        assert loaded_long_staleness is False, "Credentials with no timestamp should always be stale"
 
     @responses.activate
     def test_validate_existing_credentials_valid(self):
@@ -731,17 +776,50 @@ class TestTokenCleanupOperations:
             with open(filepath, 'w') as f:
                 json.dump(credentials, f)
         
-        # Test loading - should reject old files
-        for filename, timestamp in files_info:
-            filepath = os.path.join(self.temp_dir, filename)
-            sdk = PCloudSDK(token_file=filepath)
-            loaded = sdk._load_saved_credentials()
+        # Test loading with different staleness settings
+        staleness_settings_to_test = [
+            {"days": 30, "expected_rejection_for_old": True, "expected_rejection_for_ancient": True}, # Default
+            {"days": 60, "expected_rejection_for_old": False, "expected_rejection_for_ancient": True}, # Longer
+            {"days": 100, "expected_rejection_for_old": False, "expected_rejection_for_ancient": False}, # Very long
+            {"days": 0, "expected_rejection_for_old": True, "expected_rejection_for_ancient": True} # Immediate
+        ]
+
+        for setting in staleness_settings_to_test:
+            staleness = setting["days"]
+            for filename, timestamp in files_info:
+                filepath = os.path.join(self.temp_dir, filename)
+                # Ensure file exists for this iteration
+                temp_creds = {
+                    "email": f"user@{filename}", "access_token": f"token_{filename}",
+                    "location_id": 2, "saved_at": timestamp
+                }
+                with open(filepath, 'w') as f_temp:
+                    json.dump(temp_creds, f_temp)
+
+                sdk = PCloudSDK(token_file=filepath, token_staleness_days=staleness)
+                loaded = sdk._load_saved_credentials()
+
+                age_days = (time.time() - timestamp) / (24 * 3600)
+
+                is_old_file_scenario = "old.json" in filename # 45 days
+                is_ancient_file_scenario = "ancient.json" in filename # 90 days
+
+                expected_to_load = True
+                if age_days > staleness:
+                    expected_to_load = False
+
+                # For no timestamp, it should always be false
+                if "saved_at" not in temp_creds and timestamp == 0 : # A bit of a hack for this test structure
+                     expected_to_load = False
+
+
+                assert loaded is expected_to_load, \
+                    f"File {filename} (age {age_days:.1f}d) load status {loaded} was not {expected_to_load} with staleness {staleness}d"
             
-            age_days = (time.time() - timestamp) / (24 * 3600)
-            if age_days > 30:
-                assert loaded is False  # Should reject old credentials
-            else:
-                assert loaded is True   # Should accept recent credentials
+            # Clean up files for the next staleness setting iteration
+            for filename, _ in files_info:
+                safe_remove_file(os.path.join(self.temp_dir, filename))
+
 
     def test_token_file_corruption_recovery(self):
         """Test recovery from corrupted token files"""

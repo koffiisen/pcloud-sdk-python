@@ -366,6 +366,56 @@ class TestTokenManagement:
         assert loaded is False
         assert sdk.app.get_access_token() == ""
 
+    def test_load_expired_credentials_custom_staleness(self):
+        """Test loading old/expired credentials with custom staleness periods"""
+        # Scenario 1: token_staleness_days = 0 (always stale unless saved_at is future/now)
+        very_recent_time = time.time() - 1  # 1 second ago
+        credentials_almost_now = {
+            "email": "stale@example.com", "access_token": "stale_token_1",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": very_recent_time
+        }
+        with open(self.token_file, 'w') as f:
+            json.dump(credentials_almost_now, f)
+
+        sdk_staleness_zero = PCloudSDK(token_file=self.token_file, token_staleness_days=0)
+        loaded = sdk_staleness_zero._load_saved_credentials()
+        assert loaded is False, "Token saved 1s ago should be stale with token_staleness_days=0"
+        assert sdk_staleness_zero.app.get_access_token() == ""
+        safe_remove_file(self.token_file) # Clean up for next scenario
+
+        # Scenario 2: token_staleness_days = 1, token saved 2 days ago (should be stale)
+        two_days_ago = time.time() - (2 * 24 * 3600)
+        credentials_two_days_old = {
+            "email": "stale@example.com", "access_token": "stale_token_2",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": two_days_ago
+        }
+        with open(self.token_file, 'w') as f:
+            json.dump(credentials_two_days_old, f)
+
+        sdk_staleness_one_day = PCloudSDK(token_file=self.token_file, token_staleness_days=1)
+        loaded = sdk_staleness_one_day._load_saved_credentials()
+        assert loaded is False, "Token saved 2 days ago should be stale with token_staleness_days=1"
+        assert sdk_staleness_one_day.app.get_access_token() == ""
+        safe_remove_file(self.token_file)
+
+        # Scenario 3: token_staleness_days = 60, token saved 31 days ago (should be valid)
+        thirty_one_days_ago = time.time() - (31 * 24 * 3600)
+        credentials_thirty_one_days_old = {
+            "email": "valid@example.com", "access_token": "valid_token_long_staleness",
+            "location_id": 1, "auth_type": "direct", "user_info": {},
+            "saved_at": thirty_one_days_ago
+        }
+        with open(self.token_file, 'w') as f:
+            json.dump(credentials_thirty_one_days_old, f)
+
+        sdk_staleness_sixty_days = PCloudSDK(token_file=self.token_file, token_staleness_days=60)
+        loaded = sdk_staleness_sixty_days._load_saved_credentials()
+        assert loaded is True, "Token saved 31 days ago should be valid with token_staleness_days=60"
+        assert sdk_staleness_sixty_days.app.get_access_token() == "valid_token_long_staleness"
+        safe_remove_file(self.token_file)
+
     def test_clear_saved_credentials(self):
         """Test clearing saved credentials"""
         # Create test credentials file
@@ -577,6 +627,40 @@ class TestSDKAuthentication:
         assert info["location_id"] == 2
         assert info["auth_type"] == "direct"
         assert "age_days" in info
+
+    @responses.activate
+    def test_login_or_load_deprecation_warning(self):
+        """Test that login_or_load issues a DeprecationWarning and still functions."""
+        # Mock login response (userinfo is called by login)
+        responses.add(
+            responses.GET,
+            "https://eapi.pcloud.com/userinfo",  # This is the endpoint for login
+            json={
+                "result": 0, "auth": "test_token_123", "userid": 12345,
+                "email": "test@example.com", "quota": 10737418240, "usedquota": 1073741824
+            },
+            status=200
+        )
+        # Mock userinfo again for the _save_credentials part
+        responses.add(
+            responses.GET,
+            "https://eapi.pcloud.com/userinfo", # This is the endpoint for get_user_info
+            json={
+                "result": 0, "email": "test@example.com", "userid": 12345,
+                "quota": 10737418240, "usedquota": 1073741824
+            },
+            status=200
+        )
+
+        sdk = PCloudSDK(token_file=self.token_file)
+
+        with pytest.warns(DeprecationWarning, match="The 'login_or_load' method is deprecated"):
+            login_info = sdk.login_or_load("test@example.com", "test_password", location_id=2)
+
+        assert login_info["access_token"] == "test_token_123"
+        assert login_info["email"] == "test@example.com"
+        assert sdk.is_authenticated() is True
+        assert os.path.exists(self.token_file) # Check if credentials were saved
 
 
 class TestErrorHandling:
