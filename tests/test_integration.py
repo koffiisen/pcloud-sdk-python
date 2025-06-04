@@ -112,7 +112,7 @@ class TestEndToEndWorkflows:
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/cBRFZF7ZTKMDlKfpKv5VIQbNVrBJNIZ0/test_file.txt",
-            content=b"Test file content for download",
+            body=b"Test file content for download",
             headers={'content-length': '26'},
             status=200
         )
@@ -688,7 +688,7 @@ class TestProgressTrackingIntegration:
         responses.add(
             responses.GET,
             "https://c123.pcloud.com/path/to/download_test.txt",
-            content=b"Downloaded content with progress tracking",
+            body=b"Downloaded content with progress tracking",
             headers={'content-length': '39'},
             status=200
         )

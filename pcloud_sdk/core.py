@@ -80,6 +80,10 @@ class PCloudSDK:
             with open(self.token_file, 'w') as f:
                 json.dump(credentials, f, indent=2)
             print(f"✅ Credentials saved in {self.token_file}")
+            # Update internal state only if write was successful
+            self._saved_credentials = credentials
+            self.app.set_access_token(token, self.app.get_auth_type())
+            self.app.set_location_id(location_id)
         except (IOError, OSError) as e:
             print(f"⚠️ Could not save credentials to {self.token_file}: {e}")
 
@@ -101,10 +105,19 @@ class PCloudSDK:
                 print(f"⚠️ Old credentials ({age_days:.1f} days, limit is {self.token_staleness_days} days), new login recommended")
                 return False
 
+            # Get essential credentials with defaults or check for presence
+            access_token = credentials.get('access_token')
+            auth_type = credentials.get('auth_type', 'direct')
+            location_id = credentials.get('location_id', 2) # Default to EU if not specified
+
+            if access_token is None:
+                print(f"⚠️ Credentials in {self.token_file} are missing 'access_token'. Cannot load.")
+                return False
+
             # Set the loaded credentials
-            self.app.set_access_token(credentials['access_token'], credentials.get('auth_type', 'direct'))
-            self.app.set_location_id(credentials.get('location_id', 2))
-            self._saved_credentials = credentials
+            self.app.set_access_token(access_token, auth_type)
+            self.app.set_location_id(location_id)
+            self._saved_credentials = credentials # Save the full original credentials dict
 
             print(f"🔄 Credentials loaded: {credentials.get('email', 'Unknown')}")
             return True
@@ -139,8 +152,12 @@ class PCloudSDK:
             try:
                 os.remove(self.token_file)
                 print(f"🧹 Credentials deleted from {self.token_file}")
-            except Exception as e:
-                print(f"⚠️ Error deleting credentials: {e}")
+            except PermissionError as e:
+                print(f"⚠️ Could not delete credentials from {self.token_file} due to a permission error: {e}")
+            except OSError as e: # Catch other OS-level errors during delete
+                print(f"⚠️ Error deleting credentials from {self.token_file}: {e}")
+            except Exception as e: # Catch any other unexpected error
+                print(f"⚠️ An unexpected error occurred while deleting credentials: {e}")
         self._saved_credentials = None
 
     def get_saved_email(self) -> Optional[str]:

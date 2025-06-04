@@ -5,8 +5,10 @@ Tests token saving/loading, validation, expiration, multi-account management, an
 
 import json
 import os
+import sys
 import tempfile
 import time
+from io import StringIO
 from unittest.mock import Mock, patch, mock_open
 
 import pytest
@@ -746,13 +748,24 @@ class TestTokenCleanupOperations:
         
         # Make file read-only (simulate permission error)
         if os.name != 'nt':  # Not Windows
-            os.chmod(self.token_file, 0o444)
-            
-            # Should handle error gracefully
-            sdk.clear_saved_credentials()
-            
-            # Restore permissions for cleanup
-            os.chmod(self.token_file, 0o666)
+            original_stdout = sys.stdout
+            sys.stdout = captured_stdout = StringIO()
+
+            try:
+                os.chmod(self.token_file, 0o444) # Make read-only
+                sdk.clear_saved_credentials()
+            finally:
+                sys.stdout = original_stdout # Restore stdout
+                # Always attempt to restore permissions for subsequent tests/cleanup
+                os.chmod(self.token_file, 0o666)
+
+            output = captured_stdout.getvalue()
+
+            assert os.path.exists(self.token_file) # File should still exist
+            assert "Could not delete credentials" in output
+            assert "due to a permission error" in output
+        else:
+            pytest.skip("Permission test not applicable on Windows in this manner")
 
     def test_cleanup_old_token_files(self):
         """Test cleanup of old token files"""
