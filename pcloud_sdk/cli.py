@@ -10,8 +10,8 @@ import sys
 from pathlib import Path
 
 try:
-    from pcloud_sdk import PCloudSDK, PCloudException
-    from pcloud_sdk.progress_utils import create_progress_bar, create_minimal_progress
+    from pcloud_sdk import PCloudException, PCloudSDK
+    from pcloud_sdk.progress_utils import create_minimal_progress, create_progress_bar
 except ImportError:
     print("❌ pCloud SDK not found. Install it with: pip install pcloud-sdk-python")
     sys.exit(1)
@@ -28,7 +28,7 @@ class PCloudCLI:
         """Load CLI configuration"""
         if self.config_file.exists():
             try:
-                with open(self.config_file, 'r') as f:
+                with open(self.config_file, "r") as f:
                     return json.load(f)
             except Exception:
                 pass
@@ -37,7 +37,7 @@ class PCloudCLI:
     def save_config(self, config: dict):
         """Save CLI configuration"""
         try:
-            with open(self.config_file, 'w') as f:
+            with open(self.config_file, "w") as f:
                 json.dump(config, f, indent=2)
         except Exception as e:
             print(f"⚠️ Unable to save config: {e}")
@@ -49,8 +49,8 @@ class PCloudCLI:
             config = self.load_config()
 
             # Determine connection parameters
-            email = args.email or config.get('email')
-            location_id = args.location or config.get('location_id', 2)
+            email = args.email or config.get("email")
+            location_id = args.location or config.get("location_id", 2)
 
             if not email and not args.token:
                 print("❌ Email required for first connection")
@@ -61,7 +61,8 @@ class PCloudCLI:
                 access_token=args.token or "",
                 location_id=location_id,
                 token_manager=not args.no_token_manager,
-                token_file=args.token_file or config.get('token_file', '.pcloud_credentials')
+                token_file=args.token_file
+                or config.get("token_file", ".pcloud_credentials"),
             )
 
             # Connect if necessary
@@ -73,6 +74,7 @@ class PCloudCLI:
                 password = args.password
                 if not password:
                     import getpass
+
                     password = getpass.getpass("🔑 pCloud password: ")
 
                 if not password:
@@ -84,10 +86,12 @@ class PCloudCLI:
                 print(f"✅ Connected: {login_info['email']}")
 
                 # Save config
-                config.update({
-                    'email': login_info['email'],
-                    'location_id': login_info['locationid']
-                })
+                config.update(
+                    {
+                        "email": login_info["email"],
+                        "location_id": login_info["locationid"],
+                    }
+                )
                 self.save_config(config)
 
             return True
@@ -139,9 +143,15 @@ class PCloudCLI:
             print("📊 Account information:")
             print(f"   📧 Email: {user_info.get('email', 'Unknown')}")
             print(f"   🆔 User ID: {user_info.get('userid', 'Unknown')}")
-            print(f"   💾 Quota used: {used_quota:,} bytes ({used_quota / (1024 ** 3):.2f} GB)")
-            print(f"   📦 Total quota: {total_quota:,} bytes ({total_quota / (1024 ** 3):.2f} GB)")
-            print(f"   🆓 Free space: {(total_quota - used_quota) / (1024 ** 3):.2f} GB")
+            print(
+                f"   💾 Quota used: {used_quota:,} bytes ({used_quota / (1024 ** 3):.2f} GB)"
+            )
+            print(
+                f"   📦 Total quota: {total_quota:,} bytes ({total_quota / (1024 ** 3):.2f} GB)"
+            )
+            print(
+                f"   🆓 Free space: {(total_quota - used_quota) / (1024 ** 3):.2f} GB"
+            )
 
             return 0
         except Exception as e:
@@ -158,7 +168,7 @@ class PCloudCLI:
                 contents = self.sdk.folder.get_content(args.folder_id)
             else:
                 root_contents = self.sdk.folder.list_root()
-                contents = root_contents.get('contents', [])
+                contents = root_contents.get("contents", [])
 
             if not contents:
                 print("📁 Empty folder")
@@ -167,14 +177,16 @@ class PCloudCLI:
             print(f"📁 Folder contents ({len(contents)} items):")
 
             for item in contents:
-                icon = "📁" if item.get('isfolder') else "📄"
-                name = item.get('name', 'Unnamed')
+                icon = "📁" if item.get("isfolder") else "📄"
+                name = item.get("name", "Unnamed")
 
-                if item.get('isfolder'):
+                if item.get("isfolder"):
                     print(f"   {icon} {name}/ (ID: {item.get('folderid', 'Unknown')})")
                 else:
-                    size = item.get('size', 0)
-                    print(f"   {icon} {name} ({size:,} bytes, ID: {item.get('fileid', 'Unknown')})")
+                    size = item.get("size", 0)
+                    print(
+                        f"   {icon} {name} ({size:,} bytes, ID: {item.get('fileid', 'Unknown')})"
+                    )
 
             return 0
         except Exception as e:
@@ -210,12 +222,12 @@ class PCloudCLI:
                 str(file_path),
                 folder_id=args.folder_id or 0,
                 filename=args.name or file_path.name,
-                progress_callback=progress_callback
+                progress_callback=progress_callback,
             )
 
-            if 'metadata' in result:
-                file_id = result['metadata']['fileid']
-                file_size = result['metadata']['size']
+            if "metadata" in result:
+                file_id = result["metadata"]["fileid"]
+                file_size = result["metadata"]["size"]
                 print(f"✅ Upload réussi!")
                 print(f"   🆔 File ID: {file_id}")
                 print(f"   📏 Taille: {file_size:,} bytes")
@@ -251,9 +263,7 @@ class PCloudCLI:
             print(f"📥 Download du fichier {args.file_id}...")
 
             success = self.sdk.file.download(
-                args.file_id,
-                destination,
-                progress_callback=progress_callback
+                args.file_id, destination, progress_callback=progress_callback
             )
 
             if success:
@@ -304,56 +314,74 @@ Exemples d'utilisation:
   pcloud-sdk download --file-id 123456 --destination ./downloads/
   pcloud-sdk delete --file-id 123456
   pcloud-sdk logout
-        """
+        """,
     )
 
     # Arguments globaux
-    parser.add_argument('--email', help='Email pCloud')
-    parser.add_argument('--password', help='Mot de passe pCloud')
-    parser.add_argument('--token', help='Token d\'accès existant')
-    parser.add_argument('--location', type=int, choices=[1, 2], default=2,
-                        help='Localisation serveur (1=US, 2=EU, défaut=2)')
-    parser.add_argument('--token-file', help='Fichier de token personnalisé')
-    parser.add_argument('--no-token-manager', action='store_true',
-                        help='Désactiver le gestionnaire de token')
-    parser.add_argument('--quiet', '-q', action='store_true',
-                        help='Mode silencieux')
-    parser.add_argument('--minimal', '-m', action='store_true',
-                        help='Progression minimale')
+    parser.add_argument("--email", help="Email pCloud")
+    parser.add_argument("--password", help="Mot de passe pCloud")
+    parser.add_argument("--token", help="Token d'accès existant")
+    parser.add_argument(
+        "--location",
+        type=int,
+        choices=[1, 2],
+        default=2,
+        help="Localisation serveur (1=US, 2=EU, défaut=2)",
+    )
+    parser.add_argument("--token-file", help="Fichier de token personnalisé")
+    parser.add_argument(
+        "--no-token-manager",
+        action="store_true",
+        help="Désactiver le gestionnaire de token",
+    )
+    parser.add_argument("--quiet", "-q", action="store_true", help="Mode silencieux")
+    parser.add_argument(
+        "--minimal", "-m", action="store_true", help="Progression minimale"
+    )
 
     # Sous-commandes
-    subparsers = parser.add_subparsers(dest='command', help='Available commands')
+    subparsers = parser.add_subparsers(dest="command", help="Available commands")
 
     # Login
-    login_parser = subparsers.add_parser('login', help='Login to pCloud')
-    login_parser.add_argument('--email', required=True, help='Email pCloud')
+    login_parser = subparsers.add_parser("login", help="Login to pCloud")
+    login_parser.add_argument("--email", required=True, help="Email pCloud")
 
     # Logout
-    subparsers.add_parser('logout', help='Logout from pCloud')
+    subparsers.add_parser("logout", help="Logout from pCloud")
 
     # Info
-    subparsers.add_parser('info', help='Display account information')
+    subparsers.add_parser("info", help="Display account information")
 
     # List
-    list_parser = subparsers.add_parser('list', help='List folder contents')
-    list_parser.add_argument('--folder-id', type=int, help='ID du dossier (défaut=racine)')
+    list_parser = subparsers.add_parser("list", help="List folder contents")
+    list_parser.add_argument(
+        "--folder-id", type=int, help="ID du dossier (défaut=racine)"
+    )
 
     # Upload
-    upload_parser = subparsers.add_parser('upload', help='Upload a file')
-    upload_parser.add_argument('--file', required=True, help='Chemin du fichier à uploader')
-    upload_parser.add_argument('--folder-id', type=int, default=0, help='ID du dossier destination')
-    upload_parser.add_argument('--name', help='Nom personnalisé pour le fichier')
+    upload_parser = subparsers.add_parser("upload", help="Upload a file")
+    upload_parser.add_argument(
+        "--file", required=True, help="Chemin du fichier à uploader"
+    )
+    upload_parser.add_argument(
+        "--folder-id", type=int, default=0, help="ID du dossier destination"
+    )
+    upload_parser.add_argument("--name", help="Nom personnalisé pour le fichier")
 
     # Download
-    download_parser = subparsers.add_parser('download', help='Download a file')
-    download_parser.add_argument('--file-id', type=int, required=True, help='ID du fichier')
-    download_parser.add_argument('--destination', default='.', help='Dossier de destination')
+    download_parser = subparsers.add_parser("download", help="Download a file")
+    download_parser.add_argument(
+        "--file-id", type=int, required=True, help="ID du fichier"
+    )
+    download_parser.add_argument(
+        "--destination", default=".", help="Dossier de destination"
+    )
 
     # Delete
-    delete_parser = subparsers.add_parser('delete', help='Delete a file or folder')
+    delete_parser = subparsers.add_parser("delete", help="Delete a file or folder")
     delete_group = delete_parser.add_mutually_exclusive_group(required=True)
-    delete_group.add_argument('--file-id', type=int, help='ID du fichier à supprimer')
-    delete_group.add_argument('--folder-id', type=int, help='ID du dossier à supprimer')
+    delete_group.add_argument("--file-id", type=int, help="ID du fichier à supprimer")
+    delete_group.add_argument("--folder-id", type=int, help="ID du dossier à supprimer")
 
     args = parser.parse_args()
 
@@ -365,19 +393,19 @@ Exemples d'utilisation:
     cli = PCloudCLI()
 
     try:
-        if args.command == 'login':
+        if args.command == "login":
             return cli.cmd_login(args)
-        elif args.command == 'logout':
+        elif args.command == "logout":
             return cli.cmd_logout(args)
-        elif args.command == 'info':
+        elif args.command == "info":
             return cli.cmd_info(args)
-        elif args.command == 'list':
+        elif args.command == "list":
             return cli.cmd_list(args)
-        elif args.command == 'upload':
+        elif args.command == "upload":
             return cli.cmd_upload(args)
-        elif args.command == 'download':
+        elif args.command == "download":
             return cli.cmd_download(args)
-        elif args.command == 'delete':
+        elif args.command == "delete":
             return cli.cmd_delete(args)
         else:
             print(f"❌ Commande inconnue: {args.command}")

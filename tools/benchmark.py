@@ -8,9 +8,9 @@ import os
 import statistics
 import tempfile
 import time
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class PerformanceTracker:
@@ -37,12 +37,14 @@ class PerformanceTracker:
         if self.start_time:
             elapsed = now - self.start_time
             speed = bytes_transferred / elapsed if elapsed > 0 else 0
-            self.checkpoints.append({
-                'time': now,
-                'elapsed': elapsed,
-                'bytes': bytes_transferred,
-                'speed': speed
-            })
+            self.checkpoints.append(
+                {
+                    "time": now,
+                    "elapsed": elapsed,
+                    "bytes": bytes_transferred,
+                    "speed": speed,
+                }
+            )
         self.bytes_transferred = bytes_transferred
 
     def finish(self):
@@ -59,24 +61,27 @@ class PerformanceTracker:
         avg_speed = self.bytes_transferred / total_time if total_time > 0 else 0
 
         # Calculate instantaneous speeds
-        instant_speeds = [cp['speed'] for cp in self.checkpoints if cp['speed'] > 0]
+        instant_speeds = [cp["speed"] for cp in self.checkpoints if cp["speed"] > 0]
 
         stats = {
-            'name': self.name,
-            'total_time': total_time,
-            'bytes_transferred': self.bytes_transferred,
-            'total_bytes': self.total_bytes,
-            'avg_speed_bps': avg_speed,
-            'avg_speed_mbps': avg_speed / (1024 * 1024),
-            'checkpoints_count': len(self.checkpoints)
+            "name": self.name,
+            "total_time": total_time,
+            "bytes_transferred": self.bytes_transferred,
+            "total_bytes": self.total_bytes,
+            "avg_speed_bps": avg_speed,
+            "avg_speed_mbps": avg_speed / (1024 * 1024),
+            "checkpoints_count": len(self.checkpoints),
         }
 
         if instant_speeds:
-            stats.update({
-                'min_speed_mbps': min(instant_speeds) / (1024 * 1024),
-                'max_speed_mbps': max(instant_speeds) / (1024 * 1024),
-                'median_speed_mbps': statistics.median(instant_speeds) / (1024 * 1024)
-            })
+            stats.update(
+                {
+                    "min_speed_mbps": min(instant_speeds) / (1024 * 1024),
+                    "max_speed_mbps": max(instant_speeds) / (1024 * 1024),
+                    "median_speed_mbps": statistics.median(instant_speeds)
+                    / (1024 * 1024),
+                }
+            )
 
         return stats
 
@@ -138,15 +143,17 @@ class PCloudBenchmark:
             content = os.urandom(size_bytes)  # Random data
 
             # Create temporary file
-            with tempfile.NamedTemporaryFile(mode='wb', delete=False, suffix=f'_{size_name}.bin') as f:
+            with tempfile.NamedTemporaryFile(
+                mode="wb", delete=False, suffix=f"_{size_name}.bin"
+            ) as f:
                 f.write(content)
                 temp_path = f.name
 
             test_file = {
-                'path': temp_path,
-                'size_bytes': size_bytes,
-                'size_name': size_name,
-                'filename': f"benchmark_{size_name}.bin"
+                "path": temp_path,
+                "size_bytes": size_bytes,
+                "size_name": size_name,
+                "filename": f"benchmark_{size_name}.bin",
             }
 
             test_files.append(test_file)
@@ -156,7 +163,9 @@ class PCloudBenchmark:
 
         return test_files
 
-    def benchmark_upload(self, test_file: Dict[str, Any], runs: int = 3) -> List[Dict[str, Any]]:
+    def benchmark_upload(
+        self, test_file: Dict[str, Any], runs: int = 3
+    ) -> List[Dict[str, Any]]:
         """Benchmark file upload"""
         results = []
 
@@ -164,32 +173,38 @@ class PCloudBenchmark:
 
         for run in range(runs):
             # Performance tracker with callback
-            tracker = PerformanceTracker(f"Upload {test_file['size_name']} run {run + 1}")
+            tracker = PerformanceTracker(
+                f"Upload {test_file['size_name']} run {run + 1}"
+            )
 
-            def progress_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
+            def progress_callback(
+                bytes_transferred, total_bytes, percentage, speed, **kwargs
+            ):
                 tracker.checkpoint(bytes_transferred)
 
             try:
-                tracker.start(test_file['size_bytes'])
+                tracker.start(test_file["size_bytes"])
 
                 upload_result = self.sdk.file.upload(
-                    test_file['path'],
+                    test_file["path"],
                     filename=f"{test_file['filename']}_run{run + 1}",
-                    progress_callback=progress_callback
+                    progress_callback=progress_callback,
                 )
 
                 stats = tracker.finish()
 
-                if 'metadata' in upload_result:
-                    file_id = upload_result['metadata']['fileid']
-                    stats['file_id'] = file_id
-                    stats['run'] = run + 1
-                    stats['success'] = True
+                if "metadata" in upload_result:
+                    file_id = upload_result["metadata"]["fileid"]
+                    stats["file_id"] = file_id
+                    stats["run"] = run + 1
+                    stats["success"] = True
 
                     results.append(stats)
 
-                    print(f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
-                          f"({stats['total_time']:.2f}s)")
+                    print(
+                        f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
+                        f"({stats['total_time']:.2f}s)"
+                    )
 
                     # Delete uploaded file to avoid clutter
                     try:
@@ -200,14 +215,16 @@ class PCloudBenchmark:
             except Exception as e:
                 print(f"   ❌ Run {run + 1} failed: {e}")
                 stats = tracker.get_stats()
-                stats['run'] = run + 1
-                stats['success'] = False
-                stats['error'] = str(e)
+                stats["run"] = run + 1
+                stats["success"] = False
+                stats["error"] = str(e)
                 results.append(stats)
 
         return results
 
-    def benchmark_download(self, test_file: Dict[str, Any], runs: int = 3) -> List[Dict[str, Any]]:
+    def benchmark_download(
+        self, test_file: Dict[str, Any], runs: int = 3
+    ) -> List[Dict[str, Any]]:
         """Benchmark file download"""
         results = []
 
@@ -216,57 +233,61 @@ class PCloudBenchmark:
         # First upload the file to download
         try:
             upload_result = self.sdk.file.upload(
-                test_file['path'],
-                filename=f"download_test_{test_file['filename']}"
+                test_file["path"], filename=f"download_test_{test_file['filename']}"
             )
 
-            if 'metadata' not in upload_result:
+            if "metadata" not in upload_result:
                 print(f"   ❌ Unable to upload file for download test")
                 return []
 
-            file_id = upload_result['metadata']['fileid']
+            file_id = upload_result["metadata"]["fileid"]
 
             # Create temporary download directory
             download_dir = tempfile.mkdtemp()
 
             for run in range(runs):
-                tracker = PerformanceTracker(f"Download {test_file['size_name']} run {run + 1}")
+                tracker = PerformanceTracker(
+                    f"Download {test_file['size_name']} run {run + 1}"
+                )
 
-                def progress_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
+                def progress_callback(
+                    bytes_transferred, total_bytes, percentage, speed, **kwargs
+                ):
                     tracker.checkpoint(bytes_transferred)
 
                 try:
-                    tracker.start(test_file['size_bytes'])
+                    tracker.start(test_file["size_bytes"])
 
                     success = self.sdk.file.download(
-                        file_id,
-                        download_dir,
-                        progress_callback=progress_callback
+                        file_id, download_dir, progress_callback=progress_callback
                     )
 
                     stats = tracker.finish()
-                    stats['run'] = run + 1
-                    stats['success'] = success
+                    stats["run"] = run + 1
+                    stats["success"] = success
 
                     if success:
                         results.append(stats)
-                        print(f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
-                              f"({stats['total_time']:.2f}s)")
+                        print(
+                            f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
+                            f"({stats['total_time']:.2f}s)"
+                        )
                     else:
                         print(f"   ❌ Run {run + 1} failed")
 
                 except Exception as e:
                     print(f"   ❌ Run {run + 1} failed: {e}")
                     stats = tracker.get_stats()
-                    stats['run'] = run + 1
-                    stats['success'] = False
-                    stats['error'] = str(e)
+                    stats["run"] = run + 1
+                    stats["success"] = False
+                    stats["error"] = str(e)
                     results.append(stats)
 
             # Cleanup
             try:
                 self.sdk.file.delete(file_id)
                 import shutil
+
                 shutil.rmtree(download_dir)
             except:
                 pass
@@ -288,11 +309,11 @@ class PCloudBenchmark:
         test_files = self.create_test_files()
 
         benchmark_results = {
-            'timestamp': time.time(),
-            'server': 'EU' if self.location_id == 2 else 'US',
-            'upload_results': {},
-            'download_results': {},
-            'summary': {}
+            "timestamp": time.time(),
+            "server": "EU" if self.location_id == 2 else "US",
+            "upload_results": {},
+            "download_results": {},
+            "summary": {},
         }
 
         # Upload benchmarks
@@ -301,7 +322,7 @@ class PCloudBenchmark:
 
         for test_file in test_files:
             upload_results = self.benchmark_upload(test_file)
-            benchmark_results['upload_results'][test_file['size_name']] = upload_results
+            benchmark_results["upload_results"][test_file["size_name"]] = upload_results
 
         # Download benchmarks
         print(f"\n📥 DOWNLOAD BENCHMARKS")
@@ -309,60 +330,59 @@ class PCloudBenchmark:
 
         for test_file in test_files:
             download_results = self.benchmark_download(test_file)
-            benchmark_results['download_results'][test_file['size_name']] = download_results
+            benchmark_results["download_results"][
+                test_file["size_name"]
+            ] = download_results
 
         # Calculate summary
-        benchmark_results['summary'] = self.calculate_summary(benchmark_results)
+        benchmark_results["summary"] = self.calculate_summary(benchmark_results)
 
         return benchmark_results
 
     def calculate_summary(self, results: Dict[str, Any]) -> Dict[str, Any]:
         """Calculate results summary"""
-        summary = {
-            'upload': {},
-            'download': {}
-        }
+        summary = {"upload": {}, "download": {}}
 
         # Upload summary
         all_upload_speeds = []
-        for size_name, runs in results['upload_results'].items():
-            successful_runs = [r for r in runs if r.get('success', False)]
+        for size_name, runs in results["upload_results"].items():
+            successful_runs = [r for r in runs if r.get("success", False)]
             if successful_runs:
-                speeds = [r['avg_speed_mbps'] for r in successful_runs]
-                summary['upload'][size_name] = {
-                    'avg_speed_mbps': statistics.mean(speeds),
-                    'min_speed_mbps': min(speeds),
-                    'max_speed_mbps': max(speeds),
-                    'successful_runs': len(successful_runs),
-                    'total_runs': len(runs)
+                speeds = [r["avg_speed_mbps"] for r in successful_runs]
+                summary["upload"][size_name] = {
+                    "avg_speed_mbps": statistics.mean(speeds),
+                    "min_speed_mbps": min(speeds),
+                    "max_speed_mbps": max(speeds),
+                    "successful_runs": len(successful_runs),
+                    "total_runs": len(runs),
                 }
                 all_upload_speeds.extend(speeds)
 
         if all_upload_speeds:
-            summary['upload']['overall'] = {
-                'avg_speed_mbps': statistics.mean(all_upload_speeds),
-                'median_speed_mbps': statistics.median(all_upload_speeds)
+            summary["upload"]["overall"] = {
+                "avg_speed_mbps": statistics.mean(all_upload_speeds),
+                "median_speed_mbps": statistics.median(all_upload_speeds),
             }
 
         # Download summary
         all_download_speeds = []
-        for size_name, runs in results['download_results'].items():
-            successful_runs = [r for r in runs if r.get('success', False)]
+        for size_name, runs in results["download_results"].items():
+            successful_runs = [r for r in runs if r.get("success", False)]
             if successful_runs:
-                speeds = [r['avg_speed_mbps'] for r in successful_runs]
-                summary['download'][size_name] = {
-                    'avg_speed_mbps': statistics.mean(speeds),
-                    'min_speed_mbps': min(speeds),
-                    'max_speed_mbps': max(speeds),
-                    'successful_runs': len(successful_runs),
-                    'total_runs': len(runs)
+                speeds = [r["avg_speed_mbps"] for r in successful_runs]
+                summary["download"][size_name] = {
+                    "avg_speed_mbps": statistics.mean(speeds),
+                    "min_speed_mbps": min(speeds),
+                    "max_speed_mbps": max(speeds),
+                    "successful_runs": len(successful_runs),
+                    "total_runs": len(runs),
                 }
                 all_download_speeds.extend(speeds)
 
         if all_download_speeds:
-            summary['download']['overall'] = {
-                'avg_speed_mbps': statistics.mean(all_download_speeds),
-                'median_speed_mbps': statistics.median(all_download_speeds)
+            summary["download"]["overall"] = {
+                "avg_speed_mbps": statistics.mean(all_download_speeds),
+                "median_speed_mbps": statistics.median(all_download_speeds),
             }
 
         return summary
@@ -372,48 +392,58 @@ class PCloudBenchmark:
         print(f"\n📊 BENCHMARK RESULTS")
         print("=" * 50)
 
-        server = results.get('server', 'Unknown')
+        server = results.get("server", "Unknown")
         print(f"🌍 Server: {server}")
-        print(f"📅 Date: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(results['timestamp']))}")
+        print(
+            f"📅 Date: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(results['timestamp']))}"
+        )
 
         # Upload results
         print(f"\n📤 UPLOAD SPEEDS:")
-        upload_summary = results['summary'].get('upload', {})
+        upload_summary = results["summary"].get("upload", {})
 
-        for size_name in ['1KB', '10KB', '100KB', '1MB', '5MB', '10MB']:
+        for size_name in ["1KB", "10KB", "100KB", "1MB", "5MB", "10MB"]:
             if size_name in upload_summary:
                 stats = upload_summary[size_name]
-                print(f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
-                      f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
-                      f"[{stats['successful_runs']}/{stats['total_runs']} runs]")
+                print(
+                    f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
+                    f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
+                    f"[{stats['successful_runs']}/{stats['total_runs']} runs]"
+                )
 
-        if 'overall' in upload_summary:
-            overall = upload_summary['overall']
-            print(f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
-                  f"(median: {overall['median_speed_mbps']:5.2f})")
+        if "overall" in upload_summary:
+            overall = upload_summary["overall"]
+            print(
+                f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
+                f"(median: {overall['median_speed_mbps']:5.2f})"
+            )
 
         # Download results
         print(f"\n📥 DOWNLOAD SPEEDS:")
-        download_summary = results['summary'].get('download', {})
+        download_summary = results["summary"].get("download", {})
 
-        for size_name in ['1KB', '10KB', '100KB', '1MB', '5MB', '10MB']:
+        for size_name in ["1KB", "10KB", "100KB", "1MB", "5MB", "10MB"]:
             if size_name in download_summary:
                 stats = download_summary[size_name]
-                print(f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
-                      f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
-                      f"[{stats['successful_runs']}/{stats['total_runs']} runs]")
+                print(
+                    f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
+                    f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
+                    f"[{stats['successful_runs']}/{stats['total_runs']} runs]"
+                )
 
-        if 'overall' in download_summary:
-            overall = download_summary['overall']
-            print(f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
-                  f"(median: {overall['median_speed_mbps']:5.2f})")
+        if "overall" in download_summary:
+            overall = download_summary["overall"]
+            print(
+                f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
+                f"(median: {overall['median_speed_mbps']:5.2f})"
+            )
 
         # Recommendations
         print(f"\n💡 RECOMMENDATIONS:")
 
-        if 'overall' in upload_summary and 'overall' in download_summary:
-            upload_speed = upload_summary['overall']['avg_speed_mbps']
-            download_speed = download_summary['overall']['avg_speed_mbps']
+        if "overall" in upload_summary and "overall" in download_summary:
+            upload_speed = upload_summary["overall"]["avg_speed_mbps"]
+            download_speed = download_summary["overall"]["avg_speed_mbps"]
 
             if upload_speed < 1.0:
                 print("   📤 Upload: Low speed (<1MB/s) - check your upload connection")
@@ -429,9 +459,9 @@ class PCloudBenchmark:
             else:
                 print("   📥 Download: Excellent speed (>10MB/s)")
 
-            if server == 'US':
+            if server == "US":
                 print("   🌍 Tip: Try EU server (location_id=2) if you're in Europe")
-            elif server == 'EU':
+            elif server == "EU":
                 print("   🌍 Tip: Try US server (location_id=1) if you're in America")
 
     def cleanup(self):
@@ -477,10 +507,11 @@ def main():
 
             # Offer to save results
             save_choice = input("\n💾 Save results? (y/N): ").lower().strip()
-            if save_choice in ['y', 'yes']:
+            if save_choice in ["y", "yes"]:
                 import json
+
                 filename = f"pcloud_benchmark_{int(time.time())}.json"
-                with open(filename, 'w') as f:
+                with open(filename, "w") as f:
                     json.dump(results, f, indent=2)
                 print(f"📁 Results saved to: {filename}")
 
@@ -496,6 +527,7 @@ def main():
     except Exception as e:
         print(f"\n❌ Error during benchmark: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 

@@ -5,17 +5,23 @@ Tests all 4 built-in progress trackers, custom callbacks, accuracy, performance,
 
 import os
 import tempfile
-import time
 import threading
-from io import StringIO
-from unittest.mock import Mock, patch, call
+import time
 from contextlib import redirect_stdout
+from io import StringIO
+from unittest.mock import Mock, call, patch
 
 import pytest
 
 from pcloud_sdk.progress_utils import (
-    SimpleProgressBar, DetailedProgress, MinimalProgress, SilentProgress,
-    create_progress_bar, create_detailed_progress, create_minimal_progress, create_silent_progress
+    DetailedProgress,
+    MinimalProgress,
+    SilentProgress,
+    SimpleProgressBar,
+    create_detailed_progress,
+    create_minimal_progress,
+    create_progress_bar,
+    create_silent_progress,
 )
 
 
@@ -33,10 +39,7 @@ class TestSimpleProgressBar:
 
         # Custom initialization
         custom_progress = SimpleProgressBar(
-            title="Upload",
-            width=30,
-            show_speed=False,
-            show_eta=False
+            title="Upload", width=30, show_speed=False, show_eta=False
         )
         assert custom_progress.title == "Upload"
         assert custom_progress.width == 30
@@ -47,7 +50,7 @@ class TestSimpleProgressBar:
         """Test basic progress bar functionality"""
         progress = SimpleProgressBar(title="Test Upload")
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # First call - should print title
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
 
@@ -60,13 +63,17 @@ class TestSimpleProgressBar:
         # Verify print was called (title, progress updates, completion)
         assert mock_print.call_count >= 3
 
-    @patch('time.time')
+    @patch("time.time")
     def test_simple_progress_bar_with_speed_and_eta(self, mock_time):
         """Test progress bar with speed and ETA calculations"""
         progress = SimpleProgressBar(show_speed=True, show_eta=True)
-        mock_time.side_effect = [100.0, 100.0, 100.2] # t_start, t_first_curr, t_second_curr
+        mock_time.side_effect = [
+            100.0,
+            100.0,
+            100.2,
+        ]  # t_start, t_first_curr, t_second_curr
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # Initialize
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
 
@@ -75,16 +82,18 @@ class TestSimpleProgressBar:
 
             # Check that speed is included in output
             # mock_print.call_args_list should be: [title_call, 0%_bar_call, 25%_bar_call_with_speed]
-            assert len(mock_print.call_args_list) > 2, \
-                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
-            assert "MB/s" in str(mock_print.call_args_list[2]), \
-                f"MB/s not in expected print call. Call content: {mock_print.call_args_list[2]}"
+            assert (
+                len(mock_print.call_args_list) > 2
+            ), f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "MB/s" in str(
+                mock_print.call_args_list[2]
+            ), f"MB/s not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_without_speed_and_eta(self):
         """Test progress bar without speed and ETA display"""
         progress = SimpleProgressBar(show_speed=False, show_eta=False)
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
             progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
 
@@ -93,36 +102,46 @@ class TestSimpleProgressBar:
         assert "MB/s" not in all_output
         assert "ETA:" not in all_output
 
-    @patch('time.time')
+    @patch("time.time")
     def test_simple_progress_bar_eta_calculations(self, mock_time):
         """Test ETA calculation accuracy"""
         progress = SimpleProgressBar(show_eta=True)
-        mock_time.side_effect = [200.0, 200.0, 200.2] # t_start, t_first_curr, t_second_curr
+        mock_time.side_effect = [
+            200.0,
+            200.0,
+            200.2,
+        ]  # t_start, t_first_curr, t_second_curr
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             progress(0, 3600, 0.0, 0.0, filename="test.txt", operation="upload")
 
             # 50% complete at 1MB/s should show reasonable ETA
-            progress(1800, 3600, 50.0, 1048576.0, filename="test.txt", operation="upload")
+            progress(
+                1800, 3600, 50.0, 1048576.0, filename="test.txt", operation="upload"
+            )
 
             # Check that ETA is calculated
             # mock_print.call_args_list should be: [title_call, 0%_bar_call, 50%_bar_call_with_eta]
-            assert len(mock_print.call_args_list) > 2, \
-                f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
-            assert "ETA:" in str(mock_print.call_args_list[2]), \
-                f"ETA: not in expected print call. Call content: {mock_print.call_args_list[2]}"
+            assert (
+                len(mock_print.call_args_list) > 2
+            ), f"Not enough print calls for progress update. Got: {len(mock_print.call_args_list)}, calls: {mock_print.call_args_list}"
+            assert "ETA:" in str(
+                mock_print.call_args_list[2]
+            ), f"ETA: not in expected print call. Call content: {mock_print.call_args_list[2]}"
 
     def test_simple_progress_bar_update_throttling(self):
         """Test that progress updates are throttled to prevent flickering"""
         progress = SimpleProgressBar()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # Initialize
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
 
             # Rapid updates (should be throttled)
             for i in range(10):
-                progress(i * 10, 1024, i, 1024.0, filename="test.txt", operation="upload")
+                progress(
+                    i * 10, 1024, i, 1024.0, filename="test.txt", operation="upload"
+                )
 
         # Should have fewer print calls than updates due to throttling
         assert mock_print.call_count < 12  # 1 initial + 10 updates, but throttled
@@ -131,13 +150,24 @@ class TestSimpleProgressBar:
         """Test completion summary with timing information"""
         progress = SimpleProgressBar()
 
-        with patch('builtins.print') as mock_print:
-            with patch('time.time', side_effect=[100.0, 100.1, 105.0, 105.1]):  # 5 second transfer
+        with patch("builtins.print") as mock_print:
+            with patch(
+                "time.time", side_effect=[100.0, 100.1, 105.0, 105.1]
+            ):  # 5 second transfer
                 progress(0, 1048576, 0.0, 0.0, filename="test.txt", operation="upload")
-                progress(1048576, 1048576, 100.0, 209715.2, filename="test.txt", operation="upload")
+                progress(
+                    1048576,
+                    1048576,
+                    100.0,
+                    209715.2,
+                    filename="test.txt",
+                    operation="upload",
+                )
 
         # Check completion message
-        completion_calls = [str(call) for call in mock_print.call_args_list if "Terminé" in str(call)]
+        completion_calls = [
+            str(call) for call in mock_print.call_args_list if "Terminé" in str(call)
+        ]
         assert len(completion_calls) > 0
 
 
@@ -166,10 +196,26 @@ class TestDetailedProgress:
         """Test that DetailedProgress tracks checkpoints"""
         progress = DetailedProgress()
 
-        with patch('builtins.print'):
-            progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload", status="starting")
+        with patch("builtins.print"):
+            progress(
+                0,
+                1024,
+                0.0,
+                0.0,
+                filename="test.txt",
+                operation="upload",
+                status="starting",
+            )
             progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
-            progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+            progress(
+                1024,
+                1024,
+                100.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="completed",
+            )
 
         assert len(progress.checkpoints) == 3
         assert progress.checkpoints[0]["bytes"] == 0
@@ -180,19 +226,51 @@ class TestDetailedProgress:
         """Test different status message handling"""
         progress = DetailedProgress()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # Starting status
-            progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload", status="starting")
+            progress(
+                0,
+                1024,
+                0.0,
+                0.0,
+                filename="test.txt",
+                operation="upload",
+                status="starting",
+            )
 
             # Saving status
-            progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="saving")
+            progress(
+                1024,
+                1024,
+                100.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="saving",
+            )
 
             # Completed status
-            progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+            progress(
+                1024,
+                1024,
+                100.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="completed",
+            )
 
             # Error status
-            progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload",
-                    status="error", error="Network timeout")
+            progress(
+                512,
+                1024,
+                50.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="error",
+                error="Network timeout",
+            )
 
         # Verify different status messages were printed
         all_output = " ".join([str(call) for call in mock_print.call_args_list])
@@ -205,35 +283,73 @@ class TestDetailedProgress:
         """Test periodic progress updates at 20% intervals"""
         progress = DetailedProgress()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # Initialize
-            progress(0, 1000, 0.0, 0.0, filename="test.txt", operation="upload", status="starting")
+            progress(
+                0,
+                1000,
+                0.0,
+                0.0,
+                filename="test.txt",
+                operation="upload",
+                status="starting",
+            )
 
             # Updates at various percentages
-            progress(200, 1000, 20.0, 1024.0, filename="test.txt", operation="upload")  # Should print
-            progress(250, 1000, 25.0, 1024.0, filename="test.txt", operation="upload")  # Should not print
-            progress(400, 1000, 40.0, 1024.0, filename="test.txt", operation="upload")  # Should print
-            progress(600, 1000, 60.0, 1024.0, filename="test.txt", operation="upload")  # Should print
+            progress(
+                200, 1000, 20.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should print
+            progress(
+                250, 1000, 25.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should not print
+            progress(
+                400, 1000, 40.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should print
+            progress(
+                600, 1000, 60.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should print
 
         # Count progress update messages (should have 20%, 40%, 60%)
-        progress_updates = [str(call) for call in mock_print.call_args_list if "Progression:" in str(call)]
+        progress_updates = [
+            str(call)
+            for call in mock_print.call_args_list
+            if "Progression:" in str(call)
+        ]
         assert len(progress_updates) >= 3
 
     def test_detailed_progress_with_log_file(self):
         """Test DetailedProgress with file logging"""
-        temp_log = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        temp_log = tempfile.NamedTemporaryFile(mode="w", delete=False)
         temp_log.close()
 
         try:
             progress = DetailedProgress(log_file=temp_log.name)
 
-            with patch('builtins.print'):
-                progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload", status="starting")
-                progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
-                progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+            with patch("builtins.print"):
+                progress(
+                    0,
+                    1024,
+                    0.0,
+                    0.0,
+                    filename="test.txt",
+                    operation="upload",
+                    status="starting",
+                )
+                progress(
+                    512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload"
+                )
+                progress(
+                    1024,
+                    1024,
+                    100.0,
+                    1024.0,
+                    filename="test.txt",
+                    operation="upload",
+                    status="completed",
+                )
 
             # Verify log file was written
-            with open(temp_log.name, 'r', encoding='utf-8') as f:
+            with open(temp_log.name, "r", encoding="utf-8") as f:
                 log_content = f.read()
 
             assert "upload" in log_content
@@ -249,7 +365,7 @@ class TestDetailedProgress:
         progress = DetailedProgress(log_file="/invalid/path/log.txt")
 
         # Should not raise exception even with invalid log file
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
 
 
@@ -267,53 +383,97 @@ class TestMinimalProgress:
         """Test that MinimalProgress only shows milestone percentages"""
         progress = MinimalProgress()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             # Initialize
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
 
             # Various progress updates
-            progress(256, 1024, 25.0, 1024.0, filename="test.txt", operation="upload")  # Should show
-            progress(307, 1024, 30.0, 1024.0, filename="test.txt", operation="upload")  # Should not show
-            progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")  # Should show
-            progress(640, 1024, 62.5, 1024.0, filename="test.txt", operation="upload")  # Should not show
-            progress(768, 1024, 75.0, 1024.0, filename="test.txt", operation="upload")  # Should show
-            progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+            progress(
+                256, 1024, 25.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should show
+            progress(
+                307, 1024, 30.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should not show
+            progress(
+                512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should show
+            progress(
+                640, 1024, 62.5, 1024.0, filename="test.txt", operation="upload"
+            )  # Should not show
+            progress(
+                768, 1024, 75.0, 1024.0, filename="test.txt", operation="upload"
+            )  # Should show
+            progress(
+                1024,
+                1024,
+                100.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="completed",
+            )
 
         # Count milestone messages
-        milestone_calls = [str(call) for call in mock_print.call_args_list if "%" in str(call) and "Upload:" not in str(call)]
-        assert len(milestone_calls) >= 3  # Should have 25%, 50%, 75% (100% handled by completion)
+        milestone_calls = [
+            str(call)
+            for call in mock_print.call_args_list
+            if "%" in str(call) and "Upload:" not in str(call)
+        ]
+        assert (
+            len(milestone_calls) >= 3
+        )  # Should have 25%, 50%, 75% (100% handled by completion)
 
     def test_minimal_progress_completion_message(self):
         """Test MinimalProgress completion handling"""
         progress = MinimalProgress()
 
-        with patch('builtins.print') as mock_print:
-            with patch('time.time', side_effect=[100.0, 105.0]):  # 5 second transfer
+        with patch("builtins.print") as mock_print:
+            with patch("time.time", side_effect=[100.0, 105.0]):  # 5 second transfer
                 progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
-                progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+                progress(
+                    1024,
+                    1024,
+                    100.0,
+                    1024.0,
+                    filename="test.txt",
+                    operation="upload",
+                    status="completed",
+                )
 
         # Check completion message
-        completion_calls = [str(call) for call in mock_print.call_args_list if "Terminé" in str(call)]
+        completion_calls = [
+            str(call) for call in mock_print.call_args_list if "Terminé" in str(call)
+        ]
         assert len(completion_calls) > 0
 
     def test_minimal_progress_error_handling(self):
         """Test MinimalProgress error status handling"""
         progress = MinimalProgress()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
-            progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload",
-                    status="error", error="Network error")
+            progress(
+                512,
+                1024,
+                50.0,
+                1024.0,
+                filename="test.txt",
+                operation="upload",
+                status="error",
+                error="Network error",
+            )
 
         # Check error message
-        error_calls = [str(call) for call in mock_print.call_args_list if "Erreur" in str(call)]
+        error_calls = [
+            str(call) for call in mock_print.call_args_list if "Erreur" in str(call)
+        ]
         assert len(error_calls) > 0
 
     def test_minimal_progress_duplicate_milestones(self):
         """Test that duplicate milestones are not shown"""
         progress = MinimalProgress()
 
-        with patch('builtins.print') as mock_print:
+        with patch("builtins.print") as mock_print:
             progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
 
             # Call 50% multiple times
@@ -322,7 +482,9 @@ class TestMinimalProgress:
             progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
 
         # Should only show 50% once
-        fifty_percent_calls = [str(call) for call in mock_print.call_args_list if "50%" in str(call)]
+        fifty_percent_calls = [
+            str(call) for call in mock_print.call_args_list if "50%" in str(call)
+        ]
         assert len(fifty_percent_calls) == 1
 
 
@@ -340,7 +502,7 @@ class TestSilentProgress:
             assert progress.start_time is None
 
             # Verify log file was created with headers
-            with open(temp_log.name, 'r', encoding='utf-8') as f:
+            with open(temp_log.name, "r", encoding="utf-8") as f:
                 content = f.read()
 
             assert "pCloud Transfer Log" in content
@@ -358,24 +520,50 @@ class TestSilentProgress:
             progress = SilentProgress(log_file=temp_log.name)
 
             # Make progress calls
-            progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload", status="starting")
-            progress(512, 1024, 50.0, 1048576.0, filename="test.txt", operation="upload")
-            progress(1024, 1024, 100.0, 1048576.0, filename="test.txt", operation="upload", status="completed")
+            progress(
+                0,
+                1024,
+                0.0,
+                0.0,
+                filename="test.txt",
+                operation="upload",
+                status="starting",
+            )
+            progress(
+                512, 1024, 50.0, 1048576.0, filename="test.txt", operation="upload"
+            )
+            progress(
+                1024,
+                1024,
+                100.0,
+                1048576.0,
+                filename="test.txt",
+                operation="upload",
+                status="completed",
+            )
 
             # Read and verify log content
-            with open(temp_log.name, 'r', encoding='utf-8') as f:
+            with open(temp_log.name, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             assert len(lines) >= 5  # Header + comment + 3 data lines
 
             # Check CSV format
-            data_lines = [line for line in lines if not line.startswith('#') and line.strip() != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"] # Exclude header line itself
+            data_lines = [
+                line
+                for line in lines
+                if not line.startswith("#")
+                and line.strip()
+                != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"
+            ]  # Exclude header line itself
             assert len(data_lines) == 3  # 3 data lines
 
             # Verify CSV structure
             for line in data_lines[1:]:  # Skip header
-                fields = line.strip().split(',')
-                assert len(fields) == 8  # timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status
+                fields = line.strip().split(",")
+                assert (
+                    len(fields) == 8
+                )  # timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status
 
         finally:
             os.unlink(temp_log.name)
@@ -388,10 +576,20 @@ class TestSilentProgress:
         try:
             progress = SilentProgress(log_file=temp_log.name)
 
-            with patch('builtins.print') as mock_print:
+            with patch("builtins.print") as mock_print:
                 progress(0, 1024, 0.0, 0.0, filename="test.txt", operation="upload")
-                progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
-                progress(1024, 1024, 100.0, 1024.0, filename="test.txt", operation="upload", status="completed")
+                progress(
+                    512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload"
+                )
+                progress(
+                    1024,
+                    1024,
+                    100.0,
+                    1024.0,
+                    filename="test.txt",
+                    operation="upload",
+                    status="completed",
+                )
 
             # Verify no print calls were made
             assert mock_print.call_count == 0
@@ -461,35 +659,46 @@ class TestCustomProgressCallbacks:
         """Test implementing a basic custom progress callback"""
         call_log = []
 
-        def custom_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-            call_log.append({
-                'bytes': bytes_transferred,
-                'total': total_bytes,
-                'percent': percentage,
-                'speed': speed,
-                'operation': kwargs.get('operation'),
-                'filename': kwargs.get('filename')
-            })
+        def custom_callback(
+            bytes_transferred, total_bytes, percentage, speed, **kwargs
+        ):
+            call_log.append(
+                {
+                    "bytes": bytes_transferred,
+                    "total": total_bytes,
+                    "percent": percentage,
+                    "speed": speed,
+                    "operation": kwargs.get("operation"),
+                    "filename": kwargs.get("filename"),
+                }
+            )
 
         # Simulate progress calls
         custom_callback(0, 1024, 0.0, 0.0, operation="upload", filename="test.txt")
-        custom_callback(512, 1024, 50.0, 1024.0, operation="upload", filename="test.txt")
-        custom_callback(1024, 1024, 100.0, 1024.0, operation="upload", filename="test.txt")
+        custom_callback(
+            512, 1024, 50.0, 1024.0, operation="upload", filename="test.txt"
+        )
+        custom_callback(
+            1024, 1024, 100.0, 1024.0, operation="upload", filename="test.txt"
+        )
 
         assert len(call_log) == 3
-        assert call_log[0]['percent'] == 0.0
-        assert call_log[1]['percent'] == 50.0
-        assert call_log[2]['percent'] == 100.0
+        assert call_log[0]["percent"] == 0.0
+        assert call_log[1]["percent"] == 50.0
+        assert call_log[2]["percent"] == 100.0
 
     def test_custom_callback_with_state_tracking(self):
         """Test custom callback that maintains state"""
+
         class StatefulCallback:
             def __init__(self):
                 self.calls = 0
                 self.max_speed = 0
                 self.total_bytes_seen = 0
 
-            def __call__(self, bytes_transferred, total_bytes, percentage, speed, **kwargs):
+            def __call__(
+                self, bytes_transferred, total_bytes, percentage, speed, **kwargs
+            ):
                 self.calls += 1
                 self.max_speed = max(self.max_speed, speed)
                 self.total_bytes_seen = max(self.total_bytes_seen, bytes_transferred)
@@ -508,26 +717,33 @@ class TestCustomProgressCallbacks:
 
     def test_custom_callback_error_handling(self):
         """Test that custom callback errors don't break the system"""
+
         def failing_callback(*args, **kwargs):
             raise ValueError("Callback error")
 
         # In real usage, the SDK should handle callback errors gracefully
         # Here we just verify the callback can be called
         with pytest.raises(ValueError, match="Callback error"):
-            failing_callback(512, 1024, 50.0, 1024.0, operation="upload", filename="test.txt")
+            failing_callback(
+                512, 1024, 50.0, 1024.0, operation="upload", filename="test.txt"
+            )
 
     def test_custom_callback_with_filtering(self):
         """Test custom callback that filters certain conditions"""
         filtered_calls = []
 
-        def filtering_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
+        def filtering_callback(
+            bytes_transferred, total_bytes, percentage, speed, **kwargs
+        ):
             # Only log every 10%
             if percentage % 10 == 0:
                 filtered_calls.append(percentage)
 
         # Simulate many progress calls
         for i in range(101):
-            filtering_callback(i * 10, 1000, i, 1024.0, operation="upload", filename="test.txt")
+            filtering_callback(
+                i * 10, 1000, i, 1024.0, operation="upload", filename="test.txt"
+            )
 
         # Should only have calls at 10% intervals
         expected_calls = [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
@@ -549,24 +765,34 @@ class TestProgressAccuracy:
             (1000, 1000, 100.0),
         ]
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             for bytes_transferred, total_bytes, expected_percentage in test_cases:
-                progress(bytes_transferred, total_bytes, expected_percentage, 1024.0,
-                        filename="test.txt", operation="upload")
+                progress(
+                    bytes_transferred,
+                    total_bytes,
+                    expected_percentage,
+                    1024.0,
+                    filename="test.txt",
+                    operation="upload",
+                )
 
     def test_progress_speed_calculations(self):
         """Test speed calculation accuracy"""
         call_log = []
 
-        def speed_tracking_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-            call_log.append({
-                'bytes': bytes_transferred,
-                'speed': speed,
-                'time': kwargs.get('elapsed_time', 0)
-            })
+        def speed_tracking_callback(
+            bytes_transferred, total_bytes, percentage, speed, **kwargs
+        ):
+            call_log.append(
+                {
+                    "bytes": bytes_transferred,
+                    "speed": speed,
+                    "time": kwargs.get("elapsed_time", 0),
+                }
+            )
 
         # Mock time progression for speed calculation
-        with patch('time.time', side_effect=[0, 1, 2, 3, 4, 5]):  # 1 second intervals
+        with patch("time.time", side_effect=[0, 1, 2, 3, 4, 5]):  # 1 second intervals
             progress = SimpleProgressBar()
 
             # Simulate transfer at 1024 bytes/second
@@ -574,28 +800,35 @@ class TestProgressAccuracy:
                 bytes_transferred = i * 1024
                 expected_speed = 1024.0 if i > 0 else 0.0
 
-                with patch('builtins.print'):
-                    progress(bytes_transferred, 5120, (bytes_transferred/5120)*100, expected_speed,
-                            filename="test.txt", operation="upload")
+                with patch("builtins.print"):
+                    progress(
+                        bytes_transferred,
+                        5120,
+                        (bytes_transferred / 5120) * 100,
+                        expected_speed,
+                        filename="test.txt",
+                        operation="upload",
+                    )
 
     def test_progress_consistency_across_trackers(self):
         """Test that all progress trackers receive consistent data"""
         call_logs = {
-            'simple': [],
-            'detailed': [],
-            'minimal': [],
+            "simple": [],
+            "detailed": [],
+            "minimal": [],
         }
 
         def create_logging_wrapper(tracker_name, original_tracker):
             def wrapper(*args, **kwargs):
                 call_logs[tracker_name].append(args)
                 return original_tracker(*args, **kwargs)
+
             return wrapper
 
         # Create wrapped trackers
-        simple = create_logging_wrapper('simple', SimpleProgressBar())
-        detailed = create_logging_wrapper('detailed', DetailedProgress())
-        minimal = create_logging_wrapper('minimal', MinimalProgress())
+        simple = create_logging_wrapper("simple", SimpleProgressBar())
+        detailed = create_logging_wrapper("detailed", DetailedProgress())
+        minimal = create_logging_wrapper("minimal", MinimalProgress())
 
         # Call all trackers with same data
         test_data = [
@@ -605,17 +838,25 @@ class TestProgressAccuracy:
             (1024, 1024, 100.0, 1024.0),
         ]
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             for data in test_data:
                 simple(*data, filename="test.txt", operation="upload")
                 detailed(*data, filename="test.txt", operation="upload")
                 minimal(*data, filename="test.txt", operation="upload")
 
         # Verify all trackers received same data
-        assert len(call_logs['simple']) == len(call_logs['detailed']) == len(call_logs['minimal'])
+        assert (
+            len(call_logs["simple"])
+            == len(call_logs["detailed"])
+            == len(call_logs["minimal"])
+        )
 
         for i in range(len(test_data)):
-            assert call_logs['simple'][i] == call_logs['detailed'][i] == call_logs['minimal'][i]
+            assert (
+                call_logs["simple"][i]
+                == call_logs["detailed"][i]
+                == call_logs["minimal"][i]
+            )
 
     def test_progress_edge_cases(self):
         """Test progress tracking edge cases"""
@@ -632,11 +873,17 @@ class TestProgressAccuracy:
             (1073741824, 2147483648, 50.0, 1073741824.0),  # 1GB of 2GB at 1GB/s
         ]
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             for bytes_transferred, total_bytes, percentage, speed in edge_cases:
                 try:
-                    progress(bytes_transferred, total_bytes, percentage, speed,
-                            filename="test.txt", operation="upload")
+                    progress(
+                        bytes_transferred,
+                        total_bytes,
+                        percentage,
+                        speed,
+                        filename="test.txt",
+                        operation="upload",
+                    )
                 except Exception as e:
                     pytest.fail(f"Progress tracker failed on edge case: {e}")
 
@@ -651,10 +898,12 @@ class TestProgressPerformance:
 
         start_time = time.time()
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             # Simulate 1000 progress updates
             for i in range(1000):
-                progress(i, 1000, i/10.0, 1024.0, filename="test.txt", operation="upload")
+                progress(
+                    i, 1000, i / 10.0, 1024.0, filename="test.txt", operation="upload"
+                )
 
         end_time = time.time()
         elapsed = end_time - start_time
@@ -675,7 +924,9 @@ class TestProgressPerformance:
 
             # Simulate 1000 progress updates with logging
             for i in range(1000):
-                progress(i, 1000, i/10.0, 1024.0, filename="test.txt", operation="upload")
+                progress(
+                    i, 1000, i / 10.0, 1024.0, filename="test.txt", operation="upload"
+                )
 
             end_time = time.time()
             elapsed = end_time - start_time
@@ -684,11 +935,17 @@ class TestProgressPerformance:
             assert elapsed < 2.0
 
             # Verify all entries were logged
-            with open(temp_log.name, 'r', encoding='utf-8') as f:
+            with open(temp_log.name, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Should have header + comment + 1000 data lines
-            data_lines = [line for line in lines if not line.startswith('#') and line.strip() != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"] # Exclude header line itself
+            data_lines = [
+                line
+                for line in lines
+                if not line.startswith("#")
+                and line.strip()
+                != "timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status"
+            ]  # Exclude header line itself
             assert len(data_lines) == 1000  # 1000 data lines
 
         finally:
@@ -704,10 +961,12 @@ class TestProgressPerformance:
         # Force garbage collection before test
         gc.collect()
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             # Simulate many progress calls
             for i in range(10000):
-                progress(i, 10000, i/100.0, 1024.0, filename="test.txt", operation="upload")
+                progress(
+                    i, 10000, i / 100.0, 1024.0, filename="test.txt", operation="upload"
+                )
 
         # Verify checkpoints list doesn't grow indefinitely
         # (In real implementation, it might be limited or cleaned up)
@@ -736,10 +995,16 @@ class TestProgressErrorHandling:
         ]
 
         for bytes_transferred, total_bytes, percentage, speed in invalid_cases:
-            with patch('builtins.print'):
+            with patch("builtins.print"):
                 try:
-                    progress(bytes_transferred, total_bytes, percentage, speed,
-                            filename="test.txt", operation="upload")
+                    progress(
+                        bytes_transferred,
+                        total_bytes,
+                        percentage,
+                        speed,
+                        filename="test.txt",
+                        operation="upload",
+                    )
                 except (TypeError, ValueError):
                     # Expected to fail with invalid types
                     pass
@@ -748,7 +1013,7 @@ class TestProgressErrorHandling:
         """Test progress trackers with missing keyword arguments"""
         progress = SimpleProgressBar()
 
-        with patch('builtins.print'):
+        with patch("builtins.print"):
             # Should handle missing kwargs gracefully
             progress(512, 1024, 50.0, 1024.0)  # No filename, operation
             progress(512, 1024, 50.0, 1024.0, filename="test.txt")  # No operation
@@ -765,9 +1030,11 @@ class TestProgressErrorHandling:
 
             progress = DetailedProgress(log_file=temp_log.name)
 
-            with patch('builtins.print'):
+            with patch("builtins.print"):
                 # Should not raise exception even if can't write to log
-                progress(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
+                progress(
+                    512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload"
+                )
 
         finally:
             # Restore permissions and cleanup
@@ -790,7 +1057,9 @@ class TestProgressErrorHandling:
 
         for callback in callbacks:
             try:
-                callback(512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload")
+                callback(
+                    512, 1024, 50.0, 1024.0, filename="test.txt", operation="upload"
+                )
             except Exception:
                 pass  # Isolate errors
 
@@ -809,9 +1078,16 @@ class TestProgressThreadSafety:
 
         def worker(worker_id):
             try:
-                with patch('builtins.print'):
+                with patch("builtins.print"):
                     for i in range(100):
-                        progress(i, 100, i, 1024.0, filename=f"file_{worker_id}.txt", operation="upload")
+                        progress(
+                            i,
+                            100,
+                            i,
+                            1024.0,
+                            filename=f"file_{worker_id}.txt",
+                            operation="upload",
+                        )
                 results.append(worker_id)
             except Exception as e:
                 errors.append(e)
@@ -844,8 +1120,14 @@ class TestProgressThreadSafety:
             def worker(worker_id):
                 try:
                     for i in range(50):
-                        progress(i, 50, i*2, 1024.0,
-                                filename=f"file_{worker_id}.txt", operation="upload")
+                        progress(
+                            i,
+                            50,
+                            i * 2,
+                            1024.0,
+                            filename=f"file_{worker_id}.txt",
+                            operation="upload",
+                        )
                     results.append(worker_id)
                 except Exception as e:
                     errors.append(e)
@@ -866,7 +1148,7 @@ class TestProgressThreadSafety:
             assert len(results) == 3
 
             # Verify log file contains entries from all threads
-            with open(temp_log.name, 'r', encoding='utf-8') as f:
+            with open(temp_log.name, "r", encoding="utf-8") as f:
                 content = f.read()
 
             assert "file_0.txt" in content

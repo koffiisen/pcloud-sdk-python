@@ -17,13 +17,13 @@ This example covers:
 - Token lifecycle handling
 """
 
-import os
 import json
+import os
 import time
 from datetime import datetime, timedelta
-from typing import Optional, Dict, Any, List
+from typing import Any, Dict, List, Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class TokenManager:
@@ -40,8 +40,9 @@ class TokenManager:
         self.accounts = {}
         self.current_account = None
 
-    def add_account(self, name: str, email: str, password: str,
-                   token_file: Optional[str] = None) -> bool:
+    def add_account(
+        self, name: str, email: str, password: str, token_file: Optional[str] = None
+    ) -> bool:
         """
         Add an account to the token manager
 
@@ -57,7 +58,7 @@ class TokenManager:
         try:
             if not token_file:
                 # Generate safe filename from email
-                safe_email = email.replace('@', '_').replace('.', '_')
+                safe_email = email.replace("@", "_").replace(".", "_")
                 token_file = os.path.join(self.base_dir, f".pcloud_{safe_email}")
 
             # Initialize SDK for this account
@@ -69,11 +70,11 @@ class TokenManager:
 
             # Store account info
             self.accounts[name] = {
-                'email': email,
-                'password': password,  # Store securely in production!
-                'token_file': token_file,
-                'sdk': sdk,
-                'added_at': datetime.now().isoformat()
+                "email": email,
+                "password": password,  # Store securely in production!
+                "token_file": token_file,
+                "sdk": sdk,
+                "added_at": datetime.now().isoformat(),
             }
 
             print(f"✅ Account '{name}' added successfully")
@@ -114,7 +115,7 @@ class TokenManager:
             print("❌ No current account selected")
             return None
 
-        return self.accounts[self.current_account]['sdk']
+        return self.accounts[self.current_account]["sdk"]
 
     def list_accounts(self):
         """List all managed accounts"""
@@ -125,7 +126,7 @@ class TokenManager:
         print("📋 Configured accounts:")
         for name, info in self.accounts.items():
             current_marker = "👉 " if name == self.current_account else "   "
-            added_date = info['added_at'][:10]  # Just the date part
+            added_date = info["added_at"][:10]  # Just the date part
             print(f"{current_marker}{name}: {info['email']} (added: {added_date})")
 
     def validate_all_tokens(self) -> Dict[str, bool]:
@@ -141,7 +142,7 @@ class TokenManager:
 
         for name, info in self.accounts.items():
             try:
-                sdk = info['sdk']
+                sdk = info["sdk"]
                 user_info = sdk.user.get_user_info()
                 results[name] = True
                 print(f"✅ {name}: Token valid (user: {user_info.get('email')})")
@@ -159,7 +160,9 @@ class TokenManager:
         """Remove accounts with invalid tokens"""
         validation_results = self.validate_all_tokens()
 
-        invalid_accounts = [name for name, valid in validation_results.items() if not valid]
+        invalid_accounts = [
+            name for name, valid in validation_results.items() if not valid
+        ]
 
         if not invalid_accounts:
             print("✅ All tokens are valid")
@@ -169,7 +172,7 @@ class TokenManager:
 
         for name in invalid_accounts:
             confirm = input(f"Remove invalid account '{name}'? (y/n): ").strip().lower()
-            if confirm == 'y':
+            if confirm == "y":
                 self.remove_account(name)
 
     def remove_account(self, name: str) -> bool:
@@ -187,7 +190,7 @@ class TokenManager:
             return False
 
         # Get token file path
-        token_file = self.accounts[name]['token_file']
+        token_file = self.accounts[name]["token_file"]
 
         # Remove from memory
         del self.accounts[name]
@@ -230,7 +233,7 @@ class TokenManager:
             return None
 
         account = self.accounts[name]
-        sdk = account['sdk']
+        sdk = account["sdk"]
 
         try:
             # Get credentials info from SDK
@@ -240,15 +243,15 @@ class TokenManager:
             user_info = sdk.user.get_user_info()
 
             return {
-                'name': name,
-                'email': account['email'],
-                'token_file': account['token_file'],
-                'added_at': account['added_at'],
-                'credentials_age_days': creds_info.get('age_days', 0),
-                'last_used': creds_info.get('last_used', 'Unknown'),
-                'user_quota': user_info.get('quota', 0),
-                'user_used_quota': user_info.get('usedquota', 0),
-                'user_email_verified': user_info.get('emailverified', False)
+                "name": name,
+                "email": account["email"],
+                "token_file": account["token_file"],
+                "added_at": account["added_at"],
+                "credentials_age_days": creds_info.get("age_days", 0),
+                "last_used": creds_info.get("last_used", "Unknown"),
+                "user_quota": user_info.get("quota", 0),
+                "user_used_quota": user_info.get("usedquota", 0),
+                "user_email_verified": user_info.get("emailverified", False),
             }
 
         except Exception as e:
@@ -258,9 +261,9 @@ class TokenManager:
 
 def demonstrate_automatic_token_management():
     """Demonstrate automatic token management"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("1️⃣ AUTOMATIC TOKEN MANAGEMENT")
-    print("="*60)
+    print("=" * 60)
 
     print("📋 Features:")
     print("   • Automatic token saving")
@@ -309,9 +312,9 @@ def demonstrate_automatic_token_management():
 
 def demonstrate_manual_token_management():
     """Demonstrate manual token extraction and management"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("2️⃣ MANUAL TOKEN MANAGEMENT")
-    print("="*60)
+    print("=" * 60)
 
     print("📋 Features:")
     print("   • Manual token extraction")
@@ -341,14 +344,14 @@ def demonstrate_manual_token_management():
 
         # Save token manually to custom file
         token_data = {
-            'access_token': access_token,
-            'email': email,
-            'created_at': datetime.now().isoformat(),
-            'expires_at': (datetime.now() + timedelta(days=30)).isoformat()
+            "access_token": access_token,
+            "email": email,
+            "created_at": datetime.now().isoformat(),
+            "expires_at": (datetime.now() + timedelta(days=30)).isoformat(),
         }
 
         custom_token_file = "custom_token.json"
-        with open(custom_token_file, 'w') as f:
+        with open(custom_token_file, "w") as f:
             json.dump(token_data, f, indent=2)
 
         print(f"💾 Token saved manually to: {custom_token_file}")
@@ -356,13 +359,12 @@ def demonstrate_manual_token_management():
         # Test reusing the manually saved token
         print("\n🔄 Testing manual token reuse...")
 
-        with open(custom_token_file, 'r') as f:
+        with open(custom_token_file, "r") as f:
             saved_token_data = json.load(f)
 
         # Create new SDK with saved token
         sdk2 = PCloudSDK(
-            access_token=saved_token_data['access_token'],
-            token_manager=False
+            access_token=saved_token_data["access_token"], token_manager=False
         )
 
         # Test API call
@@ -381,9 +383,9 @@ def demonstrate_manual_token_management():
 
 def demonstrate_multi_account_management():
     """Demonstrate multi-account token management"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("3️⃣ MULTI-ACCOUNT MANAGEMENT")
-    print("="*60)
+    print("=" * 60)
 
     print("📋 Features:")
     print("   • Multiple account support")
@@ -408,7 +410,10 @@ def demonstrate_multi_account_management():
             continue
 
         password = input(f"  Password: ").strip()
-        name = input(f"  Account nickname (default: Account{i}): ").strip() or f"Account{i}"
+        name = (
+            input(f"  Account nickname (default: Account{i}): ").strip()
+            or f"Account{i}"
+        )
 
         if email and password:
             accounts_to_add.append((name, email, password))
@@ -443,8 +448,12 @@ def demonstrate_multi_account_management():
     if current_sdk:
         try:
             folders = current_sdk.folder.list_root()
-            folder_count = len([f for f in folders.get('contents', []) if f.get('isfolder')])
-            file_count = len([f for f in folders.get('contents', []) if not f.get('isfolder')])
+            folder_count = len(
+                [f for f in folders.get("contents", []) if f.get("isfolder")]
+            )
+            file_count = len(
+                [f for f in folders.get("contents", []) if not f.get("isfolder")]
+            )
             print(f"   📂 Root folder: {folder_count} folders, {file_count} files")
         except Exception as e:
             print(f"   ❌ API test failed: {e}")
@@ -474,7 +483,7 @@ def demonstrate_multi_account_management():
     # Cleanup demonstration
     print("\n🧹 Cleanup options:")
     cleanup_choice = input("Clean up demo accounts? (y/n): ").strip().lower()
-    if cleanup_choice == 'y':
+    if cleanup_choice == "y":
         for name in list(token_manager.accounts.keys()):
             token_manager.remove_account(name)
         print("✅ All demo accounts cleaned up")
@@ -482,9 +491,9 @@ def demonstrate_multi_account_management():
 
 def demonstrate_token_security_practices():
     """Demonstrate token security best practices"""
-    print("\n" + "="*60)
+    print("\n" + "=" * 60)
     print("4️⃣ TOKEN SECURITY BEST PRACTICES")
-    print("="*60)
+    print("=" * 60)
 
     print("📋 Security features:")
     print("   • Token file encryption")
@@ -540,7 +549,7 @@ def demonstrate_token_security_practices():
         # Demonstrate secure logout
         print("\n🚪 Secure logout (removes token file):")
         confirm_logout = input("   Perform secure logout? (y/n): ").strip().lower()
-        if confirm_logout == 'y':
+        if confirm_logout == "y":
             sdk.logout()
 
             if not os.path.exists(secure_token_file):
@@ -577,15 +586,15 @@ def main():
 
         choice = input("Enter choice (1-5): ").strip()
 
-        if choice == '1':
+        if choice == "1":
             demonstrate_automatic_token_management()
-        elif choice == '2':
+        elif choice == "2":
             demonstrate_manual_token_management()
-        elif choice == '3':
+        elif choice == "3":
             demonstrate_multi_account_management()
-        elif choice == '4':
+        elif choice == "4":
             demonstrate_token_security_practices()
-        elif choice == '5':
+        elif choice == "5":
             print("👋 Goodbye!")
             break
         else:

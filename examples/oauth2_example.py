@@ -20,14 +20,14 @@ This example shows:
 - Error handling for OAuth2 specific issues
 """
 
-import webbrowser
-import urllib.parse
-from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
 import time
-from typing import Optional, Dict, Any
+import urllib.parse
+import webbrowser
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from typing import Any, Dict, Optional
 
-from pcloud_sdk import PCloudSDK, PCloudException
+from pcloud_sdk import PCloudException, PCloudSDK
 
 
 class OAuth2CallbackHandler(BaseHTTPRequestHandler):
@@ -40,8 +40,8 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
         query_params = urllib.parse.parse_qs(parsed_url.query)
 
         # Extract authorization code or error
-        if 'code' in query_params:
-            self.server.auth_code = query_params['code'][0]
+        if "code" in query_params:
+            self.server.auth_code = query_params["code"][0]
             response = """
             <html>
             <head><title>pCloud OAuth2 - Success</title></head>
@@ -52,9 +52,11 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
             </body>
             </html>
             """
-        elif 'error' in query_params:
-            self.server.auth_error = query_params['error'][0]
-            error_description = query_params.get('error_description', ['Unknown error'])[0]
+        elif "error" in query_params:
+            self.server.auth_error = query_params["error"][0]
+            error_description = query_params.get(
+                "error_description", ["Unknown error"]
+            )[0]
             response = f"""
             <html>
             <head><title>pCloud OAuth2 - Error</title></head>
@@ -79,7 +81,7 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
 
         # Send response
         self.send_response(200)
-        self.send_header('Content-type', 'text/html')
+        self.send_header("Content-type", "text/html")
         self.end_headers()
         self.wfile.write(response.encode())
 
@@ -91,7 +93,12 @@ class OAuth2CallbackHandler(BaseHTTPRequestHandler):
 class OAuth2FlowManager:
     """Manages OAuth2 authentication flow"""
 
-    def __init__(self, client_id: str, client_secret: str, redirect_uri: str = "http://localhost:8080/callback"):
+    def __init__(
+        self,
+        client_id: str,
+        client_secret: str,
+        redirect_uri: str = "http://localhost:8080/callback",
+    ):
         """
         Initialize OAuth2 flow manager
 
@@ -109,7 +116,7 @@ class OAuth2FlowManager:
     def start_callback_server(self, port: int = 8080) -> bool:
         """Start local server to handle OAuth2 callback"""
         try:
-            self.server = HTTPServer(('localhost', port), OAuth2CallbackHandler)
+            self.server = HTTPServer(("localhost", port), OAuth2CallbackHandler)
             self.server.auth_code = None
             self.server.auth_error = None
 
@@ -138,10 +145,10 @@ class OAuth2FlowManager:
         """Generate OAuth2 authorization URL"""
         base_url = "https://my.pcloud.com/oauth2/authorize"
         params = {
-            'client_id': self.client_id,
-            'response_type': 'code',
-            'redirect_uri': self.redirect_uri,
-            'state': 'pcloud_sdk_example'  # Optional: add CSRF protection
+            "client_id": self.client_id,
+            "response_type": "code",
+            "redirect_uri": self.redirect_uri,
+            "state": "pcloud_sdk_example",  # Optional: add CSRF protection
         }
 
         query_string = urllib.parse.urlencode(params)
@@ -160,10 +167,10 @@ class OAuth2FlowManager:
         start_time = time.time()
 
         while time.time() - start_time < timeout:
-            if hasattr(self.server, 'auth_code') and self.server.auth_code:
+            if hasattr(self.server, "auth_code") and self.server.auth_code:
                 return self.server.auth_code
 
-            if hasattr(self.server, 'auth_error') and self.server.auth_error:
+            if hasattr(self.server, "auth_error") and self.server.auth_error:
                 print(f"❌ OAuth2 authorization error: {self.server.auth_error}")
                 return None
 
@@ -187,7 +194,7 @@ class OAuth2FlowManager:
             sdk = PCloudSDK(
                 app_key=self.client_id,
                 app_secret=self.client_secret,
-                auth_type="oauth2"
+                auth_type="oauth2",
             )
 
             # Exchange code for token
@@ -265,9 +272,9 @@ def oauth2_flow_example():
         try:
             # Initialize SDK with the token
             sdk = PCloudSDK(
-                access_token=token_info['access_token'],
+                access_token=token_info["access_token"],
                 auth_type="direct",
-                token_manager=False  # Disable auto-save for this example
+                token_manager=False,  # Disable auto-save for this example
             )
 
             # Test API call
@@ -277,10 +284,11 @@ def oauth2_flow_example():
 
             # Optional: Save token for later use
             save_token = input("\n💾 Save token for later use? (y/n): ").strip().lower()
-            if save_token == 'y':
+            if save_token == "y":
                 token_file = "oauth2_token.json"
-                with open(token_file, 'w') as f:
+                with open(token_file, "w") as f:
                     import json
+
                     json.dump(token_info, f, indent=2)
                 print(f"💾 Token saved to {token_file}")
                 print("   You can use this token for future authentication")
@@ -308,17 +316,18 @@ def reuse_saved_token_example():
 
     try:
         # Load saved token
-        with open(token_file, 'r') as f:
+        with open(token_file, "r") as f:
             import json
+
             token_info = json.load(f)
 
         print(f"📂 Loaded token from {token_file}")
 
         # Initialize SDK with saved token
         sdk = PCloudSDK(
-            access_token=token_info['access_token'],
+            access_token=token_info["access_token"],
             auth_type="direct",
-            token_manager=False
+            token_manager=False,
         )
 
         # Test API call
@@ -349,11 +358,11 @@ def main():
 
         choice = input("Enter choice (1-3): ").strip()
 
-        if choice == '1':
+        if choice == "1":
             oauth2_flow_example()
-        elif choice == '2':
+        elif choice == "2":
             reuse_saved_token_example()
-        elif choice == '3':
+        elif choice == "3":
             print("👋 Goodbye!")
             break
         else:
