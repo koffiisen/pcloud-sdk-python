@@ -7,9 +7,7 @@ import os
 import tempfile
 import threading
 import time
-from contextlib import redirect_stdout
-from io import StringIO
-from unittest.mock import Mock, call, patch
+from unittest.mock import patch
 
 import pytest
 

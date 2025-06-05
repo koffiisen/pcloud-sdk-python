@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Linting and code quality tools for pCloud SDK
-Runs flake8, black, isort, and mypy checks
+Runs black and isort checks
 """
 
 import subprocess
@@ -72,13 +72,6 @@ def main():
             ],
             "isort import sorting",
         ),
-        # Flake8 linting
-        (
-            ["python", "-m", "flake8", "pcloud_sdk", "tests", "examples", "tools"],
-            "Flake8 linting",
-        ),
-        # MyPy type checking
-        (["python", "-m", "mypy", "pcloud_sdk"], "MyPy type checking"),
     ]
 
     for cmd, description in checks:

@@ -5,9 +5,7 @@ Tests upload, download, file manipulation, progress tracking, and error scenario
 
 import os
 import tempfile
-import time
-from io import BytesIO
-from unittest.mock import Mock, call, patch
+from unittest.mock import patch
 
 import pytest
 import responses
@@ -22,7 +20,6 @@ from .test_config import (
     get_test_credentials,
     requires_real_credentials,
     safe_cleanup_temp_dir,
-    safe_remove_directory,
     safe_remove_file,
     skip_if_no_integration_tests,
 )
@@ -178,11 +175,13 @@ class TestFileUpload:
             status=200,
         )
 
-        result = self.file_ops.upload(self.test_file, folder_id=folder_id)
+        self.file_ops.upload(self.test_file, folder_id=folder_id)
 
         # Verify the request was made with correct folder_id
         save_request = [
-            call for call in responses.calls if "upload_save" in call.request.url
+            response_call
+            for response_call in responses.calls
+            if "upload_save" in response_call.request.url
         ][0]
         assert f"folderid={folder_id}" in save_request.request.url
 
@@ -264,8 +263,13 @@ class TestFileUpload:
         assert len(progress_calls) >= 3  # At least starting, progress, completed
         assert progress_calls[0]["status"] == "starting"
         assert progress_calls[-1]["status"] == "completed"
-        assert all(call["operation"] == "upload" for call in progress_calls)
-        assert all(call["filename"] == "test_upload.txt" for call in progress_calls)
+        assert all(
+            progress_call["operation"] == "upload" for progress_call in progress_calls
+        )
+        assert all(
+            progress_call["filename"] == "test_upload.txt"
+            for progress_call in progress_calls
+        )
 
     @responses.activate
     def test_upload_retry_on_chunk_failure(self):
@@ -431,7 +435,9 @@ class TestFileDownload:
         assert len(progress_calls) >= 2  # At least starting and completed
         assert progress_calls[0]["status"] == "starting"
         assert progress_calls[-1]["status"] == "completed"
-        assert all(call["operation"] == "download" for call in progress_calls)
+        assert all(
+            progress_call["operation"] == "download" for progress_call in progress_calls
+        )
 
     @responses.activate
     def test_download_failed_get_link(self):
@@ -568,7 +574,7 @@ class TestFileManipulation:
             status=200,
         )
 
-        result = self.file_ops.move(file_id, target_folder_id)
+        self.file_ops.move(file_id, target_folder_id)
 
         # Verify the request was made with correct parameters
         request = responses.calls[0].request
@@ -595,7 +601,7 @@ class TestFileManipulation:
             status=200,
         )
 
-        result = self.file_ops.copy(file_id, target_folder_id)
+        self.file_ops.copy(file_id, target_folder_id)
 
         # Verify the request was made with correct parameters
         request = responses.calls[0].request
@@ -727,7 +733,9 @@ class TestLargeFileHandling:
 
         # Verify multiple chunks were uploaded
         upload_write_calls = [
-            call for call in responses.calls if "upload_write" in call.request.url
+            response_call
+            for response_call in responses.calls
+            if "upload_write" in response_call.request.url
         ]
         assert len(upload_write_calls) == expected_chunks
 

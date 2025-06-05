@@ -37,14 +37,19 @@ class PCloudSDK:
         Initialize the pCloud SDK
 
         Args:
-            app_key: Your pCloud app key (Client ID) - optional for direct login
-            app_secret: Your pCloud app secret (Client Secret) - optional for direct login
+            app_key: Your pCloud app key (Client ID) - optional for direct
+                login
+            app_secret: Your pCloud app secret (Client Secret) - optional for
+                direct login
             access_token: Access token (optional, can be set later)
             location_id: Server location (1=US, 2=EU) - default EU
-            auth_type: Authentication type ("oauth2" or "direct") - default direct
+            auth_type: Authentication type ("oauth2" or "direct") - default
+                direct
             token_manager: Enable automatic token management (default True)
-            token_file: File to store credentials (default .pcloud_credentials)
-            token_staleness_days: Number of days after which saved credentials are considered stale (default 30)
+            token_file: File to store credentials (default
+                .pcloud_credentials)
+            token_staleness_days: Number of days after which saved credentials
+                are considered stale (default 30)
         """
         self.app = App()
         self.app.set_app_key(app_key)
@@ -70,7 +75,7 @@ class PCloudSDK:
 
     def _save_credentials(
         self, email: str, token: str, location_id: int, user_info: Optional[Dict] = None
-    ):
+    ) -> None:
         """Save credentials to file if token manager is enabled"""
         if not self.token_manager_enabled:
             return
@@ -112,9 +117,11 @@ class PCloudSDK:
             saved_at = credentials.get("saved_at", 0)
             age_days = (time.time() - saved_at) / (24 * 3600)
 
-            if age_days > self.token_staleness_days:  # Consider credentials stale
+            if age_days > self.token_staleness_days:  # Consider stale
                 print(
-                    f"⚠️ Old credentials ({age_days:.1f} days, limit is {self.token_staleness_days} days), new login recommended"
+                    f"⚠️ Old credentials ({age_days:.1f} days, "
+                    f"limit is {self.token_staleness_days} days), "
+                    "new login recommended"
                 )
                 return False
 
@@ -127,7 +134,8 @@ class PCloudSDK:
 
             if access_token is None:
                 print(
-                    f"⚠️ Credentials in {self.token_file} are missing 'access_token'. Cannot load."
+                    f"⚠️ Credentials in {self.token_file} are missing "
+                    "'access_token'. Cannot load."
                 )
                 return False
 
@@ -165,7 +173,7 @@ class PCloudSDK:
             print("⚠️ Credentials expired, new login required")
             return False
 
-    def clear_saved_credentials(self):
+    def clear_saved_credentials(self) -> None:
         """Clear saved credentials file"""
         if self.token_manager_enabled and os.path.exists(self.token_file):
             try:
@@ -173,23 +181,29 @@ class PCloudSDK:
                 print(f"🧹 Credentials deleted from {self.token_file}")
             except PermissionError as e:
                 print(
-                    f"⚠️ Could not delete credentials from {self.token_file} due to a permission error: {e}"
+                    f"⚠️ Could not delete credentials from {self.token_file} "
+                    f"due to a permission error: {e}"
                 )
             except OSError as e:  # Catch other OS-level errors during delete
                 print(f"⚠️ Error deleting credentials from {self.token_file}: {e}")
             except Exception as e:  # Catch any other unexpected error
-                print(f"⚠️ An unexpected error occurred while deleting credentials: {e}")
+                print(
+                    f"⚠️ An unexpected error occurred while deleting "
+                    f"credentials: {e}"
+                )
         self._saved_credentials = None
 
     def get_saved_email(self) -> Optional[str]:
         """
         Retrieves the email address from currently loaded saved credentials.
 
-        This method checks if there are any credentials loaded from the token file
+        This method checks if there are any credentials loaded from the token
+        file
         and returns the email associated with them.
 
         Returns:
-            Optional[str]: The saved email address if credentials are loaded and contain an email,
+            Optional[str]: The saved email address if credentials are loaded and
+                contain an email,
                            None otherwise.
         """
         if self._saved_credentials:
@@ -286,7 +300,8 @@ class PCloudSDK:
             saved_email = self.get_saved_email()
             if not email and saved_email:
                 raise PCloudException(
-                    f"Credentials expired for {saved_email}. Provide email and password to reconnect."
+                    f"Credentials expired for {saved_email}. Provide email "
+                    "and password to reconnect."
                 )
             elif not email:
                 raise PCloudException("Email and password required for first login")
@@ -325,21 +340,28 @@ class PCloudSDK:
         are found and valid. It is maintained for backward compatibility.
 
         Args:
-            email (str): pCloud email. Required if not using saved credentials or if `force_login` is True.
-            password (str): pCloud password. Required if not using saved credentials or if `force_login` is True.
-            location_id (int): Server location ID (1 for US, 2 for EU). Defaults to 2 (EU).
-            force_login (bool): If True, forces a new login even if valid saved credentials exist. Defaults to False.
+            email (str): pCloud email. Required if not using saved credentials
+                or if `force_login` is True.
+            password (str): pCloud password. Required if not using saved
+                credentials or if `force_login` is True.
+            location_id (int): Server location ID (1 for US, 2 for EU).
+                Defaults to 2 (EU).
+            force_login (bool): If True, forces a new login even if valid saved
+                credentials exist. Defaults to False.
 
         Returns:
             PCloudSDK: The SDK instance itself, allowing for method chaining.
 
         Note:
-            For new implementations, it is strongly recommended to use the `login` method
-            directly and handle the login flow explicitly. This method will be removed
+            For new implementations, it is strongly recommended to use the
+            `login` method
+            directly and handle the login flow explicitly. This method will be
+            removed
             in a future release.
         """
         warnings.warn(
-            "The 'login_or_load' method is deprecated and will be removed in a future version. "
+            "The 'login_or_load' method is deprecated and will be removed in a "
+            "future version. "
             "Please use the 'login' method instead.",
             DeprecationWarning,
             stacklevel=2,
@@ -347,7 +369,7 @@ class PCloudSDK:
         self.login(email, password, location_id, force_login)
         return self
 
-    def set_access_token(self, access_token: str, auth_type: str = "direct"):
+    def set_access_token(self, access_token: str, auth_type: str = "direct") -> None:
         """Set access token directly with authentication type"""
         self.app.set_access_token(access_token, auth_type)
 
@@ -355,7 +377,7 @@ class PCloudSDK:
         """Check if SDK is authenticated"""
         return bool(self.app.get_access_token())
 
-    def logout(self):
+    def logout(self) -> None:
         """Logout and clear credentials"""
         self.clear_saved_credentials()
         self.app.set_access_token("", "direct")

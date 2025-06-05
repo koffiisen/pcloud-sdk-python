@@ -19,17 +19,13 @@ This comprehensive demo covers:
 """
 
 import hashlib
-import mimetypes
 import os
 import shutil
 import tempfile
 import time
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
-from pcloud_sdk import PCloudSDK, create_detailed_progress, create_progress_bar
-from pcloud_sdk.exceptions import PCloudException
+from pcloud_sdk import PCloudSDK, create_progress_bar
 
 
 def create_test_files() -> List[str]:
@@ -151,13 +147,14 @@ class AdvancedProgressTracker:
                     eta_str = (
                         f"{int(eta_seconds)}s"
                         if eta_seconds < 60
-                        else f"{int(eta_seconds/60)}m{int(eta_seconds%60)}s"
+                        else f"{int(eta_seconds/60)}m{int(eta_seconds % 60)}s"
                     )
                 else:
                     eta_str = "Unknown"
 
                 print(
-                    f"   ▶ {percentage:5.1f}% | {format_speed(speed)} | Avg: {format_speed(avg_speed)} | ETA: {eta_str}"
+                    f"   ▶ {percentage:5.1f}% | {format_speed(speed)} | "
+                    f"Avg: {format_speed(avg_speed)} | ETA: {eta_str}"
                 )
 
             elif status == "completed":
@@ -241,7 +238,8 @@ class BatchProgressManager:
         )
 
         print(
-            f"⚡ {self.operation_name}: {completed_count}/{len(self.files)} files, {overall_percentage:.1f}% overall"
+            f"⚡ {self.operation_name}: {completed_count}/{len(self.files)} "
+            f"files, {overall_percentage:.1f}% overall"
         )
 
 
@@ -270,7 +268,7 @@ class UploadDownloadDemo:
                     email = self.sdk.get_saved_email()
                     print(f"✓ Using saved credentials for: {email}")
                     return True
-            except:
+            except OSError:
                 pass
 
         # Need authentication
@@ -380,7 +378,7 @@ class UploadDownloadDemo:
             }
             self.uploaded_files.append(file_info)
 
-            print(f"✓ Advanced upload completed")
+            print("✓ Advanced upload completed")
             print(f"   Original hash: {original_hash[:16]}...")
 
         except Exception as e:
@@ -438,7 +436,8 @@ class UploadDownloadDemo:
                 print(f"✗ Failed to upload {file_name}: {e}")
 
         print(
-            f"\n✓ Batch upload completed: {len(self.uploaded_files)} total files uploaded"
+            f"\n✓ Batch upload completed: {len(self.uploaded_files)} "
+            f"total files uploaded"
         )
 
     def demo_basic_download(self):
@@ -547,17 +546,19 @@ class UploadDownloadDemo:
                     if os.path.exists(downloaded_file):
                         downloaded_size = os.path.getsize(downloaded_file)
                         if downloaded_size == file_info["size"]:
-                            print(f"  ✓ Size verification passed")
+                            print("  ✓ Size verification passed")
                         else:
                             print(
-                                f"   ⚠ Size mismatch: expected {file_info['size']}, got {downloaded_size}"
+                                f"   ⚠ Size mismatch: expected "
+                                f"{file_info['size']}, got {downloaded_size}"
                             )
 
             except Exception as e:
                 print(f"✗ Failed to download {file_info['name']}: {e}")
 
         print(
-            f"\n✓ Batch download completed: {successful_downloads}/{len(download_files)} files"
+            f"\n✓ Batch download completed: "
+            f"{successful_downloads}/{len(download_files)} files"
         )
 
         # Cleanup download directory
@@ -599,13 +600,13 @@ class UploadDownloadDemo:
             print("✓ File renamed successfully")
 
             # Copy file
-            print(f"\n⚡ Creating copy of file...")
+            print("\n⚡ Creating copy of file...")
             copy_result = self.sdk.file.copy(file_id, self.demo_folder_id)
             copied_file_id = copy_result["metadata"]["fileid"]
             print(f"✓ File copied successfully (new ID: {copied_file_id})")
 
             # List folder to show both files
-            print(f"\n⚡ Demo folder contents:")
+            print("\n⚡ Demo folder contents:")
             folder_contents = self.sdk.folder.get_content(self.demo_folder_id)
 
             for item in folder_contents:
@@ -614,7 +615,7 @@ class UploadDownloadDemo:
                     print(f"   • {item['name']} ({size})")
 
             # Delete the copy
-            print(f"\n⚡ Deleting copied file...")
+            print("\n⚡ Deleting copied file...")
             self.sdk.file.delete(copied_file_id)
             print("✓ Copied file deleted successfully")
 
@@ -654,7 +655,7 @@ class UploadDownloadDemo:
 
         if total_time > 0:
             overall_speed = total_size / total_time
-            print(f"⚡ Overall Statistics:")
+            print("⚡ Overall Statistics:")
             print(f"   Total uploaded: {format_size(total_size)}")
             print(f"   Total time: {total_time:.1f}s")
             print(f"   Average speed: {format_speed(overall_speed)}")

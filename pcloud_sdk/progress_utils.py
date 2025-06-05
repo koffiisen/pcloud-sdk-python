@@ -91,7 +91,8 @@ class SimpleProgressBar:
                 bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
             )
             print(
-                f"\n✅ Terminé en {elapsed:.1f}s (vitesse moyenne: {final_speed:.1f}MB/s)"
+                f"\n✅ Terminé en {elapsed:.1f}s "
+                f"(vitesse moyenne: {final_speed:.1f}MB/s)"
             )
 
 
@@ -144,7 +145,7 @@ class DetailedProgress:
             avg_speed = (
                 bytes_transferred / elapsed / (1024 * 1024) if elapsed > 0 else 0
             )
-            print(f"✅ Transfert terminé!")
+            print("✅ Transfert terminé!")
             print(f"   Durée: {elapsed:.1f}s")
             print(f"   Vitesse moyenne: {avg_speed:.1f}MB/s")
             print(f"   Taille: {bytes_transferred:,} bytes")
@@ -191,7 +192,7 @@ class DetailedProgress:
 class MinimalProgress:
     """Affichage minimal - seulement les étapes importantes"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.milestones = {0, 25, 50, 75, 100}  # Pourcentages à afficher
         self.shown: Set[int] = set()
         self.start_time: Optional[float] = None
@@ -239,7 +240,8 @@ class SilentProgress:
         with open(self.log_file, "w", encoding="utf-8") as f:
             f.write(f"# pCloud Transfer Log - {datetime.now().isoformat()}\n")
             f.write(
-                "# timestamp,operation,filename,percentage,bytes_transferred,total_bytes,speed_mbps,status\n"
+                "# timestamp,operation,filename,percentage,bytes_transferred,"
+                "total_bytes,speed_mbps,status\n"
             )
 
     def __call__(
@@ -261,7 +263,10 @@ class SilentProgress:
         status = kwargs.get("status", "progress")
         speed_mbps = speed / (1024 * 1024)
 
-        log_line = f"{timestamp},{operation},{filename},{percentage:.1f},{bytes_transferred},{total_bytes},{speed_mbps:.2f},{status}\n"
+        log_line = (
+            f"{timestamp},{operation},{filename},{percentage:.1f},"
+            f"{bytes_transferred},{total_bytes},{speed_mbps:.2f},{status}\n"
+        )
 
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:

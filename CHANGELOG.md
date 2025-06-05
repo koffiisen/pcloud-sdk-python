@@ -193,6 +193,6 @@ sdk.login()  # Uses saved token automatically
 ## Support
 
 - **Documentation**: [https://pcloud-sdk-python.readthedocs.io/](https://pcloud-sdk-python.readthedocs.io/)
-- **Issues**: [https://github.com/pcloud/pcloud-sdk-python/issues](https://github.com/pcloud/pcloud-sdk-python/issues)
+- **Issues**: [https://github.com/koffiisen/pcloud-sdk-python/issues](https://github.com/koffiisen/pcloud-sdk-python/issues)
 - **PyPI**: [https://pypi.org/project/pcloud-sdk/](https://pypi.org/project/pcloud-sdk/)
 - **pCloud API**: [https://docs.pcloud.com/](https://docs.pcloud.com/)

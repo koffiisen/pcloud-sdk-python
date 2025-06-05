@@ -1,0 +1,72 @@
+/* Custom styles for pCloud SDK documentation */
+
+/* Code highlighting improvements */
+.highlight .hll { background-color: #ffffcc }
+.highlight .c { color: #999988; font-style: italic } /* Comment */
+.highlight .k { color: #000000; font-weight: bold } /* Keyword */
+.highlight .o { color: #000000; font-weight: bold } /* Operator */
+.highlight .cm { color: #999988; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #999999; font-weight: bold; font-style: italic } /* Comment.Preproc */
+.highlight .c1 { color: #999988; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #999999; font-weight: bold; font-style: italic } /* Comment.Special */
+
+/* Improve table readability */
+.md-typeset table:not([class]) {
+    border: 1px solid var(--md-default-fg-color--lightest);
+    border-radius: 0.1rem;
+}
+
+.md-typeset table:not([class]) th {
+    background-color: var(--md-default-fg-color--lightest);
+    font-weight: 700;
+}
+
+.md-typeset table:not([class]) td {
+    border-top: 1px solid var(--md-default-fg-color--lightest);
+}
+
+/* Code block improvements */
+.md-typeset .highlight {
+    margin: 1em 0;
+    border-radius: 0.2rem;
+}
+
+.md-typeset .codehilite {
+    margin: 1em 0;
+    border-radius: 0.2rem;
+}
+
+/* Badge styling for feature comparisons */
+.feature-badge {
+    display: inline-block;
+    padding: 0.2em 0.5em;
+    border-radius: 0.2rem;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+.feature-badge.available {
+    background-color: #4caf50;
+    color: white;
+}
+
+.feature-badge.unavailable {
+    background-color: #f44336;
+    color: white;
+}
+
+/* Improve admonition spacing */
+.md-typeset .admonition {
+    margin: 1.5em 0;
+}
+
+/* Better spacing for navigation tabs */
+.md-tabs__link {
+    font-weight: 500;
+}
+
+/* Improve footer appearance */
+.md-footer {
+    margin-top: 2rem;
+}

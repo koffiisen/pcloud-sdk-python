@@ -36,89 +36,89 @@ from pcloud_sdk import PCloudSDK, PCloudException
 def health_check():
     """Comprehensive health check for pCloud SDK"""
     
-    print("<� pCloud SDK Health Check")
+    print("<å pCloud SDK Health Check")
     print("=" * 40)
     
-    issues_found = 0
+    issues_found 💾0
     
     # Test 1: Import and version check
-    print("\n1� Testing SDK Import...")
+    print("\n1ã Testing SDK Import...")
     try:
         import pcloud_sdk
         print(f"    SDK version: {pcloud_sdk.__version__}")
     except ImportError as e:
         print(f"   L Import failed: {e}")
-        print("   =� Solution: pip install pcloud-sdk-python")
-        issues_found += 1
+        print("   =¡ Solution: pip install pcloud-sdk-python")
+        issues_found +💾1
     
     # Test 2: Network connectivity
-    print("\n2� Testing Network Connectivity...")
+    print("\n2ã Testing Network Connectivity...")
     try:
         import requests
-        response = requests.get("https://api.pcloud.com", timeout=10)
-        if response.status_code == 200:
+        response 💾requests.get("https://api.pcloud.com", timeout=10)
+        if response.status_code =💾200:
             print("    pCloud API is reachable")
         else:
-            print(f"   � pCloud API returned status: {response.status_code}")
+            print(f"     pCloud API returned status: {response.status_code}")
     except Exception as e:
         print(f"   L Network connectivity issue: {e}")
-        print("   =� Check your internet connection")
-        issues_found += 1
+        print("   =¡ Check your internet connection")
+        issues_found +💾1
     
     # Test 3: Authentication
-    print("\n3� Testing Authentication...")
+    print("\n3ã Testing Authentication...")
     try:
-        sdk = PCloudSDK()
+        sdk 💾PCloudSDK()
         
         # Check for saved credentials
-        cred_info = sdk.get_credentials_info()
+        cred_info 💾sdk.get_credentials_info()
         if cred_info.get('email'):
-            print(f"   =� Found saved credentials for: {cred_info['email']}")
-            print(f"   =� Credentials age: {cred_info.get('age_days', 0):.1f} days")
+            print(f"   =Á Found saved credentials for: {cred_info['email']}")
+            print(f"   =Å Credentials age: {cred_info.get('age_days', 0):.1f} days")
             
             # Test if credentials work
             try:
                 sdk.login()
-                email = sdk.user.get_user_email()
+                email 💾sdk.user.get_user_email()
                 print(f"    Authentication successful: {email}")
             except Exception as e:
                 print(f"   L Saved credentials invalid: {e}")
-                print("   =� Try logging in with fresh credentials")
-                issues_found += 1
+                print("   =¡ Try logging in with fresh credentials")
+                issues_found +💾1
         else:
             print("   9 No saved credentials found")
-            print("   =� Run: sdk.login('email', 'password') to authenticate")
+            print("   =¡ Run: sdk.login('email', 'password') to authenticate")
             
     except Exception as e:
         print(f"   L Authentication test failed: {e}")
-        issues_found += 1
+        issues_found +💾1
     
     # Test 4: Basic operations (if authenticated)
     if 'sdk' in locals() and sdk.is_authenticated():
-        print("\n4� Testing Basic Operations...")
+        print("\n4ã Testing Basic Operations...")
         try:
             # Test folder listing
-            root_contents = sdk.folder.list_root()
+            root_contents 💾sdk.folder.list_root()
             print(f"    Folder listing works ({len(root_contents['contents'])} items)")
             
             # Test file upload/download
             with tempfile.NamedTemporaryFile(mode='w', suffix='.txt', delete=False) as tmp:
                 tmp.write("Health check test file")
-                test_file = tmp.name
+                test_file 💾tmp.name
             
             try:
-                result = sdk.file.upload(test_file, filename="health_check.txt")
-                file_id = result['metadata'][0]['fileid']
+                result 💾sdk.file.upload(test_file, filename="health_check.txt")
+                file_id 💾result['metadata'][0]['fileid']
                 print("    File upload works")
                 
                 # Test download
-                download_dir = tempfile.mkdtemp()
-                success = sdk.file.download(file_id, download_dir)
+                download_dir 💾tempfile.mkdtemp()
+                success 💾sdk.file.download(file_id, download_dir)
                 if success:
                     print("    File download works")
                 else:
                     print("   L File download failed")
-                    issues_found += 1
+                    issues_found +💾1
                 
                 # Cleanup
                 sdk.file.delete(file_id)
@@ -128,23 +128,23 @@ def health_check():
                 
             except Exception as e:
                 print(f"   L File operations failed: {e}")
-                issues_found += 1
+                issues_found +💾1
                 
         except Exception as e:
             print(f"   L Basic operations test failed: {e}")
-            issues_found += 1
+            issues_found +💾1
     
     # Summary
-    print(f"\n=� Health Check Summary:")
-    if issues_found == 0:
-        print("   <� All tests passed! SDK is working correctly.")
+    print(f"\n=Ê Health Check Summary:")
+    if issues_found =💾0:
+        print("   < All tests passed! SDK is working correctly.")
     else:
-        print(f"   � Found {issues_found} issue(s). See solutions above.")
+        print(f"     Found {issues_found} issue(s). See solutions above.")
     
-    return issues_found == 0
+    return issues_found =💾0
 
-if __name__ == "__main__":
-    success = health_check()
+if __name__ =💾"__main__":
+    success 💾health_check()
     sys.exit(0 if success else 1)
 ```
 
@@ -180,11 +180,11 @@ def check_environment():
     # Network configuration
     try:
         import socket
-        hostname = socket.gethostname()
-        local_ip = socket.gethostbyname(hostname)
+        hostname 💾socket.gethostname()
+        local_ip 💾socket.gethostbyname(hostname)
         print(f"   Network: {hostname} ({local_ip})")
     except:
-        print("   � Network info unavailable")
+        print("     Network info unavailable")
 
 check_environment()
 ```
@@ -202,10 +202,10 @@ check_environment()
 1. **Verify credentials:**
    ```python
    # Test with manual input to avoid typos
-   email = input("Email: ").strip()
-   password = input("Password: ").strip()
+   email 💾input("Email: ").strip()
+   password 💾input("Password: ").strip()
    
-   sdk = PCloudSDK()
+   sdk 💾PCloudSDK()
    try:
        sdk.login(email, password)
        print(" Credentials are correct")
@@ -231,10 +231,10 @@ check_environment()
    
    def clean_credentials(text):
        # Remove non-printable characters
-       return ''.join(char for char in text if unicodedata.category(char)[0] != 'C')
+       return ''.join(char for char in text if unicodedata.category(char)[0] !💾'C')
    
-   email = clean_credentials(email)
-   password = clean_credentials(password)
+   email 💾clean_credentials(email)
+   password 💾clean_credentials(password)
    ```
 
 ### Issue: "Token expired" or "Authentication required"
@@ -247,7 +247,7 @@ check_environment()
 
 1. **Force re-authentication:**
    ```python
-   sdk = PCloudSDK()
+   sdk 💾PCloudSDK()
    
    # Clear old credentials
    sdk.clear_saved_credentials()
@@ -258,11 +258,11 @@ check_environment()
 
 2. **Check token age:**
    ```python
-   cred_info = sdk.get_credentials_info()
-   age_days = cred_info.get('age_days', 0)
+   cred_info 💾sdk.get_credentials_info()
+   age_days 💾cred_info.get('age_days', 0)
    
-   if age_days > 25:  # Refresh before 30-day expiry
-       print(f"� Token is {age_days:.1f} days old")
+   if age_days 🔄 25:  # Refresh before 30-day expiry
+       print(f"  Token is {age_days:.1f} days old")
        sdk.login(email, password, force_login=True)
    ```
 
@@ -277,15 +277,15 @@ check_environment()
 1. **Verify OAuth2 setup:**
    ```python
    # Check your app configuration
-   sdk = PCloudSDK(
+   sdk 💾PCloudSDK(
        app_key="your_client_id",     # From pCloud developer console
        app_secret="your_client_secret",
        auth_type="oauth2"
    )
    
    # Ensure redirect URI matches exactly
-   redirect_uri = "http://localhost:8000/callback"  # Must match app config
-   auth_url = sdk.get_auth_url(redirect_uri)
+   redirect_uri 💾"http://localhost:8000/callback"  # Must match app config
+   auth_url 💾sdk.get_auth_url(redirect_uri)
    print(f"Authorization URL: {auth_url}")
    ```
 
@@ -295,15 +295,15 @@ check_environment()
        """Extract and validate OAuth2 code from callback URL"""
        from urllib.parse import urlparse, parse_qs
        
-       parsed = urlparse(callback_url)
-       params = parse_qs(parsed.query)
+       parsed 💾urlparse(callback_url)
+       params 💾parse_qs(parsed.query)
        
        if 'code' in params:
-           code = params['code'][0]
+           code 💾params['code'][0]
            print(f" Authorization code: {code}")
            return code
        elif 'error' in params:
-           error = params['error'][0]
+           error 💾params['error'][0]
            print(f"L OAuth2 error: {error}")
            return None
        else:
@@ -311,10 +311,10 @@ check_environment()
            return None
    
    # Usage
-   callback_url = input("Paste the full callback URL: ")
-   code = debug_oauth_callback(callback_url)
+   callback_url 💾input("Paste the full callback URL: ")
+   code 💾debug_oauth_callback(callback_url)
    if code:
-       token_info = sdk.authenticate(code)
+       token_info 💾sdk.authenticate(code)
    ```
 
 ## Network Problems
@@ -334,20 +334,20 @@ check_environment()
    
    def test_network_connectivity():
        """Test connection to pCloud servers"""
-       servers = {
+       servers 💾{
            "EU": "https://eapi.pcloud.com",
            "US": "https://api.pcloud.com"
        }
        
        for region, url in servers.items():
            try:
-               start_time = time.time()
-               response = requests.get(url, timeout=10)
-               elapsed = time.time() - start_time
+               start_time 💾time.time()
+               response 💾requests.get(url, timeout=10)
+               elapsed 💾time.time() - start_time
                
                print(f" {region} server: {response.status_code} ({elapsed:.2f}s)")
            except requests.exceptions.Timeout:
-               print(f"� {region} server: Timeout")
+               print(f"ð {region} server: Timeout")
            except requests.exceptions.ConnectionError:
                print(f"L {region} server: Connection failed")
            except Exception as e:
@@ -359,7 +359,7 @@ check_environment()
 2. **Adjust timeout settings:**
    ```python
    # Increase timeout for slow connections
-   sdk = PCloudSDK()
+   sdk 💾PCloudSDK()
    sdk.app.set_curl_execution_timeout(300)  # 5 minutes
    ```
 
@@ -374,10 +374,10 @@ check_environment()
            try:
                return func()
            except Exception as e:
-               if attempt == max_retries - 1:
+               if attempt =💾max_retries - 1:
                    raise e
                
-               delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+               delay 💾base_delay * (2 ** attempt) + random.uniform(0, 1)
                print(f"= Retry {attempt + 1}/{max_retries} in {delay:.1f}s: {e}")
                time.sleep(delay)
    
@@ -385,7 +385,7 @@ check_environment()
    def upload_operation():
        return sdk.file.upload("file.txt")
    
-   result = retry_with_backoff(upload_operation)
+   result 💾retry_with_backoff(upload_operation)
    ```
 
 ### Issue: Proxy or firewall blocking connections
@@ -402,11 +402,11 @@ check_environment()
    import os
    
    # Set proxy environment variables
-   os.environ['HTTP_PROXY'] = 'http://proxy.company.com:8080'
-   os.environ['HTTPS_PROXY'] = 'https://proxy.company.com:8080'
+   os.environ['HTTP_PROXY'] 💾'http://proxy.company.com:8080'
+   os.environ['HTTPS_PROXY'] 💾'https://proxy.company.com:8080'
    
    # For authenticated proxies
-   os.environ['HTTP_PROXY'] = 'http://username:password@proxy.company.com:8080'
+   os.environ['HTTP_PROXY'] 💾'http://username:password@proxy.company.com:8080'
    ```
 
 2. **Test with different network:**
@@ -414,7 +414,7 @@ check_environment()
    def test_different_networks():
        """Test connectivity from different networks"""
        print("< Testing network connectivity...")
-       print("=� Try from different networks:")
+       print("=¡ Try from different networks:")
        print("   - Mobile hotspot")
        print("   - Different WiFi")
        print("   - VPN connection")
@@ -441,22 +441,22 @@ check_environment()
    def robust_large_upload(file_path):
        """Upload large files with detailed monitoring"""
        
-       file_size = os.path.getsize(file_path)
-       print(f"=� File size: {file_size / (1024**3):.2f} GB")
+       file_size 💾os.path.getsize(file_path)
+       print(f"=Á File size: {file_size / (1024**3):.2f} GB")
        
        # Use detailed progress for monitoring
-       progress = create_detailed_progress("upload.log")
+       progress 💾create_detailed_progress("upload.log")
        
        try:
-           result = sdk.file.upload(file_path, progress_callback=progress)
+           result 💾sdk.file.upload(file_path, progress_callback=progress)
            return result
        except Exception as e:
            print(f"L Upload failed: {e}")
-           print("=� Check upload.log for details")
+           print("=Ë Check upload.log for details")
            raise
    
    # Usage
-   result = robust_large_upload("large_file.zip")
+   result 💾robust_large_upload("large_file.zip")
    ```
 
 2. **Optimize chunk size:**
@@ -464,14 +464,14 @@ check_environment()
    from pcloud_sdk.config import Config
    
    # Adjust chunk size based on file size and network speed
-   file_size = os.path.getsize("large_file.zip")
+   file_size 💾os.path.getsize("large_file.zip")
    
-   if file_size > 1024**3:  # > 1GB
-       Config.FILE_PART_SIZE = 50 * 1024 * 1024  # 50MB chunks
-   elif file_size > 100 * 1024**2:  # > 100MB
-       Config.FILE_PART_SIZE = 20 * 1024 * 1024  # 20MB chunks
+   if file_size 🔄 1024**3:  # 🔄 1GB
+       Config.FILE_PART_SIZE 💾50 * 1024 * 1024  # 50MB chunks
+   elif file_size 🔄 100 * 1024**2:  # 🔄 100MB
+       Config.FILE_PART_SIZE 💾20 * 1024 * 1024  # 20MB chunks
    else:
-       Config.FILE_PART_SIZE = 10 * 1024 * 1024  # 10MB chunks (default)
+       Config.FILE_PART_SIZE 💾10 * 1024 * 1024  # 10MB chunks (default)
    
    print(f"=' Chunk size: {Config.FILE_PART_SIZE / (1024**2):.0f}MB")
    ```
@@ -483,21 +483,21 @@ check_environment()
        
        for attempt in range(max_attempts):
            try:
-               print(f"=� Upload attempt {attempt + 1}/{max_attempts}")
+               print(f"=ä Upload attempt {attempt + 1}/{max_attempts}")
                
                def progress_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
                    # Save progress for potential resume
-                   status = kwargs.get('status', 'progress')
-                   if status == 'error':
-                       print(f"=� Progress saved: {percentage:.1f}%")
+                   status 💾kwargs.get('status', 'progress')
+                   if status =💾'error':
+                       print(f"=¾ Progress saved: {percentage:.1f}%")
                
-               result = sdk.file.upload(file_path, progress_callback=progress_callback)
+               result 💾sdk.file.upload(file_path, progress_callback=progress_callback)
                print(" Upload completed successfully")
                return result
                
            except Exception as e:
                print(f"L Attempt {attempt + 1} failed: {e}")
-               if attempt < max_attempts - 1:
+               if attempt ⏱max_attempts - 1:
                    print("= Retrying...")
                    time.sleep(5)
                else:
@@ -505,7 +505,7 @@ check_environment()
                    raise
    
    # Usage
-   result = upload_with_resume("large_file.zip")
+   result 💾upload_with_resume("large_file.zip")
    ```
 
 ### Issue: Download corruption or incomplete downloads
@@ -526,14 +526,14 @@ check_environment()
        
        # Get file info from pCloud
        try:
-           file_info = sdk.file.get_info(file_id)
-           expected_size = file_info.get('size', 0)
+           file_info 💾sdk.file.get_info(file_id)
+           expected_size 💾file_info.get('size', 0)
            
            # Check local file
            if os.path.exists(local_path):
-               actual_size = os.path.getsize(local_path)
+               actual_size 💾os.path.getsize(local_path)
                
-               if actual_size == expected_size:
+               if actual_size =💾expected_size:
                    print(f" File size matches: {actual_size:,} bytes")
                    return True
                else:
@@ -548,9 +548,9 @@ check_environment()
            return False
    
    # Usage
-   success = sdk.file.download(file_id, "./downloads/")
+   success 💾sdk.file.download(file_id, "./downloads/")
    if success:
-       downloaded_file = "./downloads/filename.ext"  # Adjust path
+       downloaded_file 💾"./downloads/filename.ext"  # Adjust path
        verify_download(file_id, downloaded_file)
    ```
 
@@ -561,9 +561,9 @@ check_environment()
        
        for attempt in range(max_retries):
            try:
-               print(f"=� Download attempt {attempt + 1}/{max_retries}")
+               print(f"=å Download attempt {attempt + 1}/{max_retries}")
                
-               success = sdk.file.download(file_id, destination)
+               success 💾sdk.file.download(file_id, destination)
                if success:
                    print(" Download completed")
                    return True
@@ -573,7 +573,7 @@ check_environment()
            except Exception as e:
                print(f"L Download failed: {e}")
                
-           if attempt < max_retries - 1:
+           if attempt ⏱max_retries - 1:
                print("= Retrying in 5 seconds...")
                time.sleep(5)
        
@@ -581,7 +581,7 @@ check_environment()
        return False
    
    # Usage
-   success = download_with_retry(file_id, "./downloads/")
+   success 💾download_with_retry(file_id, "./downloads/")
    ```
 
 ## Performance Issues
@@ -603,23 +603,23 @@ check_environment()
        """Benchmark upload speed with test file"""
        
        # Create test file (1MB)
-       test_size = 1024 * 1024
+       test_size 💾1024 * 1024
        with tempfile.NamedTemporaryFile(mode='wb', suffix='.dat', delete=False) as tmp:
            tmp.write(b'0' * test_size)
-           test_file = tmp.name
+           test_file 💾tmp.name
        
        try:
-           start_time = time.time()
+           start_time 💾time.time()
            
-           result = sdk.file.upload(test_file, filename="speed_test.dat")
+           result 💾sdk.file.upload(test_file, filename="speed_test.dat")
            
-           elapsed = time.time() - start_time
-           speed_mbps = (test_size / elapsed) / (1024 * 1024)
+           elapsed 💾time.time() - start_time
+           speed_mbps 💾(test_size / elapsed) / (1024 * 1024)
            
-           print(f"=� Upload speed: {speed_mbps:.2f} MB/s")
+           print(f"=Ê Upload speed: {speed_mbps:.2f} MB/s")
            
            # Cleanup
-           file_id = result['metadata'][0]['fileid']
+           file_id 💾result['metadata'][0]['fileid']
            sdk.file.delete(file_id)
            
        finally:
@@ -636,7 +636,7 @@ check_environment()
        from pcloud_sdk.config import Config
        
        # Increase chunk size for faster networks
-       Config.FILE_PART_SIZE = 20 * 1024 * 1024  # 20MB chunks
+       Config.FILE_PART_SIZE 💾20 * 1024 * 1024  # 20MB chunks
        
        # Increase timeout for large files
        sdk.app.set_curl_execution_timeout(3600)  # 1 hour
@@ -645,7 +645,7 @@ check_environment()
        from pcloud_sdk.progress_utils import create_minimal_progress
        return create_minimal_progress()
    
-   progress = optimize_for_performance()
+   progress 💾optimize_for_performance()
    ```
 
 ### Issue: High memory usage
@@ -664,17 +664,17 @@ check_environment()
    
    def monitor_memory_usage():
        """Monitor memory usage during operations"""
-       process = psutil.Process(os.getpid())
+       process 💾psutil.Process(os.getpid())
        
        def memory_callback(bytes_transferred, total_bytes, percentage, speed, **kwargs):
-           memory_mb = process.memory_info().rss / (1024 * 1024)
-           print(f"=� {percentage:.1f}% - Memory: {memory_mb:.1f}MB")
+           memory_mb 💾process.memory_info().rss / (1024 * 1024)
+           print(f"=Ê {percentage:.1f}% - Memory: {memory_mb:.1f}MB")
        
        return memory_callback
    
    # Usage
-   memory_progress = monitor_memory_usage()
-   result = sdk.file.upload("large_file.zip", progress_callback=memory_progress)
+   memory_progress 💾monitor_memory_usage()
+   result 💾sdk.file.upload("large_file.zip", progress_callback=memory_progress)
    ```
 
 2. **Reduce chunk size for large files:**
@@ -682,7 +682,7 @@ check_environment()
    from pcloud_sdk.config import Config
    
    # Reduce chunk size to lower memory usage
-   Config.FILE_PART_SIZE = 5 * 1024 * 1024  # 5MB chunks
+   Config.FILE_PART_SIZE 💾5 * 1024 * 1024  # 5MB chunks
    print(f"=' Reduced chunk size to {Config.FILE_PART_SIZE / (1024**2):.0f}MB")
    ```
 
@@ -705,15 +705,15 @@ check_environment()
    def check_credentials_file():
        """Check credentials file status"""
        
-       token_file = ".pcloud_credentials"
+       token_file 💾".pcloud_credentials"
        
        if os.path.exists(token_file):
            # Check permissions
-           file_stat = os.stat(token_file)
-           permissions = stat.filemode(file_stat.st_mode)
-           size = file_stat.st_size
+           file_stat 💾os.stat(token_file)
+           permissions 💾stat.filemode(file_stat.st_mode)
+           size 💾file_stat.st_size
            
-           print(f"=� Credentials file: {token_file}")
+           print(f"=Ä Credentials file: {token_file}")
            print(f"   Size: {size} bytes")
            print(f"   Permissions: {permissions}")
            
@@ -733,9 +733,9 @@ check_environment()
            try:
                with open(token_file, 'r') as f:
                    import json
-                   data = json.load(f)
-                   print(f"   =� Email: {data.get('email', 'Unknown')}")
-                   print(f"   =� Saved: {data.get('saved_at', 'Unknown')}")
+                   data 💾json.load(f)
+                   print(f"   =ç Email: {data.get('email', 'Unknown')}")
+                   print(f"   =Å Saved: {data.get('saved_at', 'Unknown')}")
            except Exception as e:
                print(f"   L Cannot read file: {e}")
        else:
@@ -749,7 +749,7 @@ check_environment()
    def fix_credentials_permissions():
        """Fix credentials file permissions"""
        
-       token_file = ".pcloud_credentials"
+       token_file 💾".pcloud_credentials"
        
        if os.path.exists(token_file):
            try:
@@ -765,10 +765,10 @@ check_environment()
 3. **Use custom credentials file:**
    ```python
    # Use a different location if default doesn't work
-   custom_file = os.path.expanduser("~/pcloud_credentials.json")
+   custom_file 💾os.path.expanduser("~/pcloud_credentials.json")
    
-   sdk = PCloudSDK(token_file=custom_file)
-   print(f"=� Using custom credentials file: {custom_file}")
+   sdk 💾PCloudSDK(token_file=custom_file)
+   print(f"=Á Using custom credentials file: {custom_file}")
    ```
 
 ## Error Codes Reference
@@ -798,21 +798,21 @@ def handle_pcloud_errors(func):
         try:
             return func(*args, **kwargs)
         except PCloudException as e:
-            error_code = getattr(e, 'code', 5000)
-            error_msg = str(e).lower()
+            error_code 💾getattr(e, 'code', 5000)
+            error_msg 💾str(e).lower()
             
-            if error_code == 1000:
+            if error_code =💾1000:
                 print("= Authentication failed - check credentials")
-            elif error_code == 2000:
-                print("=� File not found - check file ID")
-            elif error_code == 2001:
-                print("=� Folder not found - check folder ID")
-            elif error_code == 2003:
-                print("=� Access denied - check permissions")
-            elif error_code == 4000:
-                print("� Rate limited - wait before retrying")
+            elif error_code =💾2000:
+                print("=Ä File not found - check file ID")
+            elif error_code =💾2001:
+                print("=Á Folder not found - check folder ID")
+            elif error_code =💾2003:
+                print("=« Access denied - check permissions")
+            elif error_code =💾4000:
+                print("ð Rate limited - wait before retrying")
             elif "quota" in error_msg:
-                print("=� Storage quota exceeded")
+                print("=¾ Storage quota exceeded")
             elif "network" in error_msg:
                 print("< Network error - check connection")
             else:
@@ -830,7 +830,7 @@ def handle_pcloud_errors(func):
 def safe_upload(file_path):
     return sdk.file.upload(file_path)
 
-result = safe_upload("file.txt")
+result 💾safe_upload("file.txt")
 ```
 
 ## Debug Mode
@@ -851,7 +851,7 @@ logging.basicConfig(
 )
 
 # Enable debug for specific modules
-logger = logging.getLogger('pcloud_sdk')
+logger 💾logging.getLogger('pcloud_sdk')
 logger.setLevel(logging.DEBUG)
 
 # Enable debug for requests library
@@ -869,13 +869,13 @@ def debug_request_response():
     
     # Enable HTTP debug logging
     import http.client as http_client
-    http_client.HTTPConnection.debuglevel = 1
+    http_client.HTTPConnection.debuglevel 💾1
     
     logging.basicConfig()
     logging.getLogger().setLevel(logging.DEBUG)
-    requests_log = logging.getLogger("requests.packages.urllib3")
+    requests_log 💾logging.getLogger("requests.packages.urllib3")
     requests_log.setLevel(logging.DEBUG)
-    requests_log.propagate = True
+    requests_log.propagate 💾True
 
 def debug_sdk_state(sdk):
     """Print SDK state information"""
@@ -887,7 +887,7 @@ def debug_sdk_state(sdk):
     print(f"   Location ID: {sdk.app.get_location_id()}")
     print(f"   Auth Type: {sdk.app.get_auth_type()}")
     
-    cred_info = sdk.get_credentials_info()
+    cred_info 💾sdk.get_credentials_info()
     if cred_info.get('email'):
         print(f"   Saved Email: {cred_info['email']}")
         print(f"   Credentials Age: {cred_info.get('age_days', 0):.1f} days")
@@ -911,7 +911,7 @@ def collect_debug_info():
     import platform
     import os
     
-    debug_info = {
+    debug_info 💾{
         'python_version': sys.version,
         'platform': platform.platform(),
         'pcloud_sdk_version': None,
@@ -924,43 +924,43 @@ def collect_debug_info():
     # Package versions
     try:
         import pcloud_sdk
-        debug_info['pcloud_sdk_version'] = pcloud_sdk.__version__
+        debug_info['pcloud_sdk_version'] 💾pcloud_sdk.__version__
     except:
-        debug_info['pcloud_sdk_version'] = 'Not installed'
+        debug_info['pcloud_sdk_version'] 💾'Not installed'
     
     try:
         import requests
-        debug_info['requests_version'] = requests.__version__
+        debug_info['requests_version'] 💾requests.__version__
     except:
-        debug_info['requests_version'] = 'Not installed'
+        debug_info['requests_version'] 💾'Not installed'
     
     # Environment variables
     for key in ['HTTP_PROXY', 'HTTPS_PROXY', 'NO_PROXY']:
-        debug_info['environment'][key] = os.environ.get(key, 'Not set')
+        debug_info['environment'][key] 💾os.environ.get(key, 'Not set')
     
     # SDK state (if available)
     try:
-        sdk = PCloudSDK()
-        debug_info['sdk_state'] = {
+        sdk 💾PCloudSDK()
+        debug_info['sdk_state'] 💾{
             'authenticated': sdk.is_authenticated(),
             'token_manager': sdk.token_manager_enabled,
             'credentials_exist': bool(sdk.get_credentials_info().get('email')),
             'location_id': sdk.app.get_location_id()
         }
     except:
-        debug_info['sdk_state'] = 'SDK not available'
+        debug_info['sdk_state'] 💾'SDK not available'
     
     # Network test
     try:
         import requests
-        response = requests.get('https://api.pcloud.com', timeout=10)
-        debug_info['network_test'] = {
+        response 💾requests.get('https://api.pcloud.com', timeout=10)
+        debug_info['network_test'] 💾{
             'status': 'OK',
             'status_code': response.status_code,
             'response_time': 'Available'
         }
     except Exception as e:
-        debug_info['network_test'] = {
+        debug_info['network_test'] 💾{
             'status': 'ERROR',
             'error': str(e)
         }
@@ -968,15 +968,15 @@ def collect_debug_info():
     return debug_info
 
 # Usage
-debug_data = collect_debug_info()
-print("=� Debug Information:")
+debug_data 💾collect_debug_info()
+print("=Ë Debug Information:")
 for key, value in debug_data.items():
     print(f"   {key}: {value}")
 ```
 
 ### Support Channels
 
-1. **GitHub Issues**: [Report bugs and feature requests](https://github.com/pcloud/pcloud-sdk-python/issues)
+1. **GitHub Issues**: [Report bugs and feature requests](https://github.com/koffiisen/pcloud-sdk-python/issues)
 2. **Documentation**: Check other documentation files in the `docs/` folder
 3. **Community Forums**: Search for similar issues in pCloud community
 4. **Stack Overflow**: Tag questions with `pcloud` and `python`
@@ -997,13 +997,13 @@ def minimal_reproduction():
     """Minimal example that reproduces the issue"""
     
     # Initialize SDK
-    sdk = PCloudSDK()
+    sdk 💾PCloudSDK()
     
     # Attempt to reproduce the issue
     try:
         # Replace with your specific issue
         sdk.login("test@example.com", "password")
-        result = sdk.file.upload("test.txt")
+        result 💾sdk.file.upload("test.txt")
         print(f"Success: {result}")
         
     except Exception as e:
@@ -1013,7 +1013,7 @@ def minimal_reproduction():
         import traceback
         traceback.print_exc()
 
-if __name__ == "__main__":
+if __name__ =💾"__main__":
     minimal_reproduction()
 ```
 

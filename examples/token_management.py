@@ -19,9 +19,8 @@ This example covers:
 
 import json
 import os
-import time
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from pcloud_sdk import PCloudException, PCloudSDK
 
@@ -80,7 +79,7 @@ class TokenManager:
             print(f"✅ Account '{name}' added successfully")
             if not self.current_account:
                 self.current_account = name
-                print(f"🎯 Set as current account")
+                print("🎯 Set as current account")
 
             return True
 
@@ -302,7 +301,7 @@ def demonstrate_automatic_token_management():
 
         # Show credentials info
         creds_info = sdk2.get_credentials_info()
-        print(f"\n📊 Token information:")
+        print("\n📊 Token information:")
         print(f"   📅 Age: {creds_info.get('age_days', 0):.2f} days")
         print(f"   🕐 Last used: {creds_info.get('last_used', 'Unknown')}")
 
@@ -335,11 +334,11 @@ def demonstrate_manual_token_management():
 
         # Login and extract token manually
         sdk = PCloudSDK(token_manager=False)  # Disable auto token management
-        login_result = sdk.login(email, password)
+        sdk.login(email, password)
 
         # Extract token information
         access_token = sdk.app.access_token
-        print(f"✅ Login successful")
+        print("✅ Login successful")
         print(f"🔑 Access token: {access_token[:20]}...")
 
         # Save token manually to custom file
@@ -403,13 +402,13 @@ def demonstrate_multi_account_management():
 
     for i in range(1, 3):  # Add 2 accounts for demo
         print(f"\n📧 Account {i}:")
-        email = input(f"  Email (or press Enter to skip): ").strip()
+        email = input("  Email (or press Enter to skip): ").strip()
 
         if not email:
             print("  ⏭️ Skipping account")
             continue
 
-        password = input(f"  Password: ").strip()
+        password = input("  Password: ").strip()
         name = (
             input(f"  Account nickname (default: Account{i}): ").strip()
             or f"Account{i}"
@@ -533,7 +532,7 @@ def demonstrate_token_security_practices():
 
         # Show token information without exposing actual token
         creds_info = sdk.get_credentials_info()
-        print(f"\n🛡️ Security information:")
+        print("\n🛡️ Security information:")
         print(f"   📅 Token age: {creds_info.get('age_days', 0):.2f} days")
         print(f"   ⏰ Last used: {creds_info.get('last_used', 'Unknown')}")
         print(f"   🔐 Token file: {secure_token_file}")

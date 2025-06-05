@@ -25,15 +25,10 @@ import csv
 import os
 import tempfile
 import time
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List
 
 from pcloud_sdk import PCloudException, PCloudSDK
 from pcloud_sdk.progress_utils import (
-    DetailedProgress,
-    MinimalProgress,
-    SilentProgress,
-    SimpleProgressBar,
     create_detailed_progress,
     create_minimal_progress,
     create_progress_bar,
@@ -171,7 +166,7 @@ def demonstrate_simple_progress_bar(sdk: PCloudSDK, test_file: str):
         file_id = result.get("metadata", [{}])[0].get("fileid")
 
         if file_id:
-            print(f"\n📥 Downloading file with SimpleProgressBar...")
+            print("\n📥 Downloading file with SimpleProgressBar...")
             download_dir = tempfile.mkdtemp()
             progress_bar_dl = create_progress_bar("Simple Download", width=40)
             sdk.file.download(
@@ -390,7 +385,7 @@ def batch_progress_demonstration(sdk: PCloudSDK, test_files: List[str]):
         for file_id in uploaded_files:
             try:
                 sdk.file.delete(file_id)
-            except:
+            except OSError:
                 pass
         print("✅ Cleanup completed")
 
@@ -432,7 +427,7 @@ def analyze_csv_logs():
             print(f"   🐌 Minimum speed: {min_speed:.2f} MB/s")
 
         # Show transfer timeline
-        print(f"   ⏱️  Transfer timeline:")
+        print("   ⏱️  Transfer timeline:")
         for i, row in enumerate(rows[-5:]):  # Last 5 records
             timestamp = row["timestamp"].split("T")[1][:8]  # Extract time
             print(f"      {timestamp}: {row['percentage']}% - {row['speed_mbps']} MB/s")
@@ -513,8 +508,8 @@ def main():
             import shutil
 
             shutil.rmtree(temp_dir)
-            print(f"\n🧹 Cleaned up temporary files")
-        except:
+            print("\n🧹 Cleaned up temporary files")
+        except OSError:
             pass
 
 

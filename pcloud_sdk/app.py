@@ -11,7 +11,7 @@ from pcloud_sdk.exceptions import PCloudException
 class App:
     """Main App class for pCloud SDK"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.app_key = ""
         self.app_secret = ""
         self.redirect_uri = ""
@@ -194,7 +194,8 @@ class App:
                     "rate" in error_message.lower() or "limit" in error_message.lower()
                 ):
                     raise PCloudException(
-                        "Too many login attempts. Please wait a few minutes and try again."
+                        "Too many login attempts. Please wait a few minutes and "
+                        "try again."
                     )
                 elif "account" in error_message.lower():
                     raise PCloudException(
@@ -204,7 +205,9 @@ class App:
                     # For unknown errors, suggest trying the other server
                     other_server = "EU" if location_id == 1 else "US"
                     raise PCloudException(
-                        f"Login failed: {error_message}. Try using location_id={2 if location_id == 1 else 1} for {other_server} server."
+                        f"Login failed: {error_message}. Try using "
+                        f"location_id={2 if location_id == 1 else 1} for "
+                        f"{other_server} server."
                     )
 
         except requests.exceptions.Timeout:
@@ -214,7 +217,9 @@ class App:
         except requests.exceptions.ConnectionError:
             other_server = "EU" if location_id == 1 else "US"
             raise PCloudException(
-                f"Cannot connect to pCloud servers. Try location_id={2 if location_id == 1 else 1} for {other_server} server."
+                f"Cannot connect to pCloud servers. Try "
+                f"location_id={2 if location_id == 1 else 1} for "
+                f"{other_server} server."
             )
         except requests.exceptions.RequestException as e:
             raise PCloudException(f"Network error during login: {str(e)}")

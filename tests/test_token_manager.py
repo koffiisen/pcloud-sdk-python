@@ -9,13 +9,12 @@ import sys
 import tempfile
 import time
 from io import StringIO
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import patch
 
 import pytest
 import responses
 
 from pcloud_sdk import PCloudSDK
-from pcloud_sdk.exceptions import PCloudException
 
 from .test_config import (
     get_test_credentials,
@@ -24,6 +23,8 @@ from .test_config import (
     safe_remove_file,
     skip_if_no_integration_tests,
 )
+
+# PCloudException import removed - not used
 
 
 class TestTokenSavingAndLoading:
@@ -160,7 +161,7 @@ class TestTokenSavingAndLoading:
 
         # Should handle gracefully
         try:
-            loaded = sdk._load_saved_credentials()
+            sdk._load_saved_credentials()
             # Might succeed with partial data or fail gracefully
         except (KeyError, TypeError):
             # Expected if required fields are missing
@@ -794,7 +795,7 @@ class TestTokenCleanupOperations:
                 with patch("os.remove") as actual_remove:
                     actual_remove.side_effect = os.remove  # Use real os.remove
                     os.remove(self.token_file)
-            except:
+            except Exception:
                 pass  # If cleanup fails, don't fail the test itself
 
     def test_cleanup_old_token_files(self):
@@ -862,8 +863,7 @@ class TestTokenCleanupOperations:
 
                 age_days = (time.time() - timestamp) / (24 * 3600)
 
-                is_old_file_scenario = "old.json" in filename  # 45 days
-                is_ancient_file_scenario = "ancient.json" in filename  # 90 days
+                # File age scenario tracking: old.json (45 days), ancient.json (90 days)
 
                 expected_to_load = True
                 if age_days > staleness:

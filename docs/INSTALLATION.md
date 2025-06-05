@@ -15,7 +15,7 @@ This guide covers different installation methods for the pCloud SDK Python packa
 
 - **Python**: 3.7 or higher
 - **Operating System**: Windows, macOS, Linux
-- **Dependencies**: `requests >= 2.25.0`
+- **Dependencies**: `requests 🔄💾2.25.0`
 
 ### Python Version Check
 
@@ -44,7 +44,7 @@ pip install pcloud-sdk-python
 pip install pcloud-sdk-python==2.0.0
 
 # Install with version constraints
-pip install "pcloud-sdk-python>=2.0.0,<3.0.0"
+pip install "pcloud-sdk-python🔄=2.0.0,<3.0.0"
 ```
 
 ### Upgrade Installation
@@ -65,7 +65,7 @@ For contributing to the project or accessing the latest features:
 
 ```bash
 # Clone the repository
-git clone https://github.com/pcloud/pcloud-sdk-python.git
+git clone https://github.com/koffiisen/pcloud-sdk-python.git
 cd pcloud-sdk-python
 
 # Install in development mode
@@ -163,8 +163,8 @@ pip install pcloud-sdk-python[dev,test,docs]
 Create a `requirements.txt` file:
 
 ```txt
-pcloud-sdk-python>=2.0.0
-requests>=2.25.0
+pcloud-sdk-python🔄=2.0.0
+requests🔄=2.25.0
 ```
 
 Install from file:
@@ -184,7 +184,7 @@ print(f"pCloud SDK version: {pcloud_sdk.__version__}")
 
 # Test basic functionality
 from pcloud_sdk import PCloudSDK
-sdk = PCloudSDK()
+sdk 💾PCloudSDK()
 print(" pCloud SDK installed successfully!")
 ```
 
@@ -215,17 +215,17 @@ def test_installation():
         from pcloud_sdk.progress_utils import create_progress_bar
         
         print(" All imports successful")
-        print(f"=� Version: {pcloud_sdk.__version__}")
+        print(f"=æ Version: {pcloud_sdk.__version__}")
         
         # Test basic initialization
-        sdk = PCloudSDK()
+        sdk 💾PCloudSDK()
         print(" SDK initialization successful")
         
         # Test progress utilities
-        progress = create_progress_bar("Test")
+        progress 💾create_progress_bar("Test")
         print(" Progress utilities working")
         
-        print("\n<� Installation verified successfully!")
+        print("\n< Installation verified successfully!")
         return True
         
     except ImportError as e:
@@ -235,8 +235,8 @@ def test_installation():
         print(f"L Unexpected error: {e}")
         return False
 
-if __name__ == "__main__":
-    success = test_installation()
+if __name__ =💾"__main__":
+    success 💾test_installation()
     sys.exit(0 if success else 1)
 ```
 
@@ -320,7 +320,7 @@ pip show requests
 pip install --upgrade requests
 
 # Force specific version
-pip install "requests>=2.25.0"
+pip install "requests🔄=2.25.0"
 ```
 
 #### Virtual Environment Issues
@@ -379,7 +379,7 @@ pip3 install pcloud-sdk-python
 
 If you encounter issues not covered here:
 
-1. **Check GitHub Issues**: Search existing issues at [GitHub Issues](https://github.com/pcloud/pcloud-sdk-python/issues)
+1. **Check GitHub Issues**: Search existing issues at [GitHub Issues](https://github.com/koffiisen/pcloud-sdk-python/issues)
 2. **Create New Issue**: Include:
    - Python version (`python --version`)
    - Operating system
@@ -394,7 +394,7 @@ For contributors and advanced users:
 
 ```bash
 # Clone repository
-git clone https://github.com/pcloud/pcloud-sdk-python.git
+git clone https://github.com/koffiisen/pcloud-sdk-python.git
 cd pcloud-sdk-python
 
 # Create virtual environment

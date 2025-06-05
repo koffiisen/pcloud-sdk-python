@@ -2,7 +2,7 @@
 
 This guide provides comprehensive instructions for developers who want to contribute to or work with the pCloud SDK Python project locally.
 
-## 📋 Table of Contents
+## ð Table of Contents
 
 - [Prerequisites](#prerequisites)
 - [Project Setup](#project-setup)
@@ -14,7 +14,7 @@ This guide provides comprehensive instructions for developers who want to contri
 - [Release Process](#release-process)
 - [Troubleshooting](#troubleshooting)
 
-## 🔧 Prerequisites
+## ð§ Prerequisites
 
 Before starting development, ensure you have the following installed:
 
@@ -31,12 +31,12 @@ git --version
 pip --version
 ```
 
-## 🚀 Project Setup
+## ð Project Setup
 
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/pcloud/pcloud-sdk-python.git
+git clone https://github.com/koffiisen/pcloud-sdk-python.git
 cd pcloud-sdk-python
 ```
 
@@ -74,7 +74,7 @@ pip install -e .
 python -c "import pcloud_sdk; print(f'pCloud SDK v{pcloud_sdk.__version__} installed successfully')"
 ```
 
-## 💻 Development Environment
+## ð» Development Environment
 
 ### IDE Configuration
 
@@ -124,7 +124,7 @@ PYTHONPATH=.
 PYTHONDONTWRITEBYTECODE=1
 ```
 
-## 🧪 Running Tests
+## ð§ª Running Tests
 
 The project uses **pytest** for testing with **tox** for multi-environment testing.
 
@@ -192,18 +192,18 @@ The project uses `pytest.ini` for configuration:
 
 ```ini
 [tool:pytest]
-minversion = 6.0
-addopts = -ra -q --strict-markers --strict-config
-testpaths = tests
-python_files = test_*.py
-python_classes = Test*
-python_functions = test_*
+minversion 💾6.0
+addopts 💾-ra -q --strict-markers --strict-config
+testpaths 💾tests
+python_files 💾test_*.py
+python_classes 💾Test*
+python_functions 💾test_*
 markers =
     integration: Integration tests requiring real API calls
     slow: Slow tests that take more than 5 seconds
 ```
 
-## 🔍 Code Quality
+## ð Code Quality
 
 ### Linting with Flake8
 
@@ -292,7 +292,7 @@ mypy pcloud_sdk/
 flake8 pcloud_sdk/ tests/
 ```
 
-## 🔄 Development Workflow
+## ð Development Workflow
 
 ### 1. Create Feature Branch
 
@@ -340,51 +340,51 @@ git push origin feature/new-feature-name
 # Create Pull Request via GitHub/GitLab
 ```
 
-## 📁 Project Structure
+## ð Project Structure
 
 ```
 pcloud-sdk-python/
-├── docs/                      # Documentation
-│   ├── API_REFERENCE.md       # API reference
-│   ├── EXAMPLES.md           # Usage examples
-│   └── DEV.md                # This file
-├── examples/                  # Example scripts
-│   ├── basic_usage.py        # Basic SDK usage
-│   ├── oauth2_example.py     # OAuth2 authentication
-│   └── progress_examples.py  # Progress tracking
-├── pcloud_sdk/               # Main package
-│   ├── __init__.py          # Package initialization
-│   ├── core.py              # Core SDK functionality
-│   ├── file_operations.py   # File operations
-│   ├── folder_operations.py # Folder operations
-│   ├── user_operations.py   # User operations
-│   ├── request.py           # HTTP request handling
-│   ├── response.py          # Response processing
-│   ├── exceptions.py        # Custom exceptions
-│   ├── config.py           # Configuration management
-│   └── progress_utils.py    # Progress tracking utilities
-├── tests/                    # Test suite
-│   ├── test_core.py         # Core functionality tests
-│   ├── test_file_operations.py
-│   ├── test_folder_operations.py
-│   ├── test_authentication.py
-│   └── test_integration.py  # Integration tests
-├── tools/                    # Development tools
-│   ├── lint.py              # Linting script
-│   ├── test_runner.py       # Test runner
-│   ├── benchmark.py         # Performance benchmarks
-│   └── release.py           # Release automation
-├── requirements/             # Dependencies
-│   ├── base.txt             # Core dependencies
-│   ├── dev.txt              # Development dependencies
-│   └── test.txt             # Test dependencies
-├── pyproject.toml           # Project configuration
-├── tox.ini                  # Tox configuration
-├── pytest.ini              # Pytest configuration
-└── README.md               # Project overview
+✅✅✅ docs/                      # Documentation
+✅   ✅✅✅ API_REFERENCE.md       # API reference
+✅   ✅✅✅ EXAMPLES.md           # Usage examples
+✅   ✅✅✅ DEV.md                # This file
+✅✅✅ examples/                  # Example scripts
+✅   ✅✅✅ basic_usage.py        # Basic SDK usage
+✅   ✅✅✅ oauth2_example.py     # OAuth2 authentication
+✅   ✅✅✅ progress_examples.py  # Progress tracking
+✅✅✅ pcloud_sdk/               # Main package
+✅   ✅✅✅ __init__.py          # Package initialization
+✅   ✅✅✅ core.py              # Core SDK functionality
+✅   ✅✅✅ file_operations.py   # File operations
+✅   ✅✅✅ folder_operations.py # Folder operations
+✅   ✅✅✅ user_operations.py   # User operations
+✅   ✅✅✅ request.py           # HTTP request handling
+✅   ✅✅✅ response.py          # Response processing
+✅   ✅✅✅ exceptions.py        # Custom exceptions
+✅   ✅✅✅ config.py           # Configuration management
+✅   ✅✅✅ progress_utils.py    # Progress tracking utilities
+✅✅✅ tests/                    # Test suite
+✅   ✅✅✅ test_core.py         # Core functionality tests
+✅   ✅✅✅ test_file_operations.py
+✅   ✅✅✅ test_folder_operations.py
+✅   ✅✅✅ test_authentication.py
+✅   ✅✅✅ test_integration.py  # Integration tests
+✅✅✅ tools/                    # Development tools
+✅   ✅✅✅ lint.py              # Linting script
+✅   ✅✅✅ test_runner.py       # Test runner
+✅   ✅✅✅ benchmark.py         # Performance benchmarks
+✅   ✅✅✅ release.py           # Release automation
+✅✅✅ requirements/             # Dependencies
+✅   ✅✅✅ base.txt             # Core dependencies
+✅   ✅✅✅ dev.txt              # Development dependencies
+✅   ✅✅✅ test.txt             # Test dependencies
+✅✅✅ pyproject.toml           # Project configuration
+✅✅✅ tox.ini                  # Tox configuration
+✅✅✅ pytest.ini              # Pytest configuration
+✅✅✅ README.md               # Project overview
 ```
 
-## 📦 Release Process
+## ð¦ Release Process
 
 ### Automated Release via GitHub Actions
 
@@ -444,7 +444,7 @@ The following manual steps can be used as a fallback or for special release scen
    python -m twine upload dist/*
    ```
 
-## 🛠️ Development Tools
+## ð ï¸ Development Tools
 
 ### Custom Scripts
 
@@ -470,7 +470,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 from pcloud_sdk import PCloudSDK
-sdk = PCloudSDK(debug=True)
+sdk 💾PCloudSDK(debug=True)
 ```
 
 #### Use pdb for Debugging
@@ -486,18 +486,18 @@ import cProfile
 import pstats
 
 # Profile your code
-pr = cProfile.Profile()
+pr 💾cProfile.Profile()
 pr.enable()
 # Your code here
 pr.disable()
 
 # Analyze results
-stats = pstats.Stats(pr)
+stats 💾pstats.Stats(pr)
 stats.sort_stats('tottime')
 stats.print_stats(10)
 ```
 
-## 🐛 Troubleshooting
+## ð Troubleshooting
 
 ### Common Issues
 
@@ -579,7 +579,7 @@ python -c "
 import tracemalloc
 tracemalloc.start()
 # Your code here
-current, peak = tracemalloc.get_traced_memory()
+current, peak 💾tracemalloc.get_traced_memory()
 print(f'Current: {current / 1024 / 1024:.1f} MB')
 print(f'Peak: {peak / 1024 / 1024:.1f} MB')
 "
@@ -592,21 +592,21 @@ print(f'Peak: {peak / 1024 / 1024:.1f} MB')
 python -c "
 import requests
 try:
-    r = requests.get('https://api.pcloud.com/userinfo', timeout=5)
+    r 💾requests.get('https://api.pcloud.com/userinfo', timeout=5)
     print(f'pCloud API accessible: {r.status_code}')
 except Exception as e:
     print(f'Network issue: {e}')
 "
 ```
 
-## 📞 Getting Help
+## ð Getting Help
 
 - **Documentation**: Check `/docs` directory
 - **Issues**: Open GitHub issues for bugs
 - **Discussions**: Use GitHub discussions for questions
 - **Code Review**: Request reviews on pull requests
 
-## 🤝 Contributing
+## ð¤ Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -640,4 +640,4 @@ Closes #42
 
 ---
 
-Happy coding! 🚀 If you encounter any issues or have questions, please don't hesitate to open an issue or start a discussion.
+Happy coding! ð If you encounter any issues or have questions, please don't hesitate to open an issue or start a discussion.

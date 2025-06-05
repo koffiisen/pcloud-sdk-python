@@ -132,7 +132,7 @@ Size: About 200 characters to test upload functionality
             # Clean up temporary file
             try:
                 os.unlink(tmp_file_path)
-            except:
+            except OSError:
                 pass
 
         # 6. Download the file
@@ -175,7 +175,7 @@ Size: About 200 characters to test upload functionality
                     import shutil
 
                     shutil.rmtree(download_dir)
-                except:
+                except OSError:
                     pass
 
             # 7. Delete test file

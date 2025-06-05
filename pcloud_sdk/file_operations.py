@@ -1,6 +1,6 @@
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
 
 import requests
 
@@ -22,14 +22,17 @@ class File:
         params = {"fileid": file_id}
         try:
             response = self.request.get("getfilelink", params)
-            # Assuming self.request.get raises PCloudException if response['result'] != 0
+            # Assuming self.request.get raises PCloudException if
+            # response['result'] != 0
             if "hosts" in response:
                 return f"https://{response['hosts'][0]}{response['path']}"
             else:
-                # Handles cases where the API call might 'succeed' (result=0) but not return 'hosts'
+                # Handles cases where the API call might 'succeed'
+                # (result=0) but not return 'hosts'
                 raise PCloudException("Failed to get file link!")
         except PCloudException:
-            # Catches PCloudException from self.request.get (e.g. API error like "File not found")
+            # Catches PCloudException from self.request.get
+            # (e.g. API error like "File not found")
             # or from the 'else' block above. Re-raises with the consistent message.
             raise PCloudException("Failed to get file link!")
 
@@ -37,7 +40,7 @@ class File:
         self,
         file_id: int,
         destination: str = "",
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable] = None,
     ) -> bool:
         """Download file to local destination"""
         file_link = self.get_link(file_id)
@@ -119,7 +122,7 @@ class File:
         file_path: str,
         folder_id: int = 0,
         filename: Optional[str] = None,
-        progress_callback: Optional[callable] = None,
+        progress_callback: Optional[Callable] = None,
     ) -> Dict[str, Any]:
         """Upload file to pCloud"""
         if not os.path.exists(file_path) or not os.path.isfile(file_path):
@@ -191,7 +194,8 @@ class File:
                             )
                         else:
                             print(
-                                f"  📊 Progression: {percentage:.1f}% ({uploaded_bytes:,}/{file_size:,} bytes)"
+                                f"  📊 Progression: {percentage:.1f}% "
+                                f"({uploaded_bytes:,}/{file_size:,} bytes)"
                             )
                         break
                     except Exception as e:
@@ -212,7 +216,8 @@ class File:
                                     operation="upload",
                                     filename=filename,
                                     status="error",
-                                    error=f"Upload échoué après {num_failures} tentatives: {e}",
+                                    error=f"Upload échoué après "
+                                    f"{num_failures} tentatives: {e}",
                                 )
                             raise PCloudException(
                                 f"Upload échoué après {num_failures} tentatives: {e}"
@@ -232,7 +237,7 @@ class File:
                 status="saving",
             )
         else:
-            print(f"✅ Upload completed, saving...")
+            print("✅ Upload completed, saving...")
 
         # Save uploaded file
         try:
@@ -252,7 +257,7 @@ class File:
                     status="completed",
                 )
             else:
-                print(f"✅ File saved successfully!")
+                print("✅ File saved successfully!")
             return result
         except Exception as e:
             if progress_callback:
@@ -305,7 +310,8 @@ class File:
         """Save uploaded file"""
         # Debug: afficher les paramètres reçus
         print(
-            f"  🔍 _save debug: upload_id={upload_id}, name='{name}', folder_id={folder_id}"
+            f"  🔍 _save debug: upload_id={upload_id}, "
+            f"name='{name}', folder_id={folder_id}"
         )
 
         params = {"uploadid": upload_id, "name": name}
@@ -322,19 +328,19 @@ class File:
 
         try:
             result = self.request.get("upload_save", params)
-            print(f"  ✅ upload_save réussi")
+            print("  ✅ upload_save réussi")
             return result
         except PCloudException as e:
             # If it fails with folderid=0, try with path="/"
             if "folderid" in params and params["folderid"] == 0:
-                print(f"  🔄 Retry upload_save with path='/' instead of folderid=0")
+                print("  🔄 Retry upload_save with path='/' instead of " "folderid=0")
                 params = {"uploadid": upload_id, "name": name, "path": "/"}
                 print(f"  🔍 Nouveaux paramètres: {params}")
                 return self.request.get("upload_save", params)
             else:
                 raise e
 
-    def _write(self, content: bytes, params: Dict[str, Any]):
+    def _write(self, content: bytes, params: Dict[str, Any]) -> None:
         """Write content chunk during upload"""
         try:
             self.request.put("upload_write", content, params)

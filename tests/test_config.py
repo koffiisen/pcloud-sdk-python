@@ -101,7 +101,8 @@ def skip_if_no_integration_tests(func):
     def wrapper(*args, **kwargs):
         if not RUN_INTEGRATION_TESTS:
             pytest.skip(
-                "Integration tests disabled. Set RUN_INTEGRATION_TESTS=true in .env to enable"
+                "Integration tests disabled. Set RUN_INTEGRATION_TESTS=true "
+                "in .env to enable"
             )
         return func(*args, **kwargs)
 
@@ -123,7 +124,7 @@ def safe_remove_file(file_path):
                 pass  # Ignore permission errors when changing permissions
 
             os.remove(file_path)
-    except (OSError, PermissionError, FileNotFoundError) as e:
+    except (OSError, PermissionError, FileNotFoundError):
         # Silently ignore common cleanup errors
         # In tests, it's better to continue than to fail on cleanup
         pass

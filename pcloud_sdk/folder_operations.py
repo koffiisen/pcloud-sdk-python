@@ -41,7 +41,7 @@ class Folder:
 
     def list_folder(
         self, folder: Optional[Union[str, int]] = None
-    ) -> Optional[List[Dict[str, Any]]]:
+    ) -> Optional[Union[List[Dict[str, Any]], Dict[str, Any]]]:
         """List folder contents"""
         if folder is None:
             return self.get_content()  # Dossier racine
@@ -100,10 +100,12 @@ class Folder:
 
         # Extraire le contenu de la réponse
         if "metadata" in folder_metadata:
-            return folder_metadata["metadata"].get("contents", [])
+            contents = folder_metadata["metadata"].get("contents", [])
+            return contents if isinstance(contents, list) else []
         else:
             # Parfois la réponse est directement le contenu
-            return folder_metadata.get("contents", [])
+            contents = folder_metadata.get("contents", [])
+            return contents if isinstance(contents, list) else []
 
     def create(self, name: str, parent: int = 0) -> Union[int, Dict[str, Any]]:
         """Create new folder"""
@@ -120,7 +122,8 @@ class Folder:
             params["path"] = "/"
 
         response = self.request.get("createfolder", params)
-        return response.get("metadata", {}).get("folderid", response)
+        folder_id = response.get("metadata", {}).get("folderid")
+        return folder_id if folder_id is not None else response
 
     def rename(self, folder_id: int, name: str) -> Union[int, Dict[str, Any]]:
         """Rename folder"""
@@ -130,19 +133,22 @@ class Folder:
         params = {"toname": name, "folderid": folder_id}
 
         response = self.request.get("renamefolder", params)
-        return response.get("metadata", {}).get("folderid", response)
+        result_folder_id = response.get("metadata", {}).get("folderid")
+        return result_folder_id if result_folder_id is not None else response
 
     def move(self, folder_id: int, new_parent: int) -> Union[int, Dict[str, Any]]:
         """Move folder"""
         params = {"tofolderid": new_parent, "folderid": folder_id}
 
         response = self.request.get("renamefolder", params)
-        return response.get("metadata", {}).get("folderid", response)
+        moved_folder_id = response.get("metadata", {}).get("folderid")
+        return moved_folder_id if moved_folder_id is not None else response
 
     def delete(self, folder_id: int) -> Dict[str, Any]:
         """Delete folder"""
         response = self.request.get("deletefolder", {"folderid": folder_id})
-        return response.get("metadata", {}).get("isdeleted", response)
+        is_deleted = response.get("metadata", {}).get("isdeleted")
+        return is_deleted if is_deleted is not None else response
 
     def delete_recursive(self, folder_id: int) -> Dict[str, Any]:
         """Delete folder recursively"""
