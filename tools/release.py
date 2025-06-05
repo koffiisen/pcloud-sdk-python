@@ -14,6 +14,16 @@ from pathlib import Path
 # Optional import removed - not used
 
 
+def safe_print(text: str) -> None:
+    """Print text with fallback for systems that don't support Unicode"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fall back to ASCII representation for Windows/other systems
+        ascii_text = text.encode('ascii', 'replace').decode('ascii')
+        print(ascii_text)
+
+
 def run_command(cmd: str, description: str) -> bool:
     """Run a shell command"""
     print(f"⚡ {description}...")
@@ -87,7 +97,7 @@ def check_working_directory() -> bool:
 
 def run_tests() -> bool:
     """Run test suite"""
-    print("🧪 Running tests...")
+    safe_print("🧪 Running tests...")
     result = subprocess.run(
         ["python", "-m", "pytest", "tests/", "-x"], capture_output=True
     )
@@ -163,17 +173,17 @@ def main():
         return 1
 
     # Pre-release checks
-    print("\n🔍 Pre-release checks...")
+    safe_print("\n🔍 Pre-release checks...")
 
     if not check_working_directory():
         return 1
 
     if not run_tests():
-        print("⚠ Fix tests before releasing")
+        safe_print("⚠ Fix tests before releasing")
         return 1
 
     if not run_lint():
-        print("⚠ Fix linting issues before releasing")
+        safe_print("⚠ Fix linting issues before releasing")
         return 1
 
     # Update version
@@ -198,12 +208,12 @@ def main():
         return 1
 
     # Publish package
-    print(f"\n🚀 Publishing to {'Test ' if test_only else ''}PyPI...")
+    safe_print(f"\n🚀 Publishing to {'Test ' if test_only else ''}PyPI...")
     if not publish_to_pypi(test=test_only):
         print("✗ Publishing failed")
         return 1
 
-    print(f"\n✅ Release {new_version} completed successfully!")
+    safe_print(f"\n✅ Release {new_version} completed successfully!")
 
     if test_only:
         print(f"\n⚡ Test release published. To publish to production PyPI:")

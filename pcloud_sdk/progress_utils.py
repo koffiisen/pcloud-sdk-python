@@ -168,7 +168,8 @@ class DetailedProgress:
 
     def _log_to_file(self, checkpoint: Dict[str, Any], **kwargs: Any) -> None:
         """Enregistrer la progression dans un fichier"""
-        assert self.log_file is not None, "log_file should be set before logging"
+        if self.log_file is None:
+            raise ValueError("log_file should be set before logging")
         timestamp = datetime.now().isoformat()
         operation = kwargs.get("operation", "transfer")
         filename = kwargs.get("filename", "file")
@@ -185,8 +186,10 @@ class DetailedProgress:
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_line)
-        except Exception:
-            pass  # Ignorer les erreurs de log
+        except Exception as e:
+            # Log to stderr instead of ignoring completely
+            import sys
+            print(f"Warning: Failed to write to log file {self.log_file}: {e}", file=sys.stderr)
 
 
 class MinimalProgress:
@@ -271,8 +274,10 @@ class SilentProgress:
         try:
             with open(self.log_file, "a", encoding="utf-8") as f:
                 f.write(log_line)
-        except Exception:
-            pass
+        except Exception as e:
+            # Log to stderr instead of ignoring completely
+            import sys
+            print(f"Warning: Failed to write to CSV log file {self.log_file}: {e}", file=sys.stderr)
 
 
 # Factory functions pour création rapide

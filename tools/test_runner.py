@@ -11,25 +11,35 @@ import sys
 # Path import removed - not used
 
 
+def safe_print(text: str) -> None:
+    """Print text with fallback for systems that don't support Unicode"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fall back to ASCII representation for Windows/other systems
+        ascii_text = text.encode('ascii', 'replace').decode('ascii')
+        print(ascii_text)
+
+
 def run_command(cmd: list, description: str) -> bool:
     """Run a command and return True if successful"""
-    print(f"🔍 {description}...")
+    safe_print(f"🔍 {description}...")
 
     try:
         result = subprocess.run(cmd, check=True)
-        print(f"✅ {description} passed")
+        safe_print(f"✅ {description} passed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed (exit code: {e.returncode})")
+        safe_print(f"❌ {description} failed (exit code: {e.returncode})")
         return False
     except FileNotFoundError:
-        print(f"⚠️ {description} skipped - pytest not installed")
+        safe_print(f"⚠️ {description} skipped - pytest not installed")
         return True
 
 
 def main():
     """Run test suite with options"""
-    print("🧪 pCloud SDK Python Test Runner")
+    safe_print("🧪 pCloud SDK Python Test Runner")
     print("=" * 40)
 
     # Parse arguments
@@ -93,20 +103,20 @@ def main():
         return 1
 
     # Run main test suite
-    print(f"\n🧪 Running tests with command: {' '.join(base_cmd)}")
+    safe_print(f"\n🧪 Running tests with command: {' '.join(base_cmd)}")
     if not run_command(base_cmd, "Test suite"):
         success = False
 
     # Additional checks
     if "--coverage" in args or "-c" in args:
-        print("\n📊 Coverage report generated in htmlcov/")
+        safe_print("\n📊 Coverage report generated in htmlcov/")
 
     print("\n" + "=" * 40)
     if success:
-        print("🎉 All tests passed!")
+        safe_print("🎉 All tests passed!")
         return 0
     else:
-        print("❌ Some tests failed")
+        safe_print("❌ Some tests failed")
         return 1
 
 

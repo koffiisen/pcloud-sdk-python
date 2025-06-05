@@ -9,23 +9,33 @@ import sys
 from pathlib import Path
 
 
+def safe_print(text: str) -> None:
+    """Print text with fallback for systems that don't support Unicode"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fall back to ASCII representation for Windows/other systems
+        ascii_text = text.encode('ascii', 'replace').decode('ascii')
+        print(ascii_text)
+
+
 def run_command(cmd: list, description: str) -> bool:
     """Run a command and return True if successful"""
-    print(f"🔍 {description}...")
+    safe_print(f"🔍 {description}...")
 
     try:
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
-        print(f"✅ {description} passed")
+        safe_print(f"✅ {description} passed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed")
+        safe_print(f"❌ {description} failed")
         if e.stdout:
             print("STDOUT:", e.stdout)
         if e.stderr:
             print("STDERR:", e.stderr)
         return False
     except FileNotFoundError:
-        print(f"⚠️ {description} skipped - tool not installed")
+        safe_print(f"⚠️ {description} skipped - tool not installed")
         return True  # Don't fail if tool is not available
 
 
@@ -80,11 +90,11 @@ def main():
 
     print("\n" + "=" * 50)
     if success:
-        print("🎉 All checks passed!")
+        safe_print("🎉 All checks passed!")
         return 0
     else:
-        print("❌ Some checks failed")
-        print("\n💡 To auto-fix formatting issues, run:")
+        safe_print("❌ Some checks failed")
+        safe_print("\n💡 To auto-fix formatting issues, run:")
         print("   python -m black pcloud_sdk tests examples tools")
         print("   python -m isort pcloud_sdk tests examples tools")
         return 1

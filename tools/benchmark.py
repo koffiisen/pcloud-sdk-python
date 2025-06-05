@@ -8,6 +8,18 @@ import os
 import statistics
 import tempfile
 import time
+
+
+def safe_print(text: str) -> None:
+    """Print text with fallback for systems that don't support Unicode"""
+    try:
+        print(text)
+    except UnicodeEncodeError:
+        # Fall back to ASCII representation for Windows/other systems
+        ascii_text = text.encode('ascii', 'replace').decode('ascii')
+        print(ascii_text)
+
+
 from typing import Any, Dict, List
 
 from pcloud_sdk import PCloudException, PCloudSDK
@@ -108,19 +120,19 @@ class PCloudBenchmark:
     def setup(self) -> bool:
         """Initialize pCloud connection"""
         try:
-            print("🔐 Connecting to pCloud...")
+            safe_print("🔐 Connecting to pCloud...")
             self.sdk = PCloudSDK(token_manager=False)  # Avoid cache for clean tests
             login_info = self.sdk.login(self.email, self.password, self.location_id)
 
             server_name = "EU" if self.location_id == 2 else "US"
-            print(f"✅ Connected: {login_info['email']} ({server_name} server)")
+            safe_print(f"✅ Connected: {login_info['email']} ({server_name} server)")
             return True
 
         except PCloudException as e:
-            print(f"❌ Connection error: {e}")
+            safe_print(f"❌ Connection error: {e}")
             return False
         except Exception as e:
-            print(f"❌ Error: {e}")
+            safe_print(f"❌ Error: {e}")
             return False
 
     def create_test_files(self) -> List[Dict[str, Any]]:
@@ -472,24 +484,24 @@ class PCloudBenchmark:
                     os.remove(temp_file)
             except:
                 pass
-        print("🧹 Temporary files cleaned up")
+        safe_print("🧹 Temporary files cleaned up")
 
 
 def main():
     """Main entry point for benchmark"""
-    print("🚀 pCloud SDK Python v2.0 - Performance Benchmark")
+    safe_print("🚀 pCloud SDK Python v2.0 - Performance Benchmark")
     print("=" * 60)
 
     # Ask for credentials
-    email = input("📧 pCloud email: ").strip()
-    password = input("🔑 Password: ").strip()
+    email = input("pCloud email: ").strip()
+    password = input("Password: ").strip()
 
     if not email or not password:
-        print("❌ Email and password required")
+        safe_print("❌ Email and password required")
         return 1
 
     # Choose server
-    print("🌍 Server to test:")
+    safe_print("🌍 Server to test:")
     print("  1. US (api.pcloud.com)")
     print("  2. EU (eapi.pcloud.com)")
 

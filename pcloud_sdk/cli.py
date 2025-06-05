@@ -31,8 +31,10 @@ class PCloudCLI:
             try:
                 with open(self.config_file, "r") as f:
                     return json.load(f)
-            except Exception:
-                pass
+            except Exception as e:
+                # Log error to stderr instead of ignoring completely
+                import sys
+                print(f"Warning: Failed to load config from {self.config_file}: {e}", file=sys.stderr)
         return {}
 
     def save_config(self, config: dict) -> None:

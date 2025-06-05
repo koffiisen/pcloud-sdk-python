@@ -58,7 +58,7 @@ class File:
         file_path = destination + filename
 
         # Download file in chunks
-        response = requests.get(file_link, stream=True, verify=False)
+        response = requests.get(file_link, stream=True, verify=True, timeout=300)
         response.raise_for_status()
 
         # Get file size from headers

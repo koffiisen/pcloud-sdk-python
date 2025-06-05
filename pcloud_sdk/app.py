@@ -12,10 +12,10 @@ class App:
     """Main App class for pCloud SDK"""
 
     def __init__(self) -> None:
-        self.app_key = ""
-        self.app_secret = ""
+        self.app_key = ""  # nosec B105 - empty string default, not hardcoded password
+        self.app_secret = ""  # nosec B105 - empty string default, not hardcoded password
         self.redirect_uri = ""
-        self.access_token = ""
+        self.access_token = ""  # nosec B105 - empty string default, not hardcoded password
         self.location_id = 1  # 1 = USA, 2 = EU
         self.curl_exec_timeout = 3600
         self.auth_type = "oauth2"  # "oauth2" ou "direct"
@@ -99,7 +99,7 @@ class App:
         host = Config.get_api_host_by_location_id(int(location_id))
         url = host + "oauth2_token?" + urlencode(params)
 
-        response = requests.get(url, verify=False)
+        response = requests.get(url, verify=True, timeout=30)
 
         if response.headers.get("content-type", "").startswith("application/json"):
             data = response.json()
@@ -142,7 +142,7 @@ class App:
         url = host + "userinfo?" + urlencode(params)
 
         try:
-            response = requests.get(url, verify=False, timeout=30)
+            response = requests.get(url, verify=True, timeout=30)
 
             # Check HTTP status first
             if response.status_code != 200:

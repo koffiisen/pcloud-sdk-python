@@ -22,7 +22,7 @@ class PCloudSDK:
     Convenient wrapper class for the pCloud SDK with integrated token management
     """
 
-    def __init__(
+    def __init__(  # nosec B107 - empty string defaults are not hardcoded passwords
         self,
         app_key: str = "",
         app_secret: str = "",
@@ -258,7 +258,7 @@ class PCloudSDK:
 
         return token_info
 
-    def login(
+    def login(  # nosec B107 - empty string defaults are not hardcoded passwords
         self,
         email: str = "",
         password: str = "",
@@ -324,7 +324,7 @@ class PCloudSDK:
 
         return login_info
 
-    def login_or_load(
+    def login_or_load(  # nosec B107 - empty string defaults are not hardcoded passwords
         self,
         email: str = "",
         password: str = "",
