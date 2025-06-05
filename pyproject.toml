@@ -1,0 +1,135 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pcloud-sdk-python"
+version = "1.0.0"
+description = "Modern Python SDK for pCloud API with automatic token management and progress tracking"
+authors = [
+    {name = "pCloud SDK Contributors (Koffi joel)", email = "jolli644@gmail.com"},
+]
+readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Filesystems",
+]
+keywords = ["pcloud", "cloud", "storage", "api", "sdk", "file", "upload", "download"]
+dependencies = [
+    "requests>=2.25.0",
+]
+license = {text = "MIT"}
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov>=2.10",
+    "black>=21.0",
+    "isort>=5.0",
+    "pre-commit>=2.15",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
+]
+test = [
+    "pytest>=6.0",
+    "pytest-cov>=2.10",
+    "responses>=0.18.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/koffiisen/pcloud-sdk-python"
+Documentation = "https://pcloud-sdk-python.readthedocs.io/"
+Repository = "https://github.com/koffiisen/pcloud-sdk-python.git"
+"Bug Tracker" = "https://github.com/koffiisen/pcloud-sdk-python/issues"
+Changelog = "https://github.com/koffiisen/pcloud-sdk-python/blob/main/CHANGELOG.md"
+
+[project.scripts]
+pcloud-sdk-python = "pcloud_sdk.cli:main"
+
+[tool.setuptools]
+packages = ["pcloud_sdk"]
+
+[tool.setuptools.package-data]
+pcloud_sdk = ["py.typed"]
+
+[tool.black]
+line-length = 88
+target-version = ['py37']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["pcloud_sdk"]
+
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "-ra -q --strict-markers --strict-config"
+testpaths = [
+    "tests",
+]
+python_files = [
+    "test_*.py",
+]
+python_classes = [
+    "Test*",
+]
+python_functions = [
+    "test_*",
+]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+]
+
+[tool.coverage.run]
+source = ["pcloud_sdk"]
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/examples/*",
+    "*/tools/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]

@@ -1,0 +1,11 @@
+[bandit]
+# Bandit configuration file for pCloud SDK
+
+# Exclude test files and example files
+exclude_dirs = tests,examples,htmlcov,.venv,.tox,site
+
+# Skip specific tests for known false positives
+skips = B105,B107
+
+# B105: hardcoded_password_string - False positives for empty string defaults
+# B107: hardcoded_password_default - False positives for empty string defaults in function parameters
