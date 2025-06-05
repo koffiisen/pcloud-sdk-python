@@ -12,8 +12,10 @@ from pcloud_sdk.response import Response
 # Désactiver les warnings SSL de façon propre
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+from pcloud_sdk.account import Account  # Added import
+
 if TYPE_CHECKING:
-    from .app import App  # Assuming App is in pcloud_sdk.app
+    pass  # App import can be removed if not used elsewhere, or replaced if Account is needed for type hinting HttpClient if it changed
 
 
 class HttpClient:
@@ -52,25 +54,26 @@ class HttpClient:
 class Request:
     """Request handler for API calls"""
 
-    def __init__(self, app: "App"):
-        self.host = Config.get_api_host_by_location_id(app.get_location_id())
+    def __init__(self, account: "Account"):
+        self.host = Config.get_api_host_by_location_id(account.location_id)
 
         # Utiliser le bon paramètre selon le type d'authentification
-        access_token = app.get_access_token()
-        auth_type = app.get_auth_type()
+        access_token = account.access_token
+        auth_type = account.auth_type
 
         if access_token:
-            if auth_type == "direct":
-                # Login direct utilise le paramètre 'auth'
+            # The existing code used "direct" for username/password authentication (auth parameter)
+            # and implicitly OAuth2 for "access_token" parameter.
+            # We'll keep this logic. Account.auth_type defaults to "oauth2".
+            if auth_type != "oauth2":  # Assuming any other type means direct auth
                 self.global_params = {"auth": access_token}
             else:
-                # OAuth2 utilise le paramètre 'access_token'
                 self.global_params = {"access_token": access_token}
         else:
             # Pas de token
             self.global_params = {}
 
-        self.http_client = HttpClient(app.get_curl_execution_timeout())
+        self.http_client = HttpClient(timeout=account.curl_exec_timeout)
 
     def get(
         self, method: str, params: Optional[Dict[str, Any]] = None

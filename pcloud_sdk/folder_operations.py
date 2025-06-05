@@ -1,7 +1,7 @@
 import os
 from typing import Any, Dict, List, Optional, Union
 
-from pcloud_sdk.app import App
+from pcloud_sdk.account import Account # Added import
 from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.request import Request
 
@@ -9,8 +9,15 @@ from pcloud_sdk.request import Request
 class Folder:
     """Folder class for folder operations"""
 
-    def __init__(self, app: App):
-        self.request = Request(app)
+    def __init__(self, account: Account):
+        """
+        Initializes Folder operations for a specific pCloud account.
+
+        Args:
+            account: The Account object to use for API requests.
+        """
+        self.request = Request(account)
+        self.account = account # Store account for potential future use
 
     def get_metadata(
         self, folder_id: Optional[int] = None, path: Optional[str] = None

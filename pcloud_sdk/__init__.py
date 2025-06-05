@@ -3,6 +3,8 @@ pCloud SDK for Python v1.0
 Modern Python SDK for pCloud API with automatic token management and progress tracking
 """
 
+from .account import Account
+from .account_manager import AccountManager
 from .app import App
 from .config import Config
 
@@ -33,6 +35,8 @@ __all__ = [
     # Main SDK
     "PCloudSDK",
     # Core classes
+    "Account",
+    "AccountManager",
     "App",
     "Request",
     "Response",

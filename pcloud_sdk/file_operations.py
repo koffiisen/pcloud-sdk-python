@@ -4,7 +4,7 @@ from typing import Any, Callable, Dict, Optional
 
 import requests
 
-from pcloud_sdk.app import App
+from pcloud_sdk.account import Account # Added import
 from pcloud_sdk.config import Config
 from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.request import Request
@@ -13,8 +13,15 @@ from pcloud_sdk.request import Request
 class File:
     """File class for file operations"""
 
-    def __init__(self, app: App):
-        self.request = Request(app)
+    def __init__(self, account: Account):
+        """
+        Initializes File operations for a specific pCloud account.
+
+        Args:
+            account: The Account object to use for API requests.
+        """
+        self.request = Request(account)
+        self.account = account # Store account for potential future use
         self.part_size = Config.FILE_PART_SIZE
 
     def get_link(self, file_id: int) -> str:
