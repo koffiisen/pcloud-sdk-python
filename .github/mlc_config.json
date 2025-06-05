@@ -1,0 +1,23 @@
+{
+  "ignorePatterns": [
+    {
+      "pattern": "^mailto:"
+    },
+    {
+      "pattern": "^#"
+    },
+    {
+      "pattern": "^https://localhost"
+    },
+    {
+      "pattern": "^http://127\\.0\\.0\\.1"
+    },
+    {
+      "pattern": "^https://pcloud\\.com"
+    }
+  ],
+  "httpHeaders": [],
+  "timeout": "10",
+  "retryCount": 2,
+  "useHEAD": false
+}
