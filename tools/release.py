@@ -26,15 +26,15 @@ def safe_print(text: str) -> None:
 
 def run_command(cmd: str, description: str) -> bool:
     """Run a shell command"""
-    print(f"⚡ {description}...")
+    safe_print(f"⚡ {description}...")
     try:
         result = subprocess.run(
             cmd, shell=True, check=True, capture_output=True, text=True
         )
-        print(f"✓ {description} completed")
+        safe_print(f"✓ {description} completed")
         return True
     except subprocess.CalledProcessError as e:
-        print(f"✗ {description} failed: {e.stderr}")
+        safe_print(f"✗ {description} failed: {e.stderr}")
         return False
 
 
@@ -79,7 +79,7 @@ def update_version_files(new_version: str) -> bool:
             content = path.read_text()
             new_content = re.sub(pattern, replacement, content)
             path.write_text(new_content)
-            print(f"✓ Updated version in {file_path}")
+            safe_print(f"✓ Updated version in {file_path}")
 
     return True
 
@@ -90,7 +90,7 @@ def check_working_directory() -> bool:
         ["git", "status", "--porcelain"], capture_output=True, text=True
     )
     if result.stdout.strip():
-        print("✗ Working directory is not clean. Please commit or stash changes first.")
+        safe_print("✗ Working directory is not clean. Please commit or stash changes first.")
         return False
     return True
 
@@ -102,9 +102,9 @@ def run_tests() -> bool:
         ["python", "-m", "pytest", "tests/", "-x"], capture_output=True
     )
     if result.returncode != 0:
-        print("✗ Tests failed!")
+        safe_print("✗ Tests failed!")
         return False
-    print("✓ All tests passed")
+    safe_print("✓ All tests passed")
     return True
 
 
@@ -143,33 +143,33 @@ def create_git_tag(version: str) -> bool:
 
 def main():
     """Main release process"""
-    print("⚡ pCloud SDK Python Release Tool")
-    print("=" * 40)
+    safe_print("⚡ pCloud SDK Python Release Tool")
+    safe_print("=" * 40)
 
     # Parse arguments
     if len(sys.argv) < 2:
-        print("Usage: python tools/release.py <major|minor|patch> [--test-only]")
-        print("\nOptions:")
-        print("  major    - Bump major version (x.0.0)")
-        print("  minor    - Bump minor version (x.y.0)")
-        print("  patch    - Bump patch version (x.y.z)")
-        print("  --test-only - Only upload to Test PyPI")
+        safe_print("Usage: python tools/release.py <major|minor|patch> [--test-only]")
+        safe_print("\nOptions:")
+        safe_print("  major    - Bump major version (x.0.0)")
+        safe_print("  minor    - Bump minor version (x.y.0)")
+        safe_print("  patch    - Bump patch version (x.y.z)")
+        safe_print("  --test-only - Only upload to Test PyPI")
         return 1
 
     bump_type = sys.argv[1]
     test_only = "--test-only" in sys.argv
 
     if bump_type not in ["major", "minor", "patch"]:
-        print("✗ Invalid bump type. Use: major, minor, or patch")
+        safe_print("✗ Invalid bump type. Use: major, minor, or patch")
         return 1
 
     # Get current version
     try:
         current_version = get_current_version()
         new_version = bump_version(current_version, bump_type)
-        print(f"⚡ Version: {current_version} → {new_version}")
+        safe_print(f"⚡ Version: {current_version} → {new_version}")
     except Exception as e:
-        print(f"✗ Error getting/bumping version: {e}")
+        safe_print(f"✗ Error getting/bumping version: {e}")
         return 1
 
     # Pre-release checks
@@ -187,17 +187,17 @@ def main():
         return 1
 
     # Update version
-    print(f"\n⚡ Updating version to {new_version}...")
+    safe_print(f"\n⚡ Updating version to {new_version}...")
     if not update_version_files(new_version):
         return 1
 
     # Build package
-    print("\n🔨 Building package...")
+    safe_print("\n🔨 Building package...")
     if not build_package():
         return 1
 
     # Commit version change
-    print("\n📝 Committing version change...")
+    safe_print("\n📝 Committing version change...")
     run_command(f"git add .", "Staging changes")
     run_command(
         f"git commit -m 'Bump version to {new_version}'", "Committing version bump"
@@ -210,18 +210,18 @@ def main():
     # Publish package
     safe_print(f"\n🚀 Publishing to {'Test ' if test_only else ''}PyPI...")
     if not publish_to_pypi(test=test_only):
-        print("✗ Publishing failed")
+        safe_print("✗ Publishing failed")
         return 1
 
     safe_print(f"\n✅ Release {new_version} completed successfully!")
 
     if test_only:
-        print(f"\n⚡ Test release published. To publish to production PyPI:")
-        print(f"   python tools/release.py {bump_type}")
+        safe_print(f"\n⚡ Test release published. To publish to production PyPI:")
+        safe_print(f"   python tools/release.py {bump_type}")
     else:
-        print(f"\n📝 Don't forget to:")
-        print(f"   git push origin main")
-        print(f"   git push origin v{new_version}")
+        safe_print(f"\n📝 Don't forget to:")
+        safe_print(f"   git push origin main")
+        safe_print(f"   git push origin v{new_version}")
 
     return 0
 

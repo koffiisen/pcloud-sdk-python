@@ -192,10 +192,10 @@ print(" pCloud SDK installed successfully!")
 
 ```bash
 # Check if CLI is available
-pcloud-sdk --version
+pcloud-sdk-python --version
 
 # Show help
-pcloud-sdk --help
+pcloud-sdk-python --help
 ```
 
 ### Complete Test

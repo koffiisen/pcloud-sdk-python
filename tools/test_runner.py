@@ -40,7 +40,7 @@ def run_command(cmd: list, description: str) -> bool:
 def main():
     """Run test suite with options"""
     safe_print("🧪 pCloud SDK Python Test Runner")
-    print("=" * 40)
+    safe_print("=" * 40)
 
     # Parse arguments
     args = sys.argv[1:]
@@ -68,22 +68,22 @@ def main():
 
     # Show help
     if "--help" in args or "-h" in args:
-        print("Usage: python tools/test_runner.py [options]")
-        print("\nOptions:")
-        print("  -c, --coverage     Generate coverage report")
-        print("  -v, --verbose      Verbose output")
-        print("  -i, --integration  Run only integration tests")
-        print("  -u, --unit         Run only unit tests")
-        print("  -x, --fail-fast    Stop on first failure")
-        print("  -p, --parallel     Run tests in parallel")
-        print("  -h, --help         Show this help")
-        print("\nExamples:")
-        print("  python tools/test_runner.py                    # Run all tests")
-        print("  python tools/test_runner.py -c                # Run with coverage")
-        print(
+        safe_print("Usage: python tools/test_runner.py [options]")
+        safe_print("\nOptions:")
+        safe_print("  -c, --coverage     Generate coverage report")
+        safe_print("  -v, --verbose      Verbose output")
+        safe_print("  -i, --integration  Run only integration tests")
+        safe_print("  -u, --unit         Run only unit tests")
+        safe_print("  -x, --fail-fast    Stop on first failure")
+        safe_print("  -p, --parallel     Run tests in parallel")
+        safe_print("  -h, --help         Show this help")
+        safe_print("\nExamples:")
+        safe_print("  python tools/test_runner.py                    # Run all tests")
+        safe_print("  python tools/test_runner.py -c                # Run with coverage")
+        safe_print(
             "  python tools/test_runner.py -u -v             # Run unit tests verbosely"
         )
-        print(
+        safe_print(
             "  python tools/test_runner.py -i --fail-fast    # Run integration tests, stop on failure"
         )
         return 0
@@ -92,11 +92,11 @@ def main():
     success = True
 
     # Basic import test first
-    print("\n📦 Testing basic imports...")
+    safe_print("\n📦 Testing basic imports...")
     import_cmd = [
         "python",
         "-c",
-        "import pcloud_sdk; print('✅ All imports successful')",
+        "import pcloud_sdk; print('All imports successful')",
     ]
     if not run_command(import_cmd, "Basic import test"):
         success = False
@@ -111,7 +111,7 @@ def main():
     if "--coverage" in args or "-c" in args:
         safe_print("\n📊 Coverage report generated in htmlcov/")
 
-    print("\n" + "=" * 40)
+    safe_print("\n" + "=" * 40)
     if success:
         safe_print("🎉 All tests passed!")
         return 0

@@ -173,9 +173,9 @@ def check_environment():
     
     try:
         import pcloud_sdk
-        print(f"   pcloud-sdk: {pcloud_sdk.__version__}")
+        print(f"   pcloud-sdk-python: {pcloud_sdk.__version__}")
     except ImportError:
-        print("   L pcloud-sdk not installed")
+        print("   L pcloud-sdk-python not installed")
     
     # Network configuration
     try:

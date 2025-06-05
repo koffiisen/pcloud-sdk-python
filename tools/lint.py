@@ -30,9 +30,9 @@ def run_command(cmd: list, description: str) -> bool:
     except subprocess.CalledProcessError as e:
         safe_print(f"❌ {description} failed")
         if e.stdout:
-            print("STDOUT:", e.stdout)
+            safe_print("STDOUT:" + e.stdout)
         if e.stderr:
-            print("STDERR:", e.stderr)
+            safe_print("STDERR:" + e.stderr)
         return False
     except FileNotFoundError:
         safe_print(f"⚠️ {description} skipped - tool not installed")
@@ -41,8 +41,8 @@ def run_command(cmd: list, description: str) -> bool:
 
 def main():
     """Run all linting tools"""
-    print("🧹 Running code quality checks for pCloud SDK")
-    print("=" * 50)
+    safe_print("🧹 Running code quality checks for pCloud SDK")
+    safe_print("=" * 50)
 
     # Change to project root
     project_root = Path(__file__).parent.parent
@@ -88,15 +88,15 @@ def main():
         if not run_command(cmd, description):
             success = False
 
-    print("\n" + "=" * 50)
+    safe_print("\n" + "=" * 50)
     if success:
         safe_print("🎉 All checks passed!")
         return 0
     else:
         safe_print("❌ Some checks failed")
         safe_print("\n💡 To auto-fix formatting issues, run:")
-        print("   python -m black pcloud_sdk tests examples tools")
-        print("   python -m isort pcloud_sdk tests examples tools")
+        safe_print("   python -m black pcloud_sdk tests examples tools")
+        safe_print("   python -m isort pcloud_sdk tests examples tools")
         return 1
 
 

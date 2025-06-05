@@ -52,8 +52,8 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 Using `conda`:
 
 ```bash
-conda create -n pcloud-sdk python=3.8
-conda activate pcloud-sdk
+conda create -n pcloud-sdk-python python=3.8
+conda activate pcloud-sdk-python
 ```
 
 ### 3. Install Development Dependencies

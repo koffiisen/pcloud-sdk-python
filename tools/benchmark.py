@@ -148,7 +148,7 @@ class PCloudBenchmark:
 
         test_files = []
 
-        print("📝 Creating test files...")
+        safe_print("📝 Creating test files...")
 
         for size_bytes, size_name in file_sizes:
             # Create file content
@@ -171,7 +171,7 @@ class PCloudBenchmark:
             test_files.append(test_file)
             self.test_files.append(temp_path)  # For cleanup
 
-            print(f"   ✅ {size_name}: {temp_path}")
+            safe_print(f"   ✅ {size_name}: {temp_path}")
 
         return test_files
 
@@ -181,7 +181,7 @@ class PCloudBenchmark:
         """Benchmark file upload"""
         results = []
 
-        print(f"📤 Upload benchmark {test_file['size_name']} ({runs} runs)...")
+        safe_print(f"📤 Upload benchmark {test_file['size_name']} ({runs} runs)...")
 
         for run in range(runs):
             # Performance tracker with callback
@@ -213,7 +213,7 @@ class PCloudBenchmark:
 
                     results.append(stats)
 
-                    print(
+                    safe_print(
                         f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
                         f"({stats['total_time']:.2f}s)"
                     )
@@ -225,7 +225,7 @@ class PCloudBenchmark:
                         pass
 
             except Exception as e:
-                print(f"   ❌ Run {run + 1} failed: {e}")
+                safe_print(f"   ❌ Run {run + 1} failed: {e}")
                 stats = tracker.get_stats()
                 stats["run"] = run + 1
                 stats["success"] = False
@@ -240,7 +240,7 @@ class PCloudBenchmark:
         """Benchmark file download"""
         results = []
 
-        print(f"📥 Download benchmark {test_file['size_name']} ({runs} runs)...")
+        safe_print(f"📥 Download benchmark {test_file['size_name']} ({runs} runs)...")
 
         # First upload the file to download
         try:
@@ -249,7 +249,7 @@ class PCloudBenchmark:
             )
 
             if "metadata" not in upload_result:
-                print(f"   ❌ Unable to upload file for download test")
+                safe_print(f"   ❌ Unable to upload file for download test")
                 return []
 
             file_id = upload_result["metadata"]["fileid"]
@@ -280,15 +280,15 @@ class PCloudBenchmark:
 
                     if success:
                         results.append(stats)
-                        print(
+                        safe_print(
                             f"   Run {run + 1}: {stats['avg_speed_mbps']:.2f} MB/s "
                             f"({stats['total_time']:.2f}s)"
                         )
                     else:
-                        print(f"   ❌ Run {run + 1} failed")
+                        safe_print(f"   ❌ Run {run + 1} failed")
 
                 except Exception as e:
-                    print(f"   ❌ Run {run + 1} failed: {e}")
+                    safe_print(f"   ❌ Run {run + 1} failed: {e}")
                     stats = tracker.get_stats()
                     stats["run"] = run + 1
                     stats["success"] = False
@@ -305,7 +305,7 @@ class PCloudBenchmark:
                 pass
 
         except Exception as e:
-            print(f"   ❌ Error during download preparation: {e}")
+            safe_print(f"   ❌ Error during download preparation: {e}")
 
         return results
 
@@ -314,8 +314,8 @@ class PCloudBenchmark:
         if not self.setup():
             return {}
 
-        print(f"\n🚀 Starting complete benchmark")
-        print("=" * 50)
+        safe_print(f"\n🚀 Starting complete benchmark")
+        safe_print("=" * 50)
 
         # Create test files
         test_files = self.create_test_files()
@@ -329,16 +329,16 @@ class PCloudBenchmark:
         }
 
         # Upload benchmarks
-        print(f"\n📤 UPLOAD BENCHMARKS")
-        print("-" * 30)
+        safe_print(f"\n📤 UPLOAD BENCHMARKS")
+        safe_print("-" * 30)
 
         for test_file in test_files:
             upload_results = self.benchmark_upload(test_file)
             benchmark_results["upload_results"][test_file["size_name"]] = upload_results
 
         # Download benchmarks
-        print(f"\n📥 DOWNLOAD BENCHMARKS")
-        print("-" * 30)
+        safe_print(f"\n📥 DOWNLOAD BENCHMARKS")
+        safe_print("-" * 30)
 
         for test_file in test_files:
             download_results = self.benchmark_download(test_file)
@@ -401,23 +401,23 @@ class PCloudBenchmark:
 
     def display_results(self, results: Dict[str, Any]):
         """Display results in readable format"""
-        print(f"\n📊 BENCHMARK RESULTS")
-        print("=" * 50)
+        safe_print(f"\n📊 BENCHMARK RESULTS")
+        safe_print("=" * 50)
 
         server = results.get("server", "Unknown")
-        print(f"🌍 Server: {server}")
-        print(
+        safe_print(f"🌍 Server: {server}")
+        safe_print(
             f"📅 Date: {time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(results['timestamp']))}"
         )
 
         # Upload results
-        print(f"\n📤 UPLOAD SPEEDS:")
+        safe_print(f"\n📤 UPLOAD SPEEDS:")
         upload_summary = results["summary"].get("upload", {})
 
         for size_name in ["1KB", "10KB", "100KB", "1MB", "5MB", "10MB"]:
             if size_name in upload_summary:
                 stats = upload_summary[size_name]
-                print(
+                safe_print(
                     f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
                     f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
                     f"[{stats['successful_runs']}/{stats['total_runs']} runs]"
@@ -425,19 +425,19 @@ class PCloudBenchmark:
 
         if "overall" in upload_summary:
             overall = upload_summary["overall"]
-            print(
+            safe_print(
                 f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
                 f"(median: {overall['median_speed_mbps']:5.2f})"
             )
 
         # Download results
-        print(f"\n📥 DOWNLOAD SPEEDS:")
+        safe_print(f"\n📥 DOWNLOAD SPEEDS:")
         download_summary = results["summary"].get("download", {})
 
         for size_name in ["1KB", "10KB", "100KB", "1MB", "5MB", "10MB"]:
             if size_name in download_summary:
                 stats = download_summary[size_name]
-                print(
+                safe_print(
                     f"   {size_name:>6}: {stats['avg_speed_mbps']:6.2f} MB/s "
                     f"(min: {stats['min_speed_mbps']:5.2f}, max: {stats['max_speed_mbps']:5.2f}) "
                     f"[{stats['successful_runs']}/{stats['total_runs']} runs]"
@@ -445,36 +445,36 @@ class PCloudBenchmark:
 
         if "overall" in download_summary:
             overall = download_summary["overall"]
-            print(
+            safe_print(
                 f"   {'OVERALL':>6}: {overall['avg_speed_mbps']:6.2f} MB/s "
                 f"(median: {overall['median_speed_mbps']:5.2f})"
             )
 
         # Recommendations
-        print(f"\n💡 RECOMMENDATIONS:")
+        safe_print(f"\n💡 RECOMMENDATIONS:")
 
         if "overall" in upload_summary and "overall" in download_summary:
             upload_speed = upload_summary["overall"]["avg_speed_mbps"]
             download_speed = download_summary["overall"]["avg_speed_mbps"]
 
             if upload_speed < 1.0:
-                print("   📤 Upload: Low speed (<1MB/s) - check your upload connection")
+                safe_print("   📤 Upload: Low speed (<1MB/s) - check your upload connection")
             elif upload_speed < 5.0:
-                print("   📤 Upload: Decent speed (1-5MB/s)")
+                safe_print("   📤 Upload: Decent speed (1-5MB/s)")
             else:
-                print("   📤 Upload: Excellent speed (>5MB/s)")
+                safe_print("   📤 Upload: Excellent speed (>5MB/s)")
 
             if download_speed < 2.0:
-                print("   📥 Download: Low speed (<2MB/s) - check your connection")
+                safe_print("   📥 Download: Low speed (<2MB/s) - check your connection")
             elif download_speed < 10.0:
-                print("   📥 Download: Decent speed (2-10MB/s)")
+                safe_print("   📥 Download: Decent speed (2-10MB/s)")
             else:
-                print("   📥 Download: Excellent speed (>10MB/s)")
+                safe_print("   📥 Download: Excellent speed (>10MB/s)")
 
             if server == "US":
-                print("   🌍 Tip: Try EU server (location_id=2) if you're in Europe")
+                safe_print("   🌍 Tip: Try EU server (location_id=2) if you're in Europe")
             elif server == "EU":
-                print("   🌍 Tip: Try US server (location_id=1) if you're in America")
+                safe_print("   🌍 Tip: Try US server (location_id=1) if you're in America")
 
     def cleanup(self):
         """Clean up temporary files"""
@@ -490,7 +490,7 @@ class PCloudBenchmark:
 def main():
     """Main entry point for benchmark"""
     safe_print("🚀 pCloud SDK Python v2.0 - Performance Benchmark")
-    print("=" * 60)
+    safe_print("=" * 60)
 
     # Ask for credentials
     email = input("pCloud email: ").strip()
@@ -502,8 +502,8 @@ def main():
 
     # Choose server
     safe_print("🌍 Server to test:")
-    print("  1. US (api.pcloud.com)")
-    print("  2. EU (eapi.pcloud.com)")
+    safe_print("  1. US (api.pcloud.com)")
+    safe_print("  2. EU (eapi.pcloud.com)")
 
     server_choice = input("Choose (1/2, default=2): ").strip() or "2"
     location_id = 2 if server_choice == "2" else 1
@@ -525,19 +525,19 @@ def main():
                 filename = f"pcloud_benchmark_{int(time.time())}.json"
                 with open(filename, "w") as f:
                     json.dump(results, f, indent=2)
-                print(f"📁 Results saved to: {filename}")
+                safe_print(f"📁 Results saved to: {filename}")
 
-            print("\n🎉 Benchmark completed successfully!")
+            safe_print("\n🎉 Benchmark completed successfully!")
             return 0
         else:
-            print("\n❌ Benchmark failed")
+            safe_print("\n❌ Benchmark failed")
             return 1
 
     except KeyboardInterrupt:
-        print("\n⚠️ Benchmark interrupted by user")
+        safe_print("\n⚠️ Benchmark interrupted by user")
         return 1
     except Exception as e:
-        print(f"\n❌ Error during benchmark: {e}")
+        safe_print(f"\n❌ Error during benchmark: {e}")
         import traceback
 
         traceback.print_exc()

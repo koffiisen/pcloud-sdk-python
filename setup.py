@@ -67,7 +67,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "pcloud-sdk=pcloud_sdk.cli:main",
+            "pcloud-sdk-python=pcloud_sdk.cli:main",
         ],
     },
     keywords=[

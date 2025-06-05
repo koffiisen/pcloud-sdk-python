@@ -1,7 +1,7 @@
 # pCloud SDK for Python
 
-[![PyPI version](https://badge.fury.io/py/pcloud-sdk.svg)](https://badge.fury.io/py/pcloud-sdk)
-[![Python versions](https://img.shields.io/pypi/pyversions/pcloud-sdk.svg)](https://pypi.org/project/pcloud-sdk/)
+[![PyPI version](https://badge.fury.io/py/pcloud-sdk-python.svg)](https://badge.fury.io/py/pcloud-sdk-python)
+[![Python versions](https://img.shields.io/pypi/pyversions/pcloud-sdk-python.svg)](https://pypi.org/project/pcloud-sdk-python/)
 [![Tests](https://github.com/koffiisen/pcloud-sdk-python/workflows/Tests/badge.svg)](https://github.com/koffiisen/pcloud-sdk-python/actions)
 [![Coverage](https://codecov.io/gh/koffiisen/pcloud-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/koffiisen/pcloud-sdk-python)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -83,6 +83,6 @@ This project is licensed under the MIT License - see the [LICENSE](https://githu
 ## ð Links
 
 - **[GitHub Repository](https://github.com/koffiisen/pcloud-sdk-python)**
-- **[PyPI Package](https://pypi.org/project/pcloud-sdk/)**
+- **[PyPI Package](https://pypi.org/project/pcloud-sdk-python/)**
 - **[Issue Tracker](https://github.com/koffiisen/pcloud-sdk-python/issues)**
 - **[Changelog](https://github.com/koffiisen/pcloud-sdk-python/blob/main/CHANGELOG.md)**

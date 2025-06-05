@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Command Line Interface for pCloud SDK Python v1.0
-Usage: pcloud-sdk [command] [options]
+Usage: pcloud-sdk-python [command] [options]
 """
 
 import argparse
@@ -109,7 +109,7 @@ class PCloudCLI:
     def cmd_login(self, args: Any) -> int:
         """Login command"""
         if not args.email:
-            print("❌ Email required: pcloud-sdk login --email your@email.com")
+            print("❌ Email required: pcloud-sdk-python login --email your@email.com")
             return 1
 
         if self.setup_sdk(args):
@@ -205,7 +205,7 @@ class PCloudCLI:
             return 1
 
         if not args.file:
-            print("❌ Fichier requis: pcloud-sdk upload --file /path/to/file")
+            print("❌ Fichier requis: pcloud-sdk-python upload --file /path/to/file")
             return 1
 
         file_path = Path(args.file)
@@ -252,7 +252,7 @@ class PCloudCLI:
             return 1
 
         if not args.file_id:
-            print("❌ File ID requis: pcloud-sdk download --file-id 123456")
+            print("❌ File ID requis: pcloud-sdk-python download --file-id 123456")
             return 1
 
         try:
@@ -313,13 +313,13 @@ def main() -> None:
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Exemples d'utilisation:
-  pcloud-sdk login --email user@example.com
-  pcloud-sdk info
-  pcloud-sdk list
-  pcloud-sdk upload --file /path/to/file.txt
-  pcloud-sdk download --file-id 123456 --destination ./downloads/
-  pcloud-sdk delete --file-id 123456
-  pcloud-sdk logout
+  pcloud-sdk-python login --email user@example.com
+  pcloud-sdk-python info
+  pcloud-sdk-python list
+  pcloud-sdk-python upload --file /path/to/file.txt
+  pcloud-sdk-python download --file-id 123456 --destination ./downloads/
+  pcloud-sdk-python delete --file-id 123456
+  pcloud-sdk-python logout
         """,
     )
 

@@ -1,7 +1,7 @@
 # pCloud SDK for Python
 
-[![PyPI version](https://badge.fury.io/py/pcloud-sdk.svg)](https://badge.fury.io/py/pcloud-sdk)
-[![Python versions](https://img.shields.io/pypi/pyversions/pcloud-sdk.svg)](https://pypi.org/project/pcloud-sdk/)
+[![PyPI version](https://badge.fury.io/py/pcloud-sdk-python.svg)](https://badge.fury.io/py/pcloud-sdk-python)
+[![Python versions](https://img.shields.io/pypi/pyversions/pcloud-sdk-python.svg)](https://pypi.org/project/pcloud-sdk-python/)
 [![Tests](https://github.com/koffiisen/pcloud-sdk-python/workflows/Tests/badge.svg)](https://github.com/koffiisen/pcloud-sdk-python/actions)
 [![Coverage](https://codecov.io/gh/koffiisen/pcloud-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/koffiisen/pcloud-sdk-python)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -56,7 +56,7 @@ sdk.file.upload("large_file.zip", progress_callback=my_callback)
 ## 🛠️ Installation
 
 ```bash
-pip install pcloud-sdk
+pip install pcloud-sdk-python
 ```
 
 The SDK only requires the `requests` library as an external dependency.
@@ -319,25 +319,25 @@ The SDK includes a powerful CLI:
 
 ```bash
 # Login
-pcloud-sdk login --email user@example.com
+pcloud-sdk-python login --email user@example.com
 
 # Get account info
-pcloud-sdk info
+pcloud-sdk-python info
 
 # List root folder
-pcloud-sdk list
+pcloud-sdk-python list
 
 # Upload file with progress
-pcloud-sdk upload --file /path/to/file.txt --folder-id 0
+pcloud-sdk-python upload --file /path/to/file.txt --folder-id 0
 
 # Download file
-pcloud-sdk download --file-id 123456 --destination ./downloads/
+pcloud-sdk-python download --file-id 123456 --destination ./downloads/
 
 # Delete file
-pcloud-sdk delete --file-id 123456
+pcloud-sdk-python delete --file-id 123456
 
 # Logout
-pcloud-sdk logout
+pcloud-sdk-python logout
 ```
 
 ## 🌍 Server Locations
@@ -448,7 +448,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 🔗 Links
 
-- [PyPI Package](https://pypi.org/project/pcloud-sdk/)
+- [PyPI Package](https://pypi.org/project/pcloud-sdk-python/)
 - [Documentation](https://pcloud-sdk-python.readthedocs.io/)
 - [GitHub Repository](https://github.com/koffiisen/pcloud-sdk-python)
 - [pCloud API Documentation](https://docs.pcloud.com/)
