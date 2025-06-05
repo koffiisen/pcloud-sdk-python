@@ -11,7 +11,7 @@ import responses
 from requests.exceptions import ConnectionError, Timeout
 
 from pcloud_sdk import PCloudSDK
-from pcloud_sdk.app import App
+from pcloud_sdk.account import Account # Added
 from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.folder_operations import Folder
 
@@ -30,10 +30,21 @@ class TestFolderCreation:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.folder_ops = Folder(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
 
     @responses.activate
     def test_create_folder_in_root(self):
@@ -874,22 +885,26 @@ class TestFolderOperationsIntegration:
 
         # Initialize SDK
         sdk = PCloudSDK(token_file=self.token_file)
-        sdk.login("test@example.com", "password", location_id=2)
+        account = sdk.login("test@example.com", "password", location_id=2) # login now returns Account
 
         # Test that folder operations are accessible through SDK
-        assert sdk.folder is not None
-        assert hasattr(sdk.folder, "create")
-        assert hasattr(sdk.folder, "delete")
-        assert hasattr(sdk.folder, "rename")
-        assert hasattr(sdk.folder, "move")
-        assert hasattr(sdk.folder, "list_folder")
-        assert hasattr(sdk.folder, "get_content")
+        folder_ops = sdk.get_folder_operations(account.account_id)
+        assert folder_ops is not None
+        assert hasattr(folder_ops, "create")
+        assert hasattr(folder_ops, "delete")
+        assert hasattr(folder_ops, "rename")
+        assert hasattr(folder_ops, "move")
+        assert hasattr(folder_ops, "list_folder")
+        assert hasattr(folder_ops, "get_content")
 
     @responses.activate
     def test_complete_folder_lifecycle(self):
         """Test complete folder lifecycle: create, list, rename, move, delete"""
-        sdk = PCloudSDK(token_file=self.token_file, token_manager=False)
-        sdk.set_access_token("test_token", "direct")
+        # This test uses mocked responses, so direct instantiation of Folder with a mock Account is fine.
+        # No need for full SDK login if we are just testing the sequence of Folder operations with mocks.
+        mock_account = Account(account_id="test_user_lifecycle@example.com", email="test_user_lifecycle@example.com")
+        mock_account.set_credentials(access_token="test_token_lifecycle", location_id=2, auth_type="direct")
+        folder_ops = Folder(mock_account)
 
         # Mock folder creation
         responses.add(
@@ -942,16 +957,16 @@ class TestFolderOperationsIntegration:
         )
 
         # Execute complete lifecycle
-        folder_id = sdk.folder.create("TestFolder", parent=0)
+        folder_id = folder_ops.create("TestFolder", parent=0)
         assert folder_id == 12345
 
-        content = sdk.folder.get_content(folder_id=folder_id)
+        content = folder_ops.get_content(folder_id=folder_id)
         assert content == []
 
-        renamed_id = sdk.folder.rename(folder_id, "RenamedFolder")
+        renamed_id = folder_ops.rename(folder_id, "RenamedFolder")
         assert renamed_id == folder_id
 
-        deleted = sdk.folder.delete(folder_id)
+        deleted = folder_ops.delete(folder_id)
         assert deleted is True
 
 
@@ -960,10 +975,9 @@ class TestFolderOperationsEdgeCases:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.folder_ops = Folder(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
 
     @responses.activate
     def test_very_long_folder_name(self):
@@ -1072,13 +1086,23 @@ class TestFolderOperationsEdgeCases:
 
     def test_folder_operations_without_authentication(self):
         """Test folder operations without setting authentication token"""
-        unauthenticated_app = App()
-        folder_ops = Folder(unauthenticated_app)
+        # With the new structure, an Account must have a token to be useful.
+        # Request class now takes an Account. If token is empty, API calls will fail.
+        unauthenticated_account = Account(account_id="unauth@example.com")
+        # unauthenticated_account.is_authenticated will be False
 
-        # This should fail during the actual API call
-        # The behavior depends on the Request class implementation
-        # For now, just verify the folder_ops instance is created
+        # Attempting to create Folder ops with an unauthenticated account is allowed
+        folder_ops = Folder(unauthenticated_account)
         assert folder_ops is not None
+
+        # However, actual operations should fail if they require auth and Request doesn't get a token.
+        # Mocking an API call that requires auth:
+        responses.add(
+            responses.GET, "https://eapi.pcloud.com/createfolder",
+            json={"result": 2000, "error": "Login required"}, status=200
+        )
+        with pytest.raises(PCloudException, match="Login required"): # Or whatever Request throws
+             folder_ops.create("WontWork")
 
     @responses.activate
     def test_concurrent_folder_operations(self):
@@ -1121,15 +1145,17 @@ class TestFolderOperationsIntegrationReal:
         creds = get_test_credentials()
 
         sdk = PCloudSDK()
-        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        account = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        folder_ops = sdk.get_folder_operations(account.account_id)
 
+        folder_id_real = 0 # Temp var to satisfy linters/finally block
         try:
             # Create test folder
-            folder_id = sdk.folder.create("SDK_Test_Folder", parent=0)
-            assert isinstance(folder_id, int)
+            folder_id_real = folder_ops.create("SDK_Test_Folder", parent=0)
+            assert isinstance(folder_id_real, int)
 
             # List root to verify creation
-            root_content = sdk.folder.list_root()
+            root_content = folder_ops.list_root()
             folder_names = [
                 item["name"]
                 for item in root_content["contents"]
@@ -1138,32 +1164,33 @@ class TestFolderOperationsIntegrationReal:
             assert "SDK_Test_Folder" in folder_names
 
             # Rename folder
-            renamed_id = sdk.folder.rename(folder_id, "SDK_Test_Folder_Renamed")
-            assert renamed_id == folder_id
+            renamed_id = folder_ops.rename(folder_id_real, "SDK_Test_Folder_Renamed")
+            assert renamed_id == folder_id_real
 
             # Create subfolder
-            subfolder_id = sdk.folder.create("SubFolder", parent=folder_id)
+            subfolder_id = folder_ops.create("SubFolder", parent=folder_id_real)
             assert isinstance(subfolder_id, int)
 
             # List folder content
-            folder_content = sdk.folder.get_content(folder_id=folder_id)
+            folder_content = folder_ops.get_content(folder_id=folder_id_real)
             assert len(folder_content) == 1
             assert folder_content[0]["name"] == "SubFolder"
 
             # Delete subfolder
-            deleted_sub = sdk.folder.delete(subfolder_id)
+            deleted_sub = folder_ops.delete(subfolder_id)
             assert deleted_sub is True
 
             # Delete main folder
-            deleted_main = sdk.folder.delete(folder_id)
+            deleted_main = folder_ops.delete(folder_id_real)
             assert deleted_main is True
 
         except Exception as e:
             # Cleanup on error
-            try:
-                sdk.folder.delete_recursive(folder_id)
-            except Exception:
-                pass
+            if folder_id_real: # Check if it was ever assigned
+                try:
+                    folder_ops.delete_recursive(folder_id_real)
+                except Exception:
+                    pass
             raise e
 
     @requires_real_credentials
@@ -1173,29 +1200,30 @@ class TestFolderOperationsIntegrationReal:
         creds = get_test_credentials()
 
         sdk = PCloudSDK()
-        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        account = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        folder_ops = sdk.get_folder_operations(account.account_id)
 
         folder_ids = []
         try:
             # Create nested folder structure: Level1/Level2/Level3
-            level1_id = sdk.folder.create("Level1", parent=0)
+            level1_id = folder_ops.create("Level1", parent=0)
             folder_ids.append(level1_id)
 
-            level2_id = sdk.folder.create("Level2", parent=level1_id)
+            level2_id = folder_ops.create("Level2", parent=level1_id)
             folder_ids.append(level2_id)
 
-            level3_id = sdk.folder.create("Level3", parent=level2_id)
+            level3_id = folder_ops.create("Level3", parent=level2_id)
             folder_ids.append(level3_id)
 
             # Verify navigation
-            result = sdk.folder.list_folder("Level1/Level2/Level3")
+            result = folder_ops.list_folder("Level1/Level2/Level3")
             assert result is not None
             assert result["folderid"] == level3_id
 
         finally:
             # Cleanup - delete in reverse order
-            for folder_id in reversed(folder_ids):
+            for folder_id_to_delete in reversed(folder_ids):
                 try:
-                    sdk.folder.delete(folder_id)
+                    folder_ops.delete(folder_id_to_delete)
                 except Exception:
                     pass

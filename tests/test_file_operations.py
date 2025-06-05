@@ -10,9 +10,10 @@ from unittest.mock import patch
 import pytest
 import responses
 from requests.exceptions import ConnectionError, Timeout
+from unittest.mock import Mock # Added for mocking login if needed, though direct instantiation is preferred
 
 from pcloud_sdk import PCloudSDK
-from pcloud_sdk.app import App
+from pcloud_sdk.account import Account # Added
 from pcloud_sdk.exceptions import PCloudException
 from pcloud_sdk.file_operations import File
 
@@ -30,10 +31,9 @@ class TestFileUpload:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.file_ops = File(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
 
         # Create a temporary test file
         self.temp_dir = tempfile.mkdtemp()
@@ -340,10 +340,12 @@ class TestFileDownload:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.file_ops = File(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
         self.temp_dir = tempfile.mkdtemp()
 
     def teardown_method(self):
@@ -660,10 +662,15 @@ class TestLargeFileHandling:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.file_ops = File(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
 
         # Create a temporary large file (simulate with small size for testing)
         self.temp_dir = tempfile.mkdtemp()
@@ -975,16 +982,17 @@ class TestFileOperationsIntegration:
 
         # Initialize SDK
         sdk = PCloudSDK(token_file=self.token_file)
-        sdk.login("test@example.com", "password", location_id=2)
+        account = sdk.login("test@example.com", "password", location_id=2) # login now returns Account
 
         # Test that file operations are accessible through SDK
-        assert sdk.file is not None
-        assert hasattr(sdk.file, "upload")
-        assert hasattr(sdk.file, "download")
-        assert hasattr(sdk.file, "delete")
-        assert hasattr(sdk.file, "rename")
-        assert hasattr(sdk.file, "move")
-        assert hasattr(sdk.file, "copy")
+        file_ops = sdk.get_file_operations(account.account_id)
+        assert file_ops is not None
+        assert hasattr(file_ops, "upload")
+        assert hasattr(file_ops, "download")
+        assert hasattr(file_ops, "delete")
+        assert hasattr(file_ops, "rename")
+        assert hasattr(file_ops, "move")
+        assert hasattr(file_ops, "copy")
 
 
 @pytest.mark.performance
@@ -993,10 +1001,9 @@ class TestFileOperationsPerformance:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.file_ops = File(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.file_ops = File(self.mock_account)
 
     @pytest.mark.benchmark
     def test_upload_progress_callback_performance(self, benchmark):
@@ -1039,7 +1046,8 @@ class TestFileOperationsIntegrationReal:
         creds = get_test_credentials()
 
         sdk = PCloudSDK()
-        sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        account = sdk.login(creds["email"], creds["password"], location_id=creds["location_id"])
+        file_ops = sdk.get_file_operations(account.account_id)
 
         # Create test file
         test_content = b"Real integration test content"
@@ -1051,14 +1059,14 @@ class TestFileOperationsIntegrationReal:
                 f.write(test_content)
 
             # Upload file
-            upload_result = sdk.file.upload(test_file, folder_id=0)
+            upload_result = file_ops.upload(test_file, folder_id=0)
             # Real API returns metadata as object, not array
             file_id = upload_result["metadata"]["fileid"]
 
             # Download file
             download_dir = os.path.join(temp_dir, "download")
             os.makedirs(download_dir)
-            success = sdk.file.download(file_id, download_dir)
+            success = file_ops.download(file_id, download_dir)
 
             assert success is True
 
@@ -1070,7 +1078,7 @@ class TestFileOperationsIntegrationReal:
             assert downloaded_content == test_content
 
             # Cleanup
-            sdk.file.delete(file_id)
+            file_ops.delete(file_id)
 
         finally:
             # Clean up local files
