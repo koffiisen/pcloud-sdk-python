@@ -22,13 +22,13 @@ The main SDK class that provides a convenient wrapper around all pCloud operatio
 
 ```python
 PCloudSDK(
-    app_key: str = "",
-    app_secret: str = "",
-    access_token: str = "",
-    location_id: int = 2,
-    auth_type: str = "direct",
-    token_manager: bool = True,
-    token_file: str = ".pcloud_credentials"
+    app_key: str 💾"",
+    app_secret: str 💾"",
+    access_token: str 💾"",
+    location_id: int 💾2,
+    auth_type: str 💾"direct",
+    token_manager: bool 💾True,
+    token_file: str 💾".pcloud_credentials"
 )
 ```
 
@@ -46,10 +46,10 @@ PCloudSDK(
 from pcloud_sdk import PCloudSDK
 
 # Default configuration (recommended)
-sdk = PCloudSDK()
+sdk 💾PCloudSDK()
 
 # Custom configuration
-sdk = PCloudSDK(
+sdk 💾PCloudSDK(
     location_id=1,  # US servers
     token_file=".my_credentials",
     auth_type="oauth2"
@@ -87,11 +87,11 @@ Login with email/password or use saved credentials.
 
 ```python
 login(
-    email: str = "",
-    password: str = "",
-    location_id: int = 2,
-    force_login: bool = False
-) -> Dict[str, Any]
+    email: str 💾"",
+    password: str 💾"",
+    location_id: int 💾2,
+    force_login: bool 💾False
+) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -106,13 +106,13 @@ login(
 **Example:**
 ```python
 # First time login
-login_info = sdk.login("user@example.com", "password")
+login_info 💾sdk.login("user@example.com", "password")
 
 # Subsequent logins (uses saved token)
-login_info = sdk.login()
+login_info 💾sdk.login()
 
 # Force new login
-login_info = sdk.login("user@example.com", "password", force_login=True)
+login_info 💾sdk.login("user@example.com", "password", force_login=True)
 ```
 
 ### `get_auth_url()`
@@ -120,7 +120,7 @@ login_info = sdk.login("user@example.com", "password", force_login=True)
 Get OAuth2 authorization URL.
 
 ```python
-get_auth_url(redirect_uri: str = "") -> str
+get_auth_url(redirect_uri: str 💾"") -🔄 str
 ```
 
 **Parameters:**
@@ -131,7 +131,7 @@ get_auth_url(redirect_uri: str = "") -> str
 
 **Example:**
 ```python
-auth_url = sdk.get_auth_url("http://localhost:8000/callback")
+auth_url 💾sdk.get_auth_url("http://localhost:8000/callback")
 print(f"Visit: {auth_url}")
 ```
 
@@ -140,7 +140,7 @@ print(f"Visit: {auth_url}")
 Exchange authorization code for access token.
 
 ```python
-authenticate(code: str, location_id: int = 2) -> Dict[str, Any]
+authenticate(code: str, location_id: int 💾2) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -152,7 +152,7 @@ authenticate(code: str, location_id: int = 2) -> Dict[str, Any]
 
 **Example:**
 ```python
-token_info = sdk.authenticate("authorization_code_from_callback")
+token_info 💾sdk.authenticate("authorization_code_from_callback")
 ```
 
 ### `set_access_token()`
@@ -160,7 +160,7 @@ token_info = sdk.authenticate("authorization_code_from_callback")
 Set access token directly.
 
 ```python
-set_access_token(access_token: str, auth_type: str = "direct")
+set_access_token(access_token: str, auth_type: str 💾"direct")
 ```
 
 **Parameters:**
@@ -172,7 +172,7 @@ set_access_token(access_token: str, auth_type: str = "direct")
 Check if SDK is authenticated.
 
 ```python
-is_authenticated() -> bool
+is_authenticated() -🔄 bool
 ```
 
 **Returns:**
@@ -201,7 +201,7 @@ clear_saved_credentials()
 Get the email from saved credentials.
 
 ```python
-get_saved_email() -> Optional[str]
+get_saved_email() -🔄 Optional[str]
 ```
 
 #### `get_credentials_info()`
@@ -209,7 +209,7 @@ get_saved_email() -> Optional[str]
 Get information about current credentials.
 
 ```python
-get_credentials_info() -> Dict[str, Any]
+get_credentials_info() -🔄 Dict[str, Any]
 ```
 
 **Returns:**
@@ -224,7 +224,7 @@ Access via `sdk.user` property.
 Get complete user information.
 
 ```python
-get_user_info() -> Dict[str, Any]
+get_user_info() -🔄 Dict[str, Any]
 ```
 
 **Returns:**
@@ -232,7 +232,7 @@ get_user_info() -> Dict[str, Any]
 
 **Example:**
 ```python
-user_info = sdk.user.get_user_info()
+user_info 💾sdk.user.get_user_info()
 print(f"Email: {user_info['email']}")
 print(f"User ID: {user_info['userid']}")
 ```
@@ -242,7 +242,7 @@ print(f"User ID: {user_info['userid']}")
 Get user ID.
 
 ```python
-get_user_id() -> int
+get_user_id() -🔄 int
 ```
 
 **Returns:**
@@ -253,7 +253,7 @@ get_user_id() -> int
 Get user email.
 
 ```python
-get_user_email() -> str
+get_user_email() -🔄 str
 ```
 
 **Returns:**
@@ -264,7 +264,7 @@ get_user_email() -> str
 Get used quota in bytes.
 
 ```python
-get_used_quota() -> int
+get_used_quota() -🔄 int
 ```
 
 **Returns:**
@@ -275,7 +275,7 @@ get_used_quota() -> int
 Get total quota in bytes.
 
 ```python
-get_quota() -> int
+get_quota() -🔄 int
 ```
 
 **Returns:**
@@ -286,7 +286,7 @@ get_quota() -> int
 Get public link quota.
 
 ```python
-get_public_link_quota() -> int
+get_public_link_quota() -🔄 int
 ```
 
 **Returns:**
@@ -302,9 +302,9 @@ Get folder metadata.
 
 ```python
 get_metadata(
-    folder_id: Optional[int] = None,
-    path: Optional[str] = None
-) -> Dict[str, Any]
+    folder_id: Optional[int] 💾None,
+    path: Optional[str] 💾None
+) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -319,7 +319,7 @@ get_metadata(
 List root folder contents.
 
 ```python
-list_root() -> Dict[str, Any]
+list_root() -🔄 Dict[str, Any]
 ```
 
 **Returns:**
@@ -327,13 +327,13 @@ list_root() -> Dict[str, Any]
 
 **Example:**
 ```python
-root = sdk.folder.list_root()
-contents = root['contents']
+root 💾sdk.folder.list_root()
+contents 💾root['contents']
 for item in contents:
     if item.get('isfolder'):
-        print(f"=� {item['name']}/")
+        print(f"ð {item['name']}/")
     else:
-        print(f"=� {item['name']} ({item['size']} bytes)")
+        print(f"ð {item['name']} ({item['size']} bytes)")
 ```
 
 ### `get_content()`
@@ -342,9 +342,9 @@ Get folder content.
 
 ```python
 get_content(
-    folder_id: Optional[int] = None,
-    path: Optional[str] = None
-) -> List[Dict[str, Any]]
+    folder_id: Optional[int] 💾None,
+    path: Optional[str] 💾None
+) -🔄 List[Dict[str, Any]]
 ```
 
 **Parameters:**
@@ -359,19 +359,19 @@ get_content(
 Create new folder.
 
 ```python
-create(name: str, parent: int = 0) -> Union[int, Dict[str, Any]]
+create(name: str, parent: int 💾0) -🔄 Union[int, Dict[str, Any]]
 ```
 
 **Parameters:**
 - `name` (str): Folder name
-- `parent` (int): Parent folder ID (0 = root)
+- `parent` (int): Parent folder ID (0 💾root)
 
 **Returns:**
 - `Union[int, Dict[str, Any]]`: Folder ID or response dict
 
 **Example:**
 ```python
-folder_id = sdk.folder.create("My New Folder", parent=0)
+folder_id 💾sdk.folder.create("My New Folder", parent=0)
 print(f"Created folder with ID: {folder_id}")
 ```
 
@@ -380,7 +380,7 @@ print(f"Created folder with ID: {folder_id}")
 Rename folder.
 
 ```python
-rename(folder_id: int, name: str) -> Union[int, Dict[str, Any]]
+rename(folder_id: int, name: str) -🔄 Union[int, Dict[str, Any]]
 ```
 
 **Parameters:**
@@ -395,7 +395,7 @@ rename(folder_id: int, name: str) -> Union[int, Dict[str, Any]]
 Move folder to another parent.
 
 ```python
-move(folder_id: int, new_parent: int) -> Union[int, Dict[str, Any]]
+move(folder_id: int, new_parent: int) -🔄 Union[int, Dict[str, Any]]
 ```
 
 **Parameters:**
@@ -410,7 +410,7 @@ move(folder_id: int, new_parent: int) -> Union[int, Dict[str, Any]]
 Delete folder.
 
 ```python
-delete(folder_id: int) -> Dict[str, Any]
+delete(folder_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -424,7 +424,7 @@ delete(folder_id: int) -> Dict[str, Any]
 Delete folder recursively.
 
 ```python
-delete_recursive(folder_id: int) -> Dict[str, Any]
+delete_recursive(folder_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -444,15 +444,15 @@ Upload file to pCloud.
 ```python
 upload(
     file_path: str,
-    folder_id: int = 0,
-    filename: Optional[str] = None,
-    progress_callback: Optional[callable] = None
-) -> Dict[str, Any]
+    folder_id: int 💾0,
+    filename: Optional[str] 💾None,
+    progress_callback: Optional[callable] 💾None
+) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
 - `file_path` (str): Local file path
-- `folder_id` (int): Destination folder ID (0 = root)
+- `folder_id` (int): Destination folder ID (0 💾root)
 - `filename` (Optional[str]): Custom filename (optional)
 - `progress_callback` (Optional[callable]): Progress callback function
 
@@ -464,12 +464,12 @@ upload(
 def progress(bytes_transferred, total_bytes, percentage, speed, **kwargs):
     print(f"Upload: {percentage:.1f}% ({speed/1024/1024:.1f} MB/s)")
 
-result = sdk.file.upload(
+result 💾sdk.file.upload(
     "/path/to/file.txt",
     folder_id=0,
     progress_callback=progress
 )
-file_id = result['metadata'][0]['fileid']
+file_id 💾result['metadata'][0]['fileid']
 ```
 
 ### `download()`
@@ -479,9 +479,9 @@ Download file from pCloud.
 ```python
 download(
     file_id: int,
-    destination: str = "",
-    progress_callback: Optional[callable] = None
-) -> bool
+    destination: str 💾"",
+    progress_callback: Optional[callable] 💾None
+) -🔄 bool
 ```
 
 **Parameters:**
@@ -494,7 +494,7 @@ download(
 
 **Example:**
 ```python
-success = sdk.file.download(
+success 💾sdk.file.download(
     file_id=123456,
     destination="./downloads/",
     progress_callback=progress
@@ -506,7 +506,7 @@ success = sdk.file.download(
 Get download link for file.
 
 ```python
-get_link(file_id: int) -> str
+get_link(file_id: int) -🔄 str
 ```
 
 **Parameters:**
@@ -520,7 +520,7 @@ get_link(file_id: int) -> str
 Get file information.
 
 ```python
-get_info(file_id: int) -> Dict[str, Any]
+get_info(file_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -534,7 +534,7 @@ get_info(file_id: int) -> Dict[str, Any]
 Rename file.
 
 ```python
-rename(file_id: int, name: str) -> Dict[str, Any]
+rename(file_id: int, name: str) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -549,7 +549,7 @@ rename(file_id: int, name: str) -> Dict[str, Any]
 Move file to another folder.
 
 ```python
-move(file_id: int, folder_id: int) -> Dict[str, Any]
+move(file_id: int, folder_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -564,7 +564,7 @@ move(file_id: int, folder_id: int) -> Dict[str, Any]
 Copy file to another folder.
 
 ```python
-copy(file_id: int, folder_id: int) -> Dict[str, Any]
+copy(file_id: int, folder_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -579,7 +579,7 @@ copy(file_id: int, folder_id: int) -> Dict[str, Any]
 Delete file.
 
 ```python
-delete(file_id: int) -> Dict[str, Any]
+delete(file_id: int) -🔄 Dict[str, Any]
 ```
 
 **Parameters:**
@@ -600,11 +600,11 @@ Create a simple progress bar.
 
 ```python
 create_progress_bar(
-    title: str = "Transfer",
-    width: int = 50,
-    show_speed: bool = True,
-    show_eta: bool = True
-) -> SimpleProgressBar
+    title: str 💾"Transfer",
+    width: int 💾50,
+    show_speed: bool 💾True,
+    show_eta: bool 💾True
+) -🔄 SimpleProgressBar
 ```
 
 **Parameters:**
@@ -618,7 +618,7 @@ create_progress_bar(
 Create detailed progress tracker with logging.
 
 ```python
-create_detailed_progress(log_file: Optional[str] = None) -> DetailedProgress
+create_detailed_progress(log_file: Optional[str] 💾None) -🔄 DetailedProgress
 ```
 
 **Parameters:**
@@ -629,7 +629,7 @@ create_detailed_progress(log_file: Optional[str] = None) -> DetailedProgress
 Create minimal progress tracker (milestones only).
 
 ```python
-create_minimal_progress() -> MinimalProgress
+create_minimal_progress() -🔄 MinimalProgress
 ```
 
 #### `create_silent_progress()`
@@ -637,7 +637,7 @@ create_minimal_progress() -> MinimalProgress
 Create silent progress tracker (CSV logging only).
 
 ```python
-create_silent_progress(log_file: str) -> SilentProgress
+create_silent_progress(log_file: str) -🔄 SilentProgress
 ```
 
 **Parameters:**
@@ -681,7 +681,7 @@ Main application configuration class.
 ```python
 from pcloud_sdk import App
 
-app = App()
+app 💾App()
 app.set_app_key("client_id")
 app.set_app_secret("client_secret")
 app.set_access_token("token")
@@ -691,11 +691,11 @@ app.set_location_id(2)
 #### Methods:
 - `set_app_key(app_key: str)`
 - `set_app_secret(app_secret: str)`
-- `set_access_token(access_token: str, auth_type: str = "oauth2")`
+- `set_access_token(access_token: str, auth_type: str 💾"oauth2")`
 - `set_location_id(location_id: Union[str, int])`
-- `get_authorize_code_url() -> str`
-- `get_token_from_code(code: str, location_id: Union[str, int]) -> Dict[str, Any]`
-- `login_with_credentials(email: str, password: str, location_id: Union[str, int] = 1) -> Dict[str, Any]`
+- `get_authorize_code_url() -🔄 str`
+- `get_token_from_code(code: str, location_id: Union[str, int]) -🔄 Dict[str, Any]`
+- `login_with_credentials(email: str, password: str, location_id: Union[str, int] 💾1) -🔄 Dict[str, Any]`
 
 ### Request Class
 
@@ -704,8 +704,8 @@ HTTP request handler.
 ```python
 from pcloud_sdk import Request
 
-request = Request(app)
-response = request.get("userinfo")
+request 💾Request(app)
+response 💾request.get("userinfo")
 ```
 
 ### Response Class
@@ -715,8 +715,8 @@ HTTP response wrapper.
 ```python
 from pcloud_sdk import Response
 
-response = Response(raw_response)
-data = response.json()
+response 💾Response(raw_response)
+data 💾response.json()
 ```
 
 ## Configuration
@@ -725,17 +725,17 @@ data = response.json()
 
 ```python
 # EU servers (default)
-sdk = PCloudSDK(location_id=2)
+sdk 💾PCloudSDK(location_id=2)
 
 # US servers
-sdk = PCloudSDK(location_id=1)
+sdk 💾PCloudSDK(location_id=1)
 ```
 
 ### Timeouts
 
 ```python
 # Set request timeout (seconds)
-app = App()
+app 💾App()
 app.set_curl_execution_timeout(1800)  # 30 minutes
 ```
 
@@ -745,7 +745,7 @@ app.set_curl_execution_timeout(1800)  # 30 minutes
 from pcloud_sdk.config import Config
 
 # Default is 10MB chunks
-Config.FILE_PART_SIZE = 5 * 1024 * 1024  # 5MB chunks
+Config.FILE_PART_SIZE 💾5 * 1024 * 1024  # 5MB chunks
 ```
 
 ## Exception Handling
@@ -758,7 +758,7 @@ Main exception class for pCloud SDK errors.
 from pcloud_sdk import PCloudException
 
 try:
-    result = sdk.file.upload("nonexistent.txt")
+    result 💾sdk.file.upload("nonexistent.txt")
 except PCloudException as e:
     print(f"pCloud error: {e}")
     print(f"Error code: {e.code}")
@@ -789,22 +789,22 @@ from pcloud_sdk import PCloudSDK, PCloudException
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
+logger 💾logging.getLogger(__name__)
 
-def safe_upload(file_path: str) -> bool:
+def safe_upload(file_path: str) -🔄 bool:
     """Upload with comprehensive error handling"""
     try:
-        sdk = PCloudSDK()
+        sdk 💾PCloudSDK()
         sdk.login()  # May raise authentication error
         
-        result = sdk.file.upload(file_path)
+        result 💾sdk.file.upload(file_path)
         logger.info(f"Upload successful: {file_path}")
         return True
         
     except PCloudException as e:
-        if e.code == 1000:
+        if e.code =💾1000:
             logger.error("Authentication failed - check credentials")
-        elif e.code == 2000:
+        elif e.code =💾2000:
             logger.error(f"File not found: {file_path}")
         else:
             logger.error(f"pCloud error {e.code}: {e}")
@@ -826,7 +826,7 @@ The pCloud API has rate limits. The SDK includes automatic retry logic for rate-
 ```python
 # Automatic retry with exponential backoff
 # No additional configuration needed
-result = sdk.file.upload("large_file.zip")
+result 💾sdk.file.upload("large_file.zip")
 ```
 
 ## Thread Safety
@@ -839,14 +839,14 @@ from pcloud_sdk import PCloudSDK
 
 def worker_thread(file_path: str):
     # Create separate SDK instance per thread
-    sdk = PCloudSDK()
+    sdk 💾PCloudSDK()
     sdk.login("user@example.com", "password")
     sdk.file.upload(file_path)
 
 # Start multiple threads
-threads = []
+threads 💾[]
 for file_path in file_list:
-    thread = threading.Thread(target=worker_thread, args=(file_path,))
+    thread 💾threading.Thread(target=worker_thread, args=(file_path,))
     threads.append(thread)
     thread.start()
 

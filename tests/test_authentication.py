@@ -7,7 +7,7 @@ import json
 import os
 import tempfile
 import time
-from unittest.mock import Mock, mock_open, patch
+from unittest.mock import Mock, patch
 
 import pytest
 import requests
@@ -18,16 +18,10 @@ from pcloud_sdk.app import App
 from pcloud_sdk.exceptions import PCloudException
 
 from .test_config import (
-    PCLOUD_ACCESS_TOKEN,
     PCLOUD_CLIENT_ID,
     PCLOUD_CLIENT_SECRET,
-    PCLOUD_EMAIL,
-    PCLOUD_LOCATION_ID,
-    PCLOUD_PASSWORD,
     get_oauth2_credentials,
     get_test_credentials,
-    has_oauth2_credentials,
-    has_real_credentials,
     requires_oauth2_credentials,
     requires_real_credentials,
     safe_cleanup_temp_dir,
@@ -365,7 +359,8 @@ class TestTokenManagement:
 
     def test_load_expired_credentials_custom_staleness(self):
         """Test loading old/expired credentials with custom staleness periods"""
-        # Scenario 1: token_staleness_days = 0 (always stale unless saved_at is future/now)
+        # Scenario 1: token_staleness_days = 0 (always stale unless saved_at is
+        # future/now)
         very_recent_time = time.time() - 1  # 1 second ago
         credentials_almost_now = {
             "email": "stale@example.com",
@@ -388,7 +383,8 @@ class TestTokenManagement:
         assert sdk_staleness_zero.app.get_access_token() == ""
         safe_remove_file(self.token_file)  # Clean up for next scenario
 
-        # Scenario 2: token_staleness_days = 1, token saved 2 days ago (should be stale)
+        # Scenario 2: token_staleness_days = 1, token saved 2 days ago
+        # (should be stale)
         two_days_ago = time.time() - (2 * 24 * 3600)
         credentials_two_days_old = {
             "email": "stale@example.com",
@@ -411,7 +407,8 @@ class TestTokenManagement:
         assert sdk_staleness_one_day.app.get_access_token() == ""
         safe_remove_file(self.token_file)
 
-        # Scenario 3: token_staleness_days = 60, token saved 31 days ago (should be valid)
+        # Scenario 3: token_staleness_days = 60, token saved 31 days ago
+        # (should be valid)
         thirty_one_days_ago = time.time() - (31 * 24 * 3600)
         credentials_thirty_one_days_old = {
             "email": "valid@example.com",
@@ -658,7 +655,7 @@ class TestSDKAuthentication:
         # Mock userinfo again for the _save_credentials part
         responses.add(
             responses.GET,
-            "https://eapi.pcloud.com/userinfo",  # This is the endpoint for get_user_info
+            "https://eapi.pcloud.com/userinfo",  # get_user_info endpoint
             json={
                 "result": 0,
                 "email": "test@example.com",

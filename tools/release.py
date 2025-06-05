@@ -5,12 +5,13 @@ Release tool for pCloud SDK Python
 Automates version bumping, building, and publishing to PyPI
 """
 
-import json
+# json import removed - not used
 import re
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
+
+# Optional import removed - not used
 
 
 def run_command(cmd: str, description: str) -> bool:

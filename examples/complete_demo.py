@@ -27,7 +27,7 @@ from pcloud_sdk.progress_utils import create_detailed_progress, create_progress_
 
 def create_test_file(filename: str, size_mb: int = 5) -> str:
     """Create a test file for upload demonstration"""
-    content = f"This is a test file created by pCloud SDK demo.\n" * (
+    content = "This is a test file created by pCloud SDK demo.\n" * (
         size_mb * 1024 * 20
     )
 
@@ -83,7 +83,8 @@ class PCloudDemo:
                 # Test the existing token by fetching user info
                 user_info = self.sdk.user.get_user_info()
                 print(
-                    f"✅ Successfully authenticated using saved credentials as: {user_info.get('email')}"
+                    f"✅ Successfully authenticated using saved credentials as: "
+                    f"{user_info.get('email')}"
                 )
                 return True
             except (
@@ -92,7 +93,8 @@ class PCloudDemo:
                 print(f"⚠️ Saved credentials might be invalid or expired: {e}")
             except Exception as e:  # Catch any other unexpected errors during the test
                 print(
-                    f"⚠️ An unexpected error occurred while using saved credentials: {e}"
+                    f"⚠️ An unexpected error occurred while using saved "
+                    f"credentials: {e}"
                 )
 
         # Need fresh authentication
@@ -147,7 +149,7 @@ class PCloudDemo:
             redirect_uri = "http://localhost:8080/callback"  # Example redirect URI
             auth_url = self.sdk.get_auth_url(redirect_uri)
 
-            print(f"🔗 Please visit this URL to authorize the app:")
+            print("🔗 Please visit this URL to authorize the app:")
             print(auth_url)
             print()
 
@@ -161,9 +163,9 @@ class PCloudDemo:
                 return False
 
             print("🔄 Exchanging code for token...")
-            token_info = self.sdk.authenticate(code)
+            self.sdk.authenticate(code)
 
-            print(f"✅ OAuth2 authentication successful!")
+            print("✅ OAuth2 authentication successful!")
             return True
 
         except PCloudException as e:
@@ -384,7 +386,7 @@ class PCloudDemo:
             print("✅ File renamed successfully")
 
             # Copy file
-            print(f"\n📋 Copying file...")
+            print("\n📋 Copying file...")
             copy_result = self.sdk.file.copy(file_id, folder_id=self.demo_folder_id)
             copied_file_id = copy_result["metadata"]["fileid"]
             print(f"✅ File copied successfully (new ID: {copied_file_id})")
@@ -396,12 +398,12 @@ class PCloudDemo:
             )
 
             if subfolder:
-                print(f"\n📦 Moving copied file to subfolder...")
+                print("\n📦 Moving copied file to subfolder...")
                 self.sdk.file.move(copied_file_id, folder_id=subfolder["folderid"])
                 print("✅ File moved successfully")
 
             # Delete the copied file
-            print(f"\n🗑️ Deleting copied file...")
+            print("\n🗑️ Deleting copied file...")
             self.sdk.file.delete(copied_file_id)
             print("✅ File deleted successfully")
 

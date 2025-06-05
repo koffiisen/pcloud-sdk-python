@@ -11,7 +11,7 @@ from pcloud_sdk.exceptions import PCloudException
 class App:
     """Main App class for pCloud SDK"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.app_key = ""
         self.app_secret = ""
         self.redirect_uri = ""
@@ -20,7 +20,7 @@ class App:
         self.curl_exec_timeout = 3600
         self.auth_type = "oauth2"  # "oauth2" ou "direct"
 
-    def set_app_key(self, app_key: str):
+    def set_app_key(self, app_key: str) -> None:
         """Set App key (Client ID)"""
         self.app_key = app_key.strip()
 
@@ -28,7 +28,7 @@ class App:
         """Get App key"""
         return self.app_key
 
-    def set_app_secret(self, app_secret: str):
+    def set_app_secret(self, app_secret: str) -> None:
         """Set App secret (Client secret)"""
         self.app_secret = app_secret.strip()
 
@@ -36,7 +36,7 @@ class App:
         """Get App secret"""
         return self.app_secret
 
-    def set_redirect_uri(self, redirect_uri: str):
+    def set_redirect_uri(self, redirect_uri: str) -> None:
         """Set redirect URI"""
         self.redirect_uri = redirect_uri.strip()
 
@@ -44,7 +44,7 @@ class App:
         """Get redirect URI"""
         return self.redirect_uri
 
-    def set_access_token(self, access_token: str, auth_type: str = "oauth2"):
+    def set_access_token(self, access_token: str, auth_type: str = "oauth2") -> None:
         """Set access token and authentication type"""
         self.access_token = access_token.strip()
         self.auth_type = auth_type
@@ -57,7 +57,7 @@ class App:
         """Get authentication type"""
         return self.auth_type
 
-    def set_location_id(self, location_id: Union[str, int]):
+    def set_location_id(self, location_id: Union[str, int]) -> None:
         """Set location ID"""
         self.location_id = int(location_id)
 
@@ -65,7 +65,7 @@ class App:
         """Get location ID"""
         return self.location_id
 
-    def set_curl_execution_timeout(self, timeout: int):
+    def set_curl_execution_timeout(self, timeout: int) -> None:
         """Set cURL execution timeout"""
         self.curl_exec_timeout = abs(timeout)
 
@@ -194,7 +194,8 @@ class App:
                     "rate" in error_message.lower() or "limit" in error_message.lower()
                 ):
                     raise PCloudException(
-                        "Too many login attempts. Please wait a few minutes and try again."
+                        "Too many login attempts. Please wait a few minutes and "
+                        "try again."
                     )
                 elif "account" in error_message.lower():
                     raise PCloudException(
@@ -204,7 +205,9 @@ class App:
                     # For unknown errors, suggest trying the other server
                     other_server = "EU" if location_id == 1 else "US"
                     raise PCloudException(
-                        f"Login failed: {error_message}. Try using location_id={2 if location_id == 1 else 1} for {other_server} server."
+                        f"Login failed: {error_message}. Try using "
+                        f"location_id={2 if location_id == 1 else 1} for "
+                        f"{other_server} server."
                     )
 
         except requests.exceptions.Timeout:
@@ -214,14 +217,16 @@ class App:
         except requests.exceptions.ConnectionError:
             other_server = "EU" if location_id == 1 else "US"
             raise PCloudException(
-                f"Cannot connect to pCloud servers. Try location_id={2 if location_id == 1 else 1} for {other_server} server."
+                f"Cannot connect to pCloud servers. Try "
+                f"location_id={2 if location_id == 1 else 1} for "
+                f"{other_server} server."
             )
         except requests.exceptions.RequestException as e:
             raise PCloudException(f"Network error during login: {str(e)}")
         except json.JSONDecodeError:
             raise PCloudException("Invalid JSON response from server")
 
-    def _validate_params(self, keys: List[str]):
+    def _validate_params(self, keys: List[str]) -> None:
         """Validate required parameters"""
         for key in keys:
             value = getattr(self, key, None)

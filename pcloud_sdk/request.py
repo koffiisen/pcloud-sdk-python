@@ -1,5 +1,5 @@
 import time
-from typing import Any, Dict, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 from urllib.parse import urlencode
 
 import requests
@@ -12,6 +12,9 @@ from pcloud_sdk.response import Response
 # Désactiver les warnings SSL de façon propre
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
+if TYPE_CHECKING:
+    from .app import App  # Assuming App is in pcloud_sdk.app
+
 
 class HttpClient:
     """HTTP client with retry logic"""
@@ -21,7 +24,7 @@ class HttpClient:
         self.timeout = timeout
         self.session.headers.update({"User-Agent": "pCloud Python SDK"})
 
-    def request(self, method: str, url: str, **kwargs) -> Response:
+    def request(self, method: str, url: str, **kwargs: Any) -> Response:
         """Execute HTTP request with retry logic"""
         kwargs.setdefault("timeout", self.timeout)
         kwargs.setdefault(

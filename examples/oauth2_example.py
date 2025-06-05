@@ -3,8 +3,10 @@
 pCloud SDK OAuth2 Authentication Example
 ========================================
 
-This example demonstrates how to implement OAuth2 authentication flow with the pCloud SDK.
-OAuth2 is the recommended authentication method for production applications as it doesn't
+This example demonstrates how to implement OAuth2 authentication flow with the
+pCloud SDK.
+OAuth2 is the recommended authentication method for production applications as it
+doesn't
 require storing user passwords.
 
 Prerequisites:
@@ -332,7 +334,7 @@ def reuse_saved_token_example():
 
         # Test API call
         user_info = sdk.user.get_user_info()
-        print(f"✅ Token still valid")
+        print("✅ Token still valid")
         print(f"👤 User: {user_info.get('email')}")
 
     except FileNotFoundError:

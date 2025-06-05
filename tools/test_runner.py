@@ -4,10 +4,11 @@ Test runner for pCloud SDK Python
 Runs unit tests, integration tests, and generates coverage reports
 """
 
-import os
+# os import removed - not used
 import subprocess
 import sys
-from pathlib import Path
+
+# Path import removed - not used
 
 
 def run_command(cmd: list, description: str) -> bool:

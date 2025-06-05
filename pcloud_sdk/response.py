@@ -13,7 +13,7 @@ class Response:
         self.content_type = content_type
         self._parse_json()
 
-    def _parse_json(self):
+    def _parse_json(self) -> None:
         """Parse JSON response if content type is JSON"""
         if (
             isinstance(self.response_data, str)
@@ -35,7 +35,15 @@ class Response:
             else:
                 raise PCloudException(self.response_data.get("error", "Unknown error"))
 
-        return self.response_data
+        # If self.response_data is not a dict, and status_code was 200,
+        # it means it's likely a non-JSON response (e.g. file download) or
+        # malformed JSON.
+        # The original code `return self.response_data` would violate Dict[str, Any].
+        # So, we should raise an exception if this method is called expecting a Dict.
+        raise PCloudException(
+            f"Response data is not a dictionary, but a dictionary was "
+            f"expected. Type: {type(self.response_data).__name__}"
+        )
 
     def _parse_response(self) -> Dict[str, Any]:
         """Parse response data, excluding 'result' field"""

@@ -38,10 +38,11 @@ dev = [
     "pytest>=6.0",
     "pytest-cov>=2.10",
     "black>=21.0",
-    "flake8>=3.8",
-    "mypy>=0.900",
     "isort>=5.0",
     "pre-commit>=2.15",
+    "mkdocs>=1.5.0",
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.20.0",
 ]
 test = [
     "pytest>=6.0",
@@ -50,11 +51,11 @@ test = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/pcloud/pcloud-sdk-python"
+Homepage = "https://github.com/koffiisen/pcloud-sdk-python"
 Documentation = "https://pcloud-sdk-python.readthedocs.io/"
-Repository = "https://github.com/pcloud/pcloud-sdk-python.git"
-"Bug Tracker" = "https://github.com/pcloud/pcloud-sdk-python/issues"
-Changelog = "https://github.com/pcloud/pcloud-sdk-python/blob/main/CHANGELOG.md"
+Repository = "https://github.com/koffiisen/pcloud-sdk-python.git"
+"Bug Tracker" = "https://github.com/koffiisen/pcloud-sdk-python/issues"
+Changelog = "https://github.com/koffiisen/pcloud-sdk-python/blob/main/CHANGELOG.md"
 
 [project.scripts]
 pcloud-sdk = "pcloud_sdk.cli:main"
@@ -89,38 +90,6 @@ multi_line_output = 3
 line_length = 88
 known_first_party = ["pcloud_sdk"]
 
-[tool.flake8]
-max-line-length = 88
-extend-ignore = ["E203", "W503"]
-exclude = [
-    ".git",
-    "__pycache__",
-    ".venv",
-    "build",
-    "dist",
-    "*.egg-info",
-]
-
-[tool.mypy]
-python_version = "3.7"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-disallow_untyped_defs = false
-disallow_incomplete_defs = false
-disallow_untyped_decorators = false
 
 [tool.pytest.ini_options]
 minversion = "6.0"

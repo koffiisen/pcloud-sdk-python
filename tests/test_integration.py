@@ -1,6 +1,7 @@
 """
 Comprehensive integration tests for pCloud SDK
-End-to-end workflow tests, real API interactions, performance benchmarks, and CLI testing
+End-to-end workflow tests, real API interactions, performance benchmarks,
+and CLI testing
 """
 
 import os
@@ -8,8 +9,6 @@ import subprocess
 import sys
 import tempfile
 import time
-from pathlib import Path
-from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -19,22 +18,11 @@ from pcloud_sdk import PCloudSDK
 from pcloud_sdk.exceptions import PCloudException
 
 from .test_config import (
-    PCLOUD_ACCESS_TOKEN,
-    PCLOUD_CLIENT_ID,
-    PCLOUD_CLIENT_SECRET,
-    PCLOUD_EMAIL,
-    PCLOUD_LOCATION_ID,
-    PCLOUD_PASSWORD,
-    PCLOUD_TEST_FOLDER_NAME,
     get_oauth2_credentials,
     get_test_credentials,
-    has_oauth2_credentials,
-    has_real_credentials,
     requires_oauth2_credentials,
     requires_real_credentials,
     safe_cleanup_temp_dir,
-    safe_remove_directory,
-    safe_remove_file,
     skip_if_no_integration_tests,
 )
 
@@ -53,7 +41,7 @@ class TestEndToEndWorkflows:
 
     @responses.activate
     def test_complete_file_management_workflow(self):
-        """Test complete file management workflow: login -> upload -> download -> delete"""
+        """Test complete file management workflow"""
         # Mock login
         responses.add(
             responses.GET,
@@ -824,7 +812,7 @@ class TestPerformanceBenchmarks:
 
         # Initialize SDK multiple times
         for i in range(100):
-            sdk = PCloudSDK(token_file=f"{self.token_file}_{i}")
+            PCloudSDK(token_file=f"{self.token_file}_{i}")
 
         end_time = time.time()
         elapsed = end_time - start_time
@@ -832,7 +820,8 @@ class TestPerformanceBenchmarks:
         # Should be fast (under 1 second for 100 initializations)
         assert elapsed < 1.0
         print(
-            f"SDK initialization: {elapsed:.3f}s for 100 instances ({elapsed*10:.1f}ms per instance)"
+            f"SDK initialization: {elapsed:.3f}s for 100 instances "
+            f"({elapsed*10:.1f}ms per instance)"
         )
 
     @pytest.mark.performance
@@ -907,7 +896,6 @@ class TestPerformanceBenchmarks:
     def test_memory_usage_pattern(self):
         """Test memory usage patterns during operations"""
         import gc
-        import sys
 
         # Force garbage collection
         gc.collect()
@@ -1003,8 +991,6 @@ class TestCLIIntegration:
 
     def test_cli_configuration(self):
         """Test CLI configuration handling"""
-        config_file = os.path.join(self.temp_dir, "cli_config.json")
-
         # This test would verify CLI can handle configuration files
         # Implementation depends on actual CLI design
         pytest.skip("CLI configuration tests require actual CLI implementation")

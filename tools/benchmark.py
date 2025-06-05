@@ -108,7 +108,7 @@ class PCloudBenchmark:
     def setup(self) -> bool:
         """Initialize pCloud connection"""
         try:
-            print(f"🔐 Connecting to pCloud...")
+            print("🔐 Connecting to pCloud...")
             self.sdk = PCloudSDK(token_manager=False)  # Avoid cache for clean tests
             login_info = self.sdk.login(self.email, self.password, self.location_id)
 
@@ -136,7 +136,7 @@ class PCloudBenchmark:
 
         test_files = []
 
-        print(f"📝 Creating test files...")
+        print("📝 Creating test files...")
 
         for size_bytes, size_name in file_sizes:
             # Create file content

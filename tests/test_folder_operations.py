@@ -5,7 +5,6 @@ Tests folder creation, deletion, navigation, listing, and error scenarios
 
 import os
 import tempfile
-from unittest.mock import Mock, patch
 
 import pytest
 import responses
@@ -20,9 +19,10 @@ from .test_config import (
     get_test_credentials,
     requires_real_credentials,
     safe_cleanup_temp_dir,
-    safe_remove_file,
     skip_if_no_integration_tests,
 )
+
+# Mock imports removed - not used in this file
 
 
 class TestFolderCreation:
@@ -1162,7 +1162,7 @@ class TestFolderOperationsIntegrationReal:
             # Cleanup on error
             try:
                 sdk.folder.delete_recursive(folder_id)
-            except:
+            except Exception:
                 pass
             raise e
 
@@ -1197,5 +1197,5 @@ class TestFolderOperationsIntegrationReal:
             for folder_id in reversed(folder_ids):
                 try:
                     sdk.folder.delete(folder_id)
-                except:
+                except Exception:
                     pass

@@ -8,6 +8,7 @@ import argparse
 import json
 import sys
 from pathlib import Path
+from typing import Any
 
 try:
     from pcloud_sdk import PCloudException, PCloudSDK
@@ -20,7 +21,7 @@ except ImportError:
 class PCloudCLI:
     """CLI Interface for pCloud SDK"""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.sdk = None
         self.config_file = Path.home() / ".pcloud_cli_config"
 
@@ -34,7 +35,7 @@ class PCloudCLI:
                 pass
         return {}
 
-    def save_config(self, config: dict):
+    def save_config(self, config: dict) -> None:
         """Save CLI configuration"""
         try:
             with open(self.config_file, "w") as f:
@@ -42,7 +43,7 @@ class PCloudCLI:
         except Exception as e:
             print(f"⚠️ Unable to save config: {e}")
 
-    def setup_sdk(self, args) -> bool:
+    def setup_sdk(self, args: Any) -> bool:
         """Initialize SDK with arguments"""
         try:
             # Load existing config
@@ -81,7 +82,7 @@ class PCloudCLI:
                     print("❌ Password required")
                     return False
 
-                print(f"🔐 Connecting to pCloud...")
+                print("🔐 Connecting to pCloud...")
                 login_info = self.sdk.login(email, password, location_id)
                 print(f"✅ Connected: {login_info['email']}")
 
@@ -103,7 +104,7 @@ class PCloudCLI:
             print(f"❌ Error: {e}")
             return False
 
-    def cmd_login(self, args):
+    def cmd_login(self, args: Any) -> int:
         """Login command"""
         if not args.email:
             print("❌ Email required: pcloud-sdk login --email your@email.com")
@@ -114,7 +115,7 @@ class PCloudCLI:
             return 0
         return 1
 
-    def cmd_logout(self, args):
+    def cmd_logout(self, args: Any) -> int:
         """Logout command"""
         try:
             sdk = PCloudSDK(token_manager=True)
@@ -130,7 +131,7 @@ class PCloudCLI:
             print(f"❌ Error: {e}")
             return 1
 
-    def cmd_info(self, args):
+    def cmd_info(self, args: Any) -> int:
         """Display account information"""
         if not self.setup_sdk(args):
             return 1
@@ -144,10 +145,12 @@ class PCloudCLI:
             print(f"   📧 Email: {user_info.get('email', 'Unknown')}")
             print(f"   🆔 User ID: {user_info.get('userid', 'Unknown')}")
             print(
-                f"   💾 Quota used: {used_quota:,} bytes ({used_quota / (1024 ** 3):.2f} GB)"
+                f"   💾 Quota used: {used_quota:,} bytes "
+                f"({used_quota / (1024 ** 3):.2f} GB)"
             )
             print(
-                f"   📦 Total quota: {total_quota:,} bytes ({total_quota / (1024 ** 3):.2f} GB)"
+                f"   📦 Total quota: {total_quota:,} bytes "
+                f"({total_quota / (1024 ** 3):.2f} GB)"
             )
             print(
                 f"   🆓 Free space: {(total_quota - used_quota) / (1024 ** 3):.2f} GB"
@@ -158,7 +161,7 @@ class PCloudCLI:
             print(f"❌ Error: {e}")
             return 1
 
-    def cmd_list(self, args):
+    def cmd_list(self, args: Any) -> int:
         """List folder contents"""
         if not self.setup_sdk(args):
             return 1
@@ -185,7 +188,8 @@ class PCloudCLI:
                 else:
                     size = item.get("size", 0)
                     print(
-                        f"   {icon} {name} ({size:,} bytes, ID: {item.get('fileid', 'Unknown')})"
+                        f"   {icon} {name} ({size:,} bytes, "
+                        f"ID: {item.get('fileid', 'Unknown')})"
                     )
 
             return 0
@@ -193,7 +197,7 @@ class PCloudCLI:
             print(f"❌ Error: {e}")
             return 1
 
-    def cmd_upload(self, args):
+    def cmd_upload(self, args: Any) -> int:
         """Upload a file"""
         if not self.setup_sdk(args):
             return 1
@@ -228,7 +232,7 @@ class PCloudCLI:
             if "metadata" in result:
                 file_id = result["metadata"]["fileid"]
                 file_size = result["metadata"]["size"]
-                print(f"✅ Upload réussi!")
+                print("✅ Upload réussi!")
                 print(f"   🆔 File ID: {file_id}")
                 print(f"   📏 Taille: {file_size:,} bytes")
                 return 0
@@ -240,7 +244,7 @@ class PCloudCLI:
             print(f"❌ Erreur upload: {e}")
             return 1
 
-    def cmd_download(self, args):
+    def cmd_download(self, args: Any) -> int:
         """Download a file"""
         if not self.setup_sdk(args):
             return 1
@@ -277,7 +281,7 @@ class PCloudCLI:
             print(f"❌ Erreur download: {e}")
             return 1
 
-    def cmd_delete(self, args):
+    def cmd_delete(self, args: Any) -> int:
         """Delete a file or folder"""
         if not self.setup_sdk(args):
             return 1
@@ -288,10 +292,10 @@ class PCloudCLI:
 
         try:
             if args.file_id:
-                result = self.sdk.file.delete(args.file_id)
+                self.sdk.file.delete(args.file_id)
                 print(f"✅ Fichier {args.file_id} supprimé")
             else:
-                result = self.sdk.folder.delete(args.folder_id)
+                self.sdk.folder.delete(args.folder_id)
                 print(f"✅ Dossier {args.folder_id} supprimé")
 
             return 0
@@ -300,7 +304,7 @@ class PCloudCLI:
             return 1
 
 
-def main():
+def main() -> None:
     """Point d'entrée principal du CLI"""
     parser = argparse.ArgumentParser(
         description="pCloud SDK Python CLI v1.0",

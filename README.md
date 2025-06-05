@@ -2,8 +2,8 @@
 
 [![PyPI version](https://badge.fury.io/py/pcloud-sdk.svg)](https://badge.fury.io/py/pcloud-sdk)
 [![Python versions](https://img.shields.io/pypi/pyversions/pcloud-sdk.svg)](https://pypi.org/project/pcloud-sdk/)
-[![Tests](https://github.com/pcloud/pcloud-sdk-python/workflows/Tests/badge.svg)](https://github.com/pcloud/pcloud-sdk-python/actions)
-[![Coverage](https://codecov.io/gh/pcloud/pcloud-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/pcloud/pcloud-sdk-python)
+[![Tests](https://github.com/koffiisen/pcloud-sdk-python/workflows/Tests/badge.svg)](https://github.com/koffiisen/pcloud-sdk-python/actions)
+[![Coverage](https://codecov.io/gh/koffiisen/pcloud-sdk-python/branch/main/graph/badge.svg)](https://codecov.io/gh/koffiisen/pcloud-sdk-python)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern Python SDK for the pCloud API with automatic token management and real-time progress tracking.
@@ -450,9 +450,9 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - [PyPI Package](https://pypi.org/project/pcloud-sdk/)
 - [Documentation](https://pcloud-sdk-python.readthedocs.io/)
-- [GitHub Repository](https://github.com/pcloud/pcloud-sdk-python)
+- [GitHub Repository](https://github.com/koffiisen/pcloud-sdk-python)
 - [pCloud API Documentation](https://docs.pcloud.com/)
-- [Issue Tracker](https://github.com/pcloud/pcloud-sdk-python/issues)
+- [Issue Tracker](https://github.com/koffiisen/pcloud-sdk-python/issues)
 
 ## ✨ Features
 
