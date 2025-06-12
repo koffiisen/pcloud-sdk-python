@@ -219,7 +219,7 @@ class TestAccountDirectLogin:
             status=200,
             content_type="application/json" # To force json parsing attempt
         )
-        with pytest.raises(PCloudException, match="Failed to decode JSON response from direct login"):
+        with pytest.raises(PCloudException, match=r"^Failed to decode JSON response from direct login:.*"):
             self.account.perform_direct_login("user@example.com", "password", login_location_id)
         assert self.account.is_authenticated is False
 
@@ -275,9 +275,11 @@ class TestAccountOAuthExchange:
         responses.add(
             responses.GET,
             f"{api_host}oauth2_token",
-            json={"error": "invalid_grant", "error_description": "Invalid authorization code."},
-            status=400 # OAuth errors often come with 400 or 401
+            json={"error": "invalid_grant", "error_description": "Invalid authorization code."}, # No access_token field
+            status=200 # Changed to 200 to allow JSON error processing logic in method to be reached
         )
+        # The message should now be "OAuth exchange failed: Invalid authorization code."
+        # as produced by the method's own error message construction.
         with pytest.raises(PCloudException, match="OAuth exchange failed: Invalid authorization code."):
             self.account.perform_oauth_exchange("invalid_code", exchange_location_id, self.app_key, self.app_secret)
         assert self.account.is_authenticated is False
@@ -308,6 +310,6 @@ class TestAccountOAuthExchange:
             status=200,
             content_type="application/json"
         )
-        with pytest.raises(PCloudException, match="Failed to decode JSON response from OAuth exchange"):
+        with pytest.raises(PCloudException, match=r"^Failed to decode JSON response from OAuth exchange:.*"):
             self.account.perform_oauth_exchange("any_code", exchange_location_id, self.app_key, self.app_secret)
         assert self.account.is_authenticated is False

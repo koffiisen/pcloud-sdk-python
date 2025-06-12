@@ -33,18 +33,6 @@ class TestFolderCreation:
         self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
         self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
         self.folder_ops = Folder(self.mock_account)
-        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
-        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
-        self.folder_ops = Folder(self.mock_account)
-        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
-        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
-        self.folder_ops = Folder(self.mock_account)
-        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
-        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
-        self.folder_ops = Folder(self.mock_account)
-        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
-        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
-        self.folder_ops = Folder(self.mock_account)
 
     @responses.activate
     def test_create_folder_in_root(self):
@@ -153,10 +141,18 @@ class TestFolderListing:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.folder_ops = Folder(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
 
     @responses.activate
     def test_list_root_folder(self):
@@ -390,10 +386,15 @@ class TestFolderManipulation:
 
     def setup_method(self):
         """Setup for each test"""
-        self.app = App()
-        self.app.set_location_id(2)  # Use EU server to match test mocks
-        self.app.set_access_token("test_token", "direct")
-        self.folder_ops = Folder(self.app)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
+        self.mock_account = Account(account_id="test_user@example.com", email="test_user@example.com")
+        self.mock_account.set_credentials(access_token="test_token", location_id=2, auth_type="direct") # EU server
+        self.folder_ops = Folder(self.mock_account)
 
     @responses.activate
     def test_rename_folder(self):

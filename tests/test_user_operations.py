@@ -5,6 +5,7 @@ focusing on on-demand userinfo fetching and caching.
 
 import pytest
 import responses
+import requests # Added import
 
 from pcloud_sdk.account import Account
 from pcloud_sdk.user_operations import User
