@@ -1,6 +1,7 @@
 import os
 import time
 from typing import Any, Callable, Dict, Optional
+from urllib.parse import unquote
 
 import requests
 
@@ -54,7 +55,7 @@ class File:
             os.makedirs(destination)
 
         # Extract filename from URL
-        filename = file_link.split("/")[-1]
+        filename = unquote(file_link.split("/")[-1])
         file_path = destination + filename
 
         # Download file in chunks
