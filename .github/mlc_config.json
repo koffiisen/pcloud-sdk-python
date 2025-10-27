@@ -1,23 +1,21 @@
 {
   "ignorePatterns": [
-    {
-      "pattern": "^mailto:"
-    },
-    {
-      "pattern": "^#"
-    },
-    {
-      "pattern": "^https://localhost"
-    },
-    {
-      "pattern": "^http://127\\.0\\.0\\.1"
-    },
-    {
-      "pattern": "^https://pcloud\\.com"
-    }
+    { "pattern": "^mailto:" },
+    { "pattern": "^#" },
+    { "pattern": "^https://localhost" },
+    { "pattern": "^http://127\\.0\\.0\\.1" },
+    { "pattern": "^https://pcloud\\.com" },
+    { "pattern": "^https://docs\\.pcloud\\.com" },
+    { "pattern": "^https://www\\.python\\.org/downloads/" },
+    { "pattern": "^https://badge\\.fury\\.io/" },
+    { "pattern": "^https://img\\.shields\\.io/" },
+    { "pattern": "^https://codecov\\.io/" },
+    { "pattern": "^https://pypi\\.org/" },
+    { "pattern": "^https://opensource\\.org/" },
+    { "pattern": "^https://github\\.com/koffiisen/pcloud-sdk-python" }
   ],
   "httpHeaders": [],
-  "timeout": "10",
-  "retryCount": 2,
+  "timeout": "30",
+  "retryCount": 4,
   "useHEAD": false
 }
