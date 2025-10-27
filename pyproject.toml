@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pcloud-sdk-python"
-version = "1.0.1"
+dynamic = ["version"]
 description = "Modern Python SDK for pCloud API with automatic token management and progress tracking"
 authors = [
     {name = "pCloud SDK Contributors (Koffi joel)", email = "jolli644@gmail.com"},
@@ -89,6 +89,12 @@ profile = "black"
 multi_line_output = 3
 line_length = 88
 known_first_party = ["pcloud_sdk"]
+
+[tool.setuptools_scm]
+# Generate version from Git tags (e.g., v1.2.3)
+write_to = "pcloud_sdk/_version.py"
+version_scheme = "guess-next-dev"
+local_scheme = "no-local-version"
 
 
 [tool.pytest.ini_options]
